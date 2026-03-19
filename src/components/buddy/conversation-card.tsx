@@ -12,6 +12,7 @@ interface ConversationCardProps {
   conversation: Conversation
   onClick: () => void
   isBackfilling?: boolean
+  fallbackTitle?: string
 }
 
 const moodBorderClass = (emoji?: string) => {
@@ -23,7 +24,12 @@ const moodBorderClass = (emoji?: string) => {
   return "border-l-slate-200"
 }
 
-export function ConversationCard({ conversation, onClick, isBackfilling = false }: ConversationCardProps) {
+export function ConversationCard({
+  conversation,
+  onClick,
+  isBackfilling = false,
+  fallbackTitle,
+}: ConversationCardProps) {
   const { t } = useTranslation()
   const getDateLabel = (timestamp: string): string => {
     try {
@@ -53,7 +59,7 @@ export function ConversationCard({ conversation, onClick, isBackfilling = false 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-slate-900 line-clamp-1">
-                  {conversation.title || t("buddy.chat")}
+                  {conversation.title || fallbackTitle || t("buddy.chat")}
                 </h3>
                 {conversation.isActive && (
                   <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-700">
@@ -65,9 +71,14 @@ export function ConversationCard({ conversation, onClick, isBackfilling = false 
                 )}
               </div>
 
-              {conversation.summary && (
+              {conversation.summary ? (
                 <p className="text-sm text-slate-600 mt-2 line-clamp-2">
                   {conversation.summary}
+                </p>
+              ) : (
+                <p className="mt-2 inline-flex items-center gap-1 text-sm text-slate-500">
+                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500" />
+                  Zusammenfassung wird erstellt...
                 </p>
               )}
 

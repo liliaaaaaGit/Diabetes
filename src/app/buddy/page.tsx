@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AppShell } from "@/components/shared/app-shell"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InputComposer } from "@/components/buddy/input-composer"
 import { ChatContainer } from "@/components/buddy/chat-container"
 import { ConversationList } from "@/components/buddy/conversation-list"
@@ -15,7 +14,14 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
 import { useChat } from "@/hooks/useChat"
 import { useConversations } from "@/hooks/useConversations"
-import { createConversation, endConversation, updateConversationSummary, createEntry, getConversation } from "@/lib/db"
+import {
+  createConversation,
+  endConversation,
+  updateConversationSummary,
+  createEntry,
+  getConversation,
+  cleanupEmptyConversations,
+} from "@/lib/db"
 import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { Conversation, ExtractedEntry, Message, NewEntry } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -65,7 +71,6 @@ export default function BuddyPage() {
   const [pendingStarterMessage, setPendingStarterMessage] = useState<string | null>(null)
 
   const activeConversationIdRef = useRef<string | undefined>(undefined)
-  const activeMessagesRef = useRef<Message[]>([])
   const endingRef = useRef(false)
   const backfilledRef = useRef<Set<string>>(new Set())
 
@@ -170,45 +175,27 @@ export default function BuddyPage() {
   }, [cacheKey, todayKey, overviewRefreshNonce])
 
   useEffect(() => {
-    if (!viewConversationId) return
-    if (viewConversationId === activeConversationIdRef.current) {
-      activeMessagesRef.current = messages
-    }
-  }, [messages, viewConversationId])
-
-  useEffect(() => {
     if (!pendingStarterMessage) return
-    if (!isFullChatView) return
+    if (!activeConversationId) return
     if (!canSend) return
     const text = pendingStarterMessage
     setPendingStarterMessage(null)
     handleSendWithExtraction(text)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingStarterMessage, isFullChatView, canSend])
+  }, [pendingStarterMessage, activeConversationId, canSend])
 
-  // Pick/create an active conversation on first load.
+  // Resume only real active conversations (with messages), but do not create on page load.
   useEffect(() => {
     if (conversationsLoading) return
     if (activeConversationId) return
 
-    const active = conversations.find((c) => c.isActive)
+    const active = conversations.find((c) => c.isActive && (c.messageCount || 0) > 0)
     if (active) {
       setActiveConversationId(active.id)
       setViewConversationId(active.id)
-      return
+      if (activeTab === "chat") setIsFullChatView(true)
     }
-
-    void (async () => {
-      try {
-        const created = await createConversation(DEFAULT_USER_ID)
-        await refetchConversations()
-        setActiveConversationId(created.id)
-        setViewConversationId(created.id)
-      } catch {
-        // Keep UI stable
-      }
-    })()
-  }, [conversations, conversationsLoading, activeConversationId, refetchConversations])
+  }, [conversations, conversationsLoading, activeConversationId, activeTab])
 
   const endAndCreateNewActive = async () => {
     const endingId = activeConversationIdRef.current
@@ -217,22 +204,28 @@ export default function BuddyPage() {
 
     endingRef.current = true
     try {
+      console.log("[buddy/end] Starting end flow for conversation:", endingId)
       setBuddyExtraction(null)
       setBuddyAiMessage("")
-      const currentMessages = activeMessagesRef.current
 
-      // 1) Create summary + persist it (best effort)
-      if (currentMessages.length > 0) {
-        try {
-          const { title, summary, tags, moodEmoji } = await summarizeConversation(currentMessages)
+      // 1) Mark as ended first
+      await endConversation(endingId)
+      console.log("[buddy/end] Conversation marked as ended")
+
+      // 2) Fetch messages from DB and summarize (best effort)
+      try {
+        const full = await getConversation(endingId)
+        console.log("[buddy/end] Loaded messages for summarize:", full.messages.length)
+        if (full.messages.length > 0) {
+          const { title, summary, tags, moodEmoji } = await summarizeConversation(full.messages)
           await updateConversationSummary(endingId, summary, tags, moodEmoji, title)
-        } catch {
-          // Don't block ending if summary fails.
+          console.log("[buddy/end] Summary saved")
         }
+      } catch (error) {
+        console.error("[buddy/end] Summarize or save failed:", error)
       }
 
-      // 2) End conversation
-      await endConversation(endingId)
+      // 3) Navigate back to overview
       setActiveConversationId(undefined)
       setViewConversationId(undefined)
       setIsFullChatView(false)
@@ -291,7 +284,20 @@ export default function BuddyPage() {
     setBuddyAiMessage("")
     clearSuggestionChips()
     const conversationId = activeConversationIdRef.current
-    if (!conversationId) return
+    if (!conversationId) {
+      void (async () => {
+        try {
+          const created = await createConversation(DEFAULT_USER_ID)
+          setActiveConversationId(created.id)
+          setViewConversationId(created.id)
+          await refetchConversations()
+          setPendingStarterMessage(text)
+        } catch (error) {
+          console.error("[buddy/chat] Failed to create conversation:", error)
+        }
+      })()
+      return
+    }
 
     void extractForBuddy(text, conversationId)
     void sendMessage(text)
@@ -303,13 +309,6 @@ export default function BuddyPage() {
     setShowEndPrompt(false)
     setIsFullChatView(true)
     handleSendWithExtraction(text)
-  }
-
-  const handleConversationSelect = (conversation: Conversation) => {
-    setViewConversationId(conversation.id)
-    setActiveTab("chat")
-    setBuddyExtraction(null)
-    setBuddyAiMessage("")
   }
 
   const handleSaveBuddyExtraction = async (newEntries: NewEntry[]) => {
@@ -337,20 +336,8 @@ export default function BuddyPage() {
 
   const handleStartConversation = () => {
     setShowEndPrompt(false)
-    void (async () => {
-      if (!activeConversationIdRef.current) {
-        try {
-          const created = await createConversation(DEFAULT_USER_ID)
-          setActiveConversationId(created.id)
-          setViewConversationId(created.id)
-          await refetchConversations()
-        } catch {
-          // keep UI stable
-        }
-      }
-      setIsFullChatView(true)
-      setActiveTab("chat")
-    })()
+    setIsFullChatView(true)
+    setActiveTab("chat")
   }
 
   const handleBackToBuddy = () => {
@@ -374,9 +361,26 @@ export default function BuddyPage() {
   const activeConversationWithMessages = conversations.find((c) => c.isActive && (c.messageCount || 0) > 0)
 
   useEffect(() => {
+    if (activeTab !== "history") return
     if (conversations.length === 0) return
+    void (async () => {
+      try {
+        const removed = await cleanupEmptyConversations(DEFAULT_USER_ID)
+        if (removed > 0) {
+          console.log("[buddy/history] Removed empty conversations:", removed)
+          await refetchConversations()
+        }
+      } catch (error) {
+        console.error("[buddy/history] Cleanup failed:", error)
+      }
+    })()
+
     const targets = conversations.filter(
-      (c) => !c.isActive && !c.summary && (c.messageCount || 0) > 0 && !backfilledRef.current.has(c.id)
+      (c) =>
+        !c.isActive &&
+        (c.messageCount || 0) > 0 &&
+        (!c.summary || !c.title) &&
+        !backfilledRef.current.has(c.id)
     )
     if (targets.length === 0) return
 
@@ -402,7 +406,7 @@ export default function BuddyPage() {
       await refetchConversations()
       setHistoryRefreshKey((v) => v + 1)
     })()
-  }, [conversations, refetchConversations])
+  }, [activeTab, conversations, refetchConversations])
 
   const handleToggleGoal = async (goal: BuddyDailyGoal) => {
     const updated = dailyGoals.map((g) => (g.id === goal.id ? { ...g, completed: !g.completed } : g))
@@ -464,174 +468,168 @@ export default function BuddyPage() {
           </div>
         )}
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "chat" | "history")} className="flex-1 flex flex-col">
-          <TabsList className="mb-4">
-            <TabsTrigger value="chat">{t("pages.buddy")}</TabsTrigger>
-            <TabsTrigger value="history">{t("buddy.history.tab")}</TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex items-center gap-2 rounded-xl bg-slate-100 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("chat")}
+            className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "chat" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+          >
+            {t("pages.buddy")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "history" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+          >
+            {t("buddy.history.tab")}
+          </button>
+        </div>
 
-          <TabsContent value="chat" className="flex-1 flex flex-col min-h-0">
-            {!isFullChatView ? (
-              <div className="h-full overflow-y-auto">
-                <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4 md:p-6">
-                  {overviewLoading ? (
-                    <div className="h-36 animate-pulse rounded-2xl bg-slate-200" />
-                  ) : (
-                    <DailyImpulseCard
-                      impulseText={impulseText}
-                      greeting={getGreeting()}
-                      onStartChat={handleStartConversation}
-                    />
-                  )}
+        {activeTab === "chat" && !isFullChatView && (
+          <div className="mx-auto w-full max-w-2xl space-y-6 p-4 md:p-6">
+            {overviewLoading ? (
+              <div className="h-36 animate-pulse rounded-2xl bg-slate-200" />
+            ) : (
+              <DailyImpulseCard impulseText={impulseText} greeting={getGreeting()} onStartChat={handleStartConversation} />
+            )}
 
-                  {overviewLoading ? (
-                    <div className="space-y-2">
-                      <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
-                      <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
-                      <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
-                    </div>
-                  ) : (
-                    <DailyGoals goals={dailyGoals} onToggle={handleToggleGoal} />
-                  )}
-
-                  {overviewLoading ? (
-                    <div className="h-32 animate-pulse rounded-xl bg-slate-200" />
-                  ) : (
-                    <MotivationQuote quote={motivationQuote} onRefresh={handleRefreshMotivation} loading={refreshingQuote} />
-                  )}
-
-                  {activeConversationWithMessages && (
-                    <section className="rounded-xl border border-teal-100 bg-white p-4 shadow-sm">
-                      <p className="text-sm font-semibold text-slate-800">{t("buddy.activeConversation")}</p>
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          setViewConversationId(activeConversationWithMessages.id)
-                          setActiveConversationId(activeConversationWithMessages.id)
-                          setIsFullChatView(true)
-                        }}
-                        className="mt-3 bg-teal-500 hover:bg-teal-600"
-                      >
-                        {t("buddy.resume")}
-                      </Button>
-                    </section>
-                  )}
-
-                  <section className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
-                    <h3 className="text-lg font-semibold text-slate-800">{t("buddy.newConversation")}</h3>
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">{t("buddy.intro")}</p>
-                    <div className="mt-4">
-                      <SuggestionChips onSelect={handleSuggestionSelect} />
-                    </div>
-                    <Button onClick={handleStartConversation} className="mt-3 bg-teal-500 hover:bg-teal-600">
-                      <MessageCirclePlus className="mr-2 h-4 w-4" />
-                      {t("buddy.startConversation")}
-                    </Button>
-                  </section>
-                </div>
+            {overviewLoading ? (
+              <div className="space-y-2">
+                <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
+                <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
+                <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
               </div>
             ) : (
-              <div className="flex-1 flex flex-col min-h-0 max-w-3xl mx-auto w-full">
-                <div className="px-4 pb-2">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={handleBackToBuddy}
-                      className="rounded-full text-slate-700"
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      {t("buddy.backToBuddy")}
-                    </Button>
-                    {conversationTitle && (
-                      <p className="line-clamp-1 text-sm font-semibold text-slate-700">{conversationTitle}</p>
-                    )}
-                  </div>
-                  {showEndPrompt && (
-                    <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                      <p className="text-sm font-semibold text-slate-800">{t("buddy.endConversation")}</p>
-                      <div className="mt-2 flex gap-2">
-                        <Button
-                          type="button"
-                          onClick={handleConfirmEndConversation}
-                          disabled={isEndingConversation}
-                          className="bg-teal-500 hover:bg-teal-600"
-                        >
-                          {t("buddy.endConfirm")}
-                        </Button>
-                        <Button type="button" variant="outline" onClick={() => setShowEndPrompt(false)}>
-                          {t("buddy.continueChat")}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <ChatContainer
-                  messages={messages}
-                  onSuggestionSelect={handleSuggestionSelect}
-                  showTyping={isStreaming}
-                  contextualSuggestions={suggestionChips}
-                  showCrisisBanner={hasCrisisFlag}
-                />
-                {buddyExtraction &&
-                  viewConversationId === activeConversationIdRef.current &&
-                  activeConversationIdNow && (
-                  <ExtractionConfirmation
-                    extractedEntries={buddyExtraction}
-                    aiMessage={buddyAiMessage}
-                    title={t("buddy.suggestedEntries")}
-                    onSave={handleSaveBuddyExtraction}
-                    onDiscard={() => {
-                      setBuddyExtraction(null)
-                      setBuddyAiMessage("")
-                    }}
-                    conversationId={activeConversationIdNow}
-                  />
-                )}
-                <InputComposer
-                  onSend={handleSendWithExtraction}
-                  isDisabled={!canSend || isStreaming}
-                  onTypingChange={(typing) => {
-                    if (typing) clearSuggestionChips()
-                  }}
-                />
-              </div>
+              <DailyGoals goals={dailyGoals} onToggle={handleToggleGoal} />
             )}
-          </TabsContent>
 
-          <TabsContent value="history" className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto">
-              {selectedHistoryConversation ? (
-                <ConversationDetailView
-                  conversation={selectedHistoryConversation}
-                  onBack={() => setSelectedHistoryConversation(null)}
-                  onStartFromTopic={() => {
-                    setSelectedHistoryConversation(null)
-                    handleStartConversation()
-                    const prefill = selectedHistoryConversation.summary
-                      ? `Ich moechte an folgendes Thema anknuepfen: ${selectedHistoryConversation.summary}`
-                      : `Ich moechte unser Gespraech "${selectedHistoryConversation.title || "Thema"}" fortsetzen.`
-                    setPendingStarterMessage(prefill)
+            {overviewLoading ? (
+              <div className="h-32 animate-pulse rounded-xl bg-slate-200" />
+            ) : (
+              <MotivationQuote quote={motivationQuote} onRefresh={handleRefreshMotivation} loading={refreshingQuote} />
+            )}
+
+            {activeConversationWithMessages && (
+              <section className="rounded-xl border border-teal-100 bg-white p-4 shadow-sm">
+                <p className="text-sm font-semibold text-slate-800">{t("buddy.activeConversation")}</p>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setViewConversationId(activeConversationWithMessages.id)
+                    setActiveConversationId(activeConversationWithMessages.id)
+                    setIsFullChatView(true)
                   }}
-                />
-              ) : (
-                <ConversationList
-                  conversations={conversations}
-                  onSelect={async (conversation) => {
-                    const full = await getConversation(conversation.id)
-                    setSelectedHistoryConversation(full)
-                  }}
-                  onStartFirstConversation={() => {
-                    setActiveTab("chat")
-                    handleStartConversation()
-                  }}
-                  backfillingIds={backfillingIds}
-                  statsRefreshKey={historyRefreshKey}
-                />
+                  className="mt-3 bg-teal-500 hover:bg-teal-600"
+                >
+                  {t("buddy.resume")}
+                </Button>
+              </section>
+            )}
+
+            <section className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+              <h3 className="text-lg font-semibold text-slate-800">{t("buddy.newConversation")}</h3>
+              <p className="mt-1 line-clamp-2 text-sm text-slate-500">{t("buddy.intro")}</p>
+              <div className="mt-4">
+                <SuggestionChips onSelect={handleSuggestionSelect} />
+              </div>
+              <Button onClick={handleStartConversation} className="mt-3 bg-teal-500 hover:bg-teal-600">
+                <MessageCirclePlus className="mr-2 h-4 w-4" />
+                {t("buddy.startConversation")}
+              </Button>
+            </section>
+          </div>
+        )}
+
+        {activeTab === "chat" && isFullChatView && (
+          <div className="flex h-[calc(100vh-10rem)] flex-col">
+            <div className="mx-auto w-full max-w-3xl px-4 pb-2">
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" onClick={handleBackToBuddy} className="rounded-full text-slate-700">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  {t("buddy.backToBuddy")}
+                </Button>
+                {conversationTitle && <p className="line-clamp-1 text-sm font-semibold text-slate-700">{conversationTitle}</p>}
+              </div>
+              {showEndPrompt && (
+                <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-800">{t("buddy.endConversation")}</p>
+                  <div className="mt-2 flex gap-2">
+                    <Button type="button" onClick={handleConfirmEndConversation} disabled={isEndingConversation} className="bg-teal-500 hover:bg-teal-600">
+                      {t("buddy.endConfirm")}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setShowEndPrompt(false)}>
+                      {t("buddy.continueChat")}
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
-          </TabsContent>
-        </Tabs>
+            <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col">
+              <ChatContainer
+                messages={messages}
+                onSuggestionSelect={handleSuggestionSelect}
+                showTyping={isStreaming}
+                contextualSuggestions={suggestionChips}
+                showCrisisBanner={hasCrisisFlag}
+              />
+              {buddyExtraction &&
+                viewConversationId === activeConversationIdRef.current &&
+                activeConversationIdNow && (
+                <ExtractionConfirmation
+                  extractedEntries={buddyExtraction}
+                  aiMessage={buddyAiMessage}
+                  title={t("buddy.suggestedEntries")}
+                  onSave={handleSaveBuddyExtraction}
+                  onDiscard={() => {
+                    setBuddyExtraction(null)
+                    setBuddyAiMessage("")
+                  }}
+                  conversationId={activeConversationIdNow}
+                />
+              )}
+              <InputComposer
+                onSend={handleSendWithExtraction}
+                isDisabled={!canSend || isStreaming}
+                onTypingChange={(typing) => {
+                  if (typing) clearSuggestionChips()
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div className="mx-auto w-full max-w-3xl p-4 md:p-6">
+            {selectedHistoryConversation ? (
+              <ConversationDetailView
+                conversation={selectedHistoryConversation}
+                onBack={() => setSelectedHistoryConversation(null)}
+                onStartFromTopic={() => {
+                  setSelectedHistoryConversation(null)
+                  handleStartConversation()
+                  const prefill = selectedHistoryConversation.summary
+                    ? `Ich moechte an folgendes Thema anknuepfen: ${selectedHistoryConversation.summary}`
+                    : `Ich moechte unser Gespraech "${selectedHistoryConversation.title || "Thema"}" fortsetzen.`
+                  setPendingStarterMessage(prefill)
+                }}
+              />
+            ) : (
+              <ConversationList
+                conversations={conversations}
+                onSelect={async (conversation) => {
+                  const full = await getConversation(conversation.id)
+                  setSelectedHistoryConversation(full)
+                }}
+                onStartFirstConversation={() => {
+                  setActiveTab("chat")
+                  handleStartConversation()
+                }}
+                backfillingIds={backfillingIds}
+                statsRefreshKey={historyRefreshKey}
+              />
+            )}
+          </div>
+        )}
       </div>
     </AppShell>
   )

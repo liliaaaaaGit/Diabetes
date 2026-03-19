@@ -6,7 +6,7 @@ import { ConversationCard } from "./conversation-card"
 import { useTranslation } from "@/hooks/useTranslation"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { searchConversations } from "@/lib/db"
+import { getConversation, searchConversations } from "@/lib/db"
 import { DEFAULT_USER_ID } from "@/lib/constants"
 import { HistoryStats } from "./history-stats"
 
@@ -29,22 +29,23 @@ export function ConversationList({
   const [query, setQuery] = useState("")
   const [filtered, setFiltered] = useState<Conversation[]>(conversations)
   const [searching, setSearching] = useState(false)
+  const [fallbackTitles, setFallbackTitles] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    setFiltered(conversations)
+    setFiltered(conversations.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
   }, [conversations])
 
   useEffect(() => {
     const id = setTimeout(() => {
       void (async () => {
         if (!query.trim()) {
-          setFiltered(conversations)
+          setFiltered(conversations.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
           return
         }
         setSearching(true)
         try {
           const rows = await searchConversations(DEFAULT_USER_ID, query.trim())
-          setFiltered(rows)
+          setFiltered(rows.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
         } finally {
           setSearching(false)
         }
@@ -65,6 +66,27 @@ export function ConversationList({
     })
     return arr
   }, [filtered])
+
+  useEffect(() => {
+    const missing = sortedConversations
+      .filter((c) => !c.title)
+      .map((c) => c.id)
+      .filter((id) => !fallbackTitles[id])
+    if (missing.length === 0) return
+
+    void (async () => {
+      for (const id of missing) {
+        try {
+          const full = await getConversation(id)
+          const firstUser = full.messages.find((m) => m.role === "user")?.content?.trim()
+          if (!firstUser) continue
+          setFallbackTitles((prev) => ({ ...prev, [id]: `${firstUser.slice(0, 40)}...` }))
+        } catch {
+          // keep silent
+        }
+      }
+    })()
+  }, [fallbackTitles, sortedConversations])
 
   if (conversations.length === 0) {
     return (
@@ -109,6 +131,7 @@ export function ConversationList({
           conversation={conversation}
           onClick={() => onSelect(conversation)}
           isBackfilling={backfillingIds.has(conversation.id)}
+          fallbackTitle={fallbackTitles[conversation.id]}
         />
       ))}
     </div>

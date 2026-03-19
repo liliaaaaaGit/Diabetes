@@ -675,6 +675,27 @@ export async function getConversationStats(userId: string): Promise<{
   return { total, thisMonth, avgLength }
 }
 
+export async function cleanupEmptyConversations(userId: string): Promise<number> {
+  const conversations = await getConversations(userId)
+  const emptyIds = conversations
+    .filter((c) => (c.messageCount ?? c.messages.length ?? 0) === 0)
+    .map((c) => c.id)
+  if (emptyIds.length === 0) return 0
+
+  if (USE_MOCK) {
+    conversationsStore = conversationsStore.filter((c) => !emptyIds.includes(c.id))
+    return emptyIds.length
+  }
+
+  const { error } = await supabase
+    .from("conversations")
+    .delete()
+    .in("id", emptyIds)
+    .eq("user_id", userId)
+  if (error) throw error
+  return emptyIds.length
+}
+
 export async function endConversation(conversationId: string): Promise<void> {
   if (USE_MOCK) {
     conversationsStore = conversationsStore.map((c) =>
