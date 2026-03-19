@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Conversation } from "@/lib/types"
 import { ConversationCard } from "./conversation-card"
-import { EmptyState } from "@/components/shared/empty-state"
 import { useTranslation } from "@/hooks/useTranslation"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -55,6 +54,18 @@ export function ConversationList({
     return () => clearTimeout(id)
   }, [conversations, query])
 
+  const sortedConversations = useMemo(() => {
+    const arr = [...filtered]
+    arr.sort((a, b) => {
+      if (a.isActive && !b.isActive) return -1
+      if (!a.isActive && b.isActive) return 1
+      const aTime = new Date(a.endedAt || a.startedAt).getTime()
+      const bTime = new Date(b.endedAt || b.startedAt).getTime()
+      return bTime - aTime
+    })
+    return arr
+  }, [filtered])
+
   if (conversations.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -71,18 +82,6 @@ export function ConversationList({
       </div>
     )
   }
-
-  const sortedConversations = useMemo(() => {
-    const arr = [...filtered]
-    arr.sort((a, b) => {
-      if (a.isActive && !b.isActive) return -1
-      if (!a.isActive && b.isActive) return 1
-      const aTime = new Date(a.endedAt || a.startedAt).getTime()
-      const bTime = new Date(b.endedAt || b.startedAt).getTime()
-      return bTime - aTime
-    })
-    return arr
-  }, [filtered])
 
   return (
     <div className="space-y-3">
