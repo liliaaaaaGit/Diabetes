@@ -30,9 +30,9 @@ export function MotivationQuote({ quote, onRefresh, loading = false }: Motivatio
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
-      <p className="mt-4 text-4xl leading-none text-amber-300">"</p>
+      <p className="mt-4 text-4xl leading-none text-amber-300">&ldquo;</p>
       <p className="mt-2 text-sm leading-relaxed text-slate-700 md:text-base">{quote}</p>
-      <p className="mt-2 text-right text-4xl leading-none text-amber-300">"</p>
+      <p className="mt-2 text-right text-4xl leading-none text-amber-300">&rdquo;</p>
     </section>
   )
 }
