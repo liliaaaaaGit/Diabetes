@@ -866,12 +866,13 @@ export async function updateConversationSummary(
   conversationId: string,
   summary: string,
   tags: string[],
-  moodEmoji: string
+  moodEmoji: string,
+  title?: string
 ): Promise<void> {
   if (USE_MOCK) {
     conversationsStore = conversationsStore.map((c) =>
       c.id === conversationId
-        ? { ...c, summary, tags, dominantEmoji: moodEmoji }
+        ? { ...c, summary, tags, dominantEmoji: moodEmoji, title: title || c.title }
         : c
     )
     return
@@ -883,8 +884,23 @@ export async function updateConversationSummary(
       summary,
       tags,
       mood_emoji: moodEmoji,
-      title: summaryToTitle(summary),
+      title: title || summaryToTitle(summary),
     })
+    .eq("id", conversationId)
+  if (error) throw error
+}
+
+export async function updateConversationTitle(conversationId: string, title: string): Promise<void> {
+  if (USE_MOCK) {
+    conversationsStore = conversationsStore.map((c) =>
+      c.id === conversationId ? { ...c, title } : c
+    )
+    return
+  }
+
+  const { error } = await supabase
+    .from("conversations")
+    .update({ title })
     .eq("id", conversationId)
   if (error) throw error
 }

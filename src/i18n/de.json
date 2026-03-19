@@ -130,7 +130,7 @@
     "suggestion3": "Über Essensängste sprechen",
     "suggestion4": "Burnout-Gefühle besprechen",
     "placeholder": "Teile deine Gedanken und Gefühle...",
-    "typing": "tippt...",
+    "typing": "Buddy tippt...",
     "defaultResponse": "Das ist eine interessante Frage. Als Forschungsprototyp kann ich noch keine echten AI-Antworten generieren, aber in der fertigen Version würde ich dir hier eine hilfreiche Antwort geben. Möchtest du noch etwas anderes besprechen?",
     "emotionalResponse": "Ich höre, dass dich das belastet. Es ist völlig verständlich, sich manchmal überwältigt zu fühlen. Möchtest du darüber sprechen, was dir in solchen Momenten hilft?",
     "dataResponse": "Es klingt so, als hättest du Daten erwähnt, die ich als Tagebucheintrag vorschlagen könnte. Diese Funktion kommt in einer späteren Version!",
@@ -156,7 +156,12 @@
     "letsChat": "Lass uns reden",
     "goodMorning": "Guten Morgen!",
     "goodAfternoon": "Guten Tag!",
-    "goodEvening": "Guten Abend!"
+    "goodEvening": "Guten Abend!",
+    "endConversation": "Gespräch beenden?",
+    "endConfirm": "Ja, beenden",
+    "continueChat": "Weiter reden",
+    "activeConversation": "Du hast ein laufendes Gespräch",
+    "resume": "Fortsetzen"
   },
   "insights": {
     "title": "Einblicke",

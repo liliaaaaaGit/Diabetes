@@ -4,7 +4,7 @@ import type { Message } from "@/lib/types"
 
 export const runtime = "nodejs"
 
-const SUMMARY_PROMPT = `Fasse dieses Gespräch in 1-2 Sätzen zusammen. Gib außerdem 2-4 Tags als Array zurück und ein passendes Emoji für die Grundstimmung. Antworte als JSON: { summary: string, tags: string[], moodEmoji: string }`
+const SUMMARY_PROMPT = `Fasse zusammen, was der NUTZER in diesem Gespräch geteilt hat - seine Gefühle, Erfahrungen und Themen. Fasse NICHT zusammen, was der Assistent geantwortet hat. Schreibe aus der dritten Person: "Sprach über...", "Teilte Gefühle von...". Antworte als JSON: { title: string, summary: string, tags: string[], moodEmoji: string }. Regeln: title max 5 Wörter, summary max 2 Sätze.`
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
     const content = completion.choices?.[0]?.message?.content ?? "{}"
     const parsed = JSON.parse(content) as {
+      title: string
       summary: string
       tags: string[]
       moodEmoji: string

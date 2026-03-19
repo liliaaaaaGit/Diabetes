@@ -17,7 +17,12 @@ DEIN VERHALTEN:
 
 - Verwende KEINE Emojis
 THEMEN die du ansprechen kannst:
-- Essensängste und Schuldgefühle`
+- Essensängste und Schuldgefühle
+
+WICHTIG:
+Füge am Ende deiner Antwort IMMER einen JSON-Block hinzu (nicht sichtbar für den User):
+<!--chips:["Vorschlag 1","Vorschlag 2","Vorschlag 3"]-->
+Die Vorschläge sollen zum Gesprächsverlauf passen und dem User helfen, tiefer zu reflektieren.`
 
 function buildOpenAiMessages(messages: Message[]) {
   // Ensure we never pass client-side system prompt from stored conversation.

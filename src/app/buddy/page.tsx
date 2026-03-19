@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InputComposer } from "@/components/buddy/input-composer"
@@ -33,6 +33,7 @@ async function summarizeConversation(messages: Message[]) {
   }
 
   return (await res.json()) as {
+    title?: string
     summary: string
     tags: string[]
     moodEmoji: string
@@ -54,6 +55,9 @@ export default function BuddyPage() {
   const [dailyGoals, setDailyGoals] = useState<BuddyDailyGoal[]>([])
   const [overviewLoading, setOverviewLoading] = useState(true)
   const [refreshingQuote, setRefreshingQuote] = useState(false)
+  const [overviewRefreshNonce, setOverviewRefreshNonce] = useState(0)
+  const [showEndPrompt, setShowEndPrompt] = useState(false)
+  const [isEndingConversation, setIsEndingConversation] = useState(false)
 
   const activeConversationIdRef = useRef<string | undefined>(undefined)
   const activeMessagesRef = useRef<Message[]>([])
@@ -77,10 +81,25 @@ export default function BuddyPage() {
     refetch: refetchConversations,
   } = useConversations(DEFAULT_USER_ID)
 
-  const { messages, sendMessage, isStreaming, error: chatError, canSend, retry } = useChat(viewConversationId)
+  const {
+    messages,
+    sendMessage,
+    isStreaming,
+    error: chatError,
+    canSend,
+    retry,
+    suggestionChips,
+    clearSuggestionChips,
+    conversationTitle,
+  } = useChat(viewConversationId)
 
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), [])
-  const cacheKey = (name: string) => `buddy_${name}_${todayKey}`
+  const cacheKey = useCallback((name: string) => `buddy_${name}_${todayKey}`, [todayKey])
+  const invalidateOverviewCache = useCallback(() => {
+    localStorage.removeItem(cacheKey("impulse"))
+    localStorage.removeItem(cacheKey("goals"))
+    localStorage.removeItem(cacheKey("motivation"))
+  }, [cacheKey])
 
   useEffect(() => {
     const loadOverview = async () => {
@@ -141,7 +160,7 @@ export default function BuddyPage() {
     }
 
     void loadOverview()
-  }, [todayKey])
+  }, [cacheKey, todayKey, overviewRefreshNonce])
 
   useEffect(() => {
     if (!viewConversationId) return
@@ -188,8 +207,8 @@ export default function BuddyPage() {
       // 1) Create summary + persist it (best effort)
       if (currentMessages.length > 0) {
         try {
-          const { summary, tags, moodEmoji } = await summarizeConversation(currentMessages)
-          await updateConversationSummary(endingId, summary, tags, moodEmoji)
+          const { title, summary, tags, moodEmoji } = await summarizeConversation(currentMessages)
+          await updateConversationSummary(endingId, summary, tags, moodEmoji, title)
         } catch {
           // Don't block ending if summary fails.
         }
@@ -197,32 +216,18 @@ export default function BuddyPage() {
 
       // 2) End conversation
       await endConversation(endingId)
-
-      // 3) Create a new active conversation for next visit
-      const created = await createConversation(DEFAULT_USER_ID)
-      setActiveConversationId(created.id)
+      setActiveConversationId(undefined)
+      setViewConversationId(undefined)
+      setIsFullChatView(false)
+      invalidateOverviewCache()
+      setOverviewRefreshNonce((v) => v + 1)
+      void refetchConversations()
+      setShowEndPrompt(false)
       await refetchConversations()
     } finally {
       endingRef.current = false
     }
   }
-
-  // When user switches away from the active conversation (history card click), end the active one.
-  useEffect(() => {
-    if (!viewConversationId) return
-    if (!activeConversationId) return
-    if (viewConversationId === activeConversationId) return
-
-    void endAndCreateNewActive()
-  }, [viewConversationId, activeConversationId])
-
-  // On unmount: end active conversation.
-  useEffect(() => {
-    return () => {
-      void endAndCreateNewActive()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const activeConversationIdNow = activeConversationIdRef.current
 
@@ -267,6 +272,7 @@ export default function BuddyPage() {
     // Always hide previous suggestions before extracting new ones.
     setBuddyExtraction(null)
     setBuddyAiMessage("")
+    clearSuggestionChips()
     const conversationId = activeConversationIdRef.current
     if (!conversationId) return
 
@@ -276,6 +282,8 @@ export default function BuddyPage() {
 
   const handleSuggestionSelect = (text: string) => {
     if (!canSend) return
+    clearSuggestionChips()
+    setShowEndPrompt(false)
     setIsFullChatView(true)
     handleSendWithExtraction(text)
   }
@@ -311,9 +319,42 @@ export default function BuddyPage() {
   const connectFailed = chatError.type === "failed"
 
   const handleStartConversation = () => {
-    setIsFullChatView(true)
-    setActiveTab("chat")
+    setShowEndPrompt(false)
+    void (async () => {
+      if (!activeConversationIdRef.current) {
+        try {
+          const created = await createConversation(DEFAULT_USER_ID)
+          setActiveConversationId(created.id)
+          setViewConversationId(created.id)
+          await refetchConversations()
+        } catch {
+          // keep UI stable
+        }
+      }
+      setIsFullChatView(true)
+      setActiveTab("chat")
+    })()
   }
+
+  const handleBackToBuddy = () => {
+    if (messages.length === 0) {
+      setIsFullChatView(false)
+      return
+    }
+    setShowEndPrompt(true)
+  }
+
+  const handleConfirmEndConversation = async () => {
+    if (isEndingConversation) return
+    setIsEndingConversation(true)
+    try {
+      await endAndCreateNewActive()
+    } finally {
+      setIsEndingConversation(false)
+    }
+  }
+
+  const activeConversationWithMessages = conversations.find((c) => c.isActive && (c.messageCount || 0) > 0)
 
   const handleToggleGoal = async (goal: BuddyDailyGoal) => {
     const updated = dailyGoals.map((g) => (g.id === goal.id ? { ...g, completed: !g.completed } : g))
@@ -411,6 +452,23 @@ export default function BuddyPage() {
                     <MotivationQuote quote={motivationQuote} onRefresh={handleRefreshMotivation} loading={refreshingQuote} />
                   )}
 
+                  {activeConversationWithMessages && (
+                    <section className="rounded-xl border border-teal-100 bg-white p-4 shadow-sm">
+                      <p className="text-sm font-semibold text-slate-800">{t("buddy.activeConversation")}</p>
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setViewConversationId(activeConversationWithMessages.id)
+                          setActiveConversationId(activeConversationWithMessages.id)
+                          setIsFullChatView(true)
+                        }}
+                        className="mt-3 bg-teal-500 hover:bg-teal-600"
+                      >
+                        {t("buddy.resume")}
+                      </Button>
+                    </section>
+                  )}
+
                   <section className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
                     <h3 className="text-lg font-semibold text-slate-800">{t("buddy.newConversation")}</h3>
                     <p className="mt-1 line-clamp-2 text-sm text-slate-500">{t("buddy.intro")}</p>
@@ -427,17 +485,45 @@ export default function BuddyPage() {
             ) : (
               <div className="flex-1 flex flex-col min-h-0 max-w-3xl mx-auto w-full">
                 <div className="px-4 pb-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setIsFullChatView(false)}
-                    className="rounded-full text-slate-700"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    {t("buddy.backToBuddy")}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleBackToBuddy}
+                      className="rounded-full text-slate-700"
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      {t("buddy.backToBuddy")}
+                    </Button>
+                    {conversationTitle && (
+                      <p className="line-clamp-1 text-sm font-semibold text-slate-700">{conversationTitle}</p>
+                    )}
+                  </div>
+                  {showEndPrompt && (
+                    <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                      <p className="text-sm font-semibold text-slate-800">{t("buddy.endConversation")}</p>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleConfirmEndConversation}
+                          disabled={isEndingConversation}
+                          className="bg-teal-500 hover:bg-teal-600"
+                        >
+                          {t("buddy.endConfirm")}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setShowEndPrompt(false)}>
+                          {t("buddy.continueChat")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <ChatContainer messages={messages} onSuggestionSelect={handleSuggestionSelect} showTyping={isStreaming} />
+                <ChatContainer
+                  messages={messages}
+                  onSuggestionSelect={handleSuggestionSelect}
+                  showTyping={isStreaming}
+                  contextualSuggestions={suggestionChips}
+                />
                 {buddyExtraction &&
                   viewConversationId === activeConversationIdRef.current &&
                   activeConversationIdNow && (
@@ -453,7 +539,13 @@ export default function BuddyPage() {
                     conversationId={activeConversationIdNow}
                   />
                 )}
-                <InputComposer onSend={handleSendWithExtraction} isDisabled={!canSend || isStreaming} />
+                <InputComposer
+                  onSend={handleSendWithExtraction}
+                  isDisabled={!canSend || isStreaming}
+                  onTypingChange={(typing) => {
+                    if (typing) clearSuggestionChips()
+                  }}
+                />
               </div>
             )}
           </TabsContent>

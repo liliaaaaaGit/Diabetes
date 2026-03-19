@@ -6,22 +6,35 @@ import { cn } from "@/lib/utils"
 
 interface SuggestionChipsProps {
   onSelect: (text: string) => void
+  suggestions?: string[]
 }
 
-export function SuggestionChips({ onSelect }: SuggestionChipsProps) {
+function chipToneClass(suggestion: string): string {
+  const s = suggestion.toLowerCase()
+  if (/(angst|sorge|ueberfordert|überfordert|frust|traurig|stress|burnout|schuld)/.test(s)) {
+    return "border-rose-300 text-rose-700 bg-rose-50/40"
+  }
+  if (/(gut|stolz|dankbar|erfolg|gelungen|leichter|ruhig|geschafft)/.test(s)) {
+    return "border-teal-300 text-teal-700 bg-teal-50/40"
+  }
+  return "border-slate-300 text-slate-700 hover:bg-slate-50"
+}
+
+export function SuggestionChips({ onSelect, suggestions }: SuggestionChipsProps) {
   const { t } = useTranslation()
 
-  const suggestions = [
+  const defaultSuggestions = [
     t("buddy.suggestion1"),
     t("buddy.suggestion2"),
     t("buddy.suggestion3"),
     t("buddy.suggestion4"),
   ]
+  const chips = (suggestions && suggestions.length > 0 ? suggestions : defaultSuggestions).slice(0, 3)
 
   return (
     <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2">
       <div className="flex gap-2">
-        {suggestions.map((suggestion, index) => (
+        {chips.map((suggestion, index) => (
           <Button
             key={index}
             variant="outline"
@@ -29,11 +42,7 @@ export function SuggestionChips({ onSelect }: SuggestionChipsProps) {
             onClick={() => onSelect(suggestion)}
             className={cn(
               "rounded-full whitespace-nowrap text-sm min-h-[44px]",
-              "border-slate-300 text-slate-700 hover:bg-slate-50",
-              index === 0 && "border-emerald-300 text-emerald-700 bg-emerald-50/40",
-              index === 1 && "border-amber-300 text-amber-700 bg-amber-50/40",
-              index === 2 && "border-rose-300 text-rose-700 bg-rose-50/40",
-              index === 3 && "border-sky-300 text-sky-700 bg-sky-50/40"
+              chipToneClass(suggestion)
             )}
           >
             {suggestion}

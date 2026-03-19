@@ -130,7 +130,7 @@
     "suggestion3": "Let's talk about food-related fears",
     "suggestion4": "Let's talk about burnout feelings",
     "placeholder": "Share your thoughts and feelings...",
-    "typing": "typing...",
+    "typing": "Buddy is typing...",
     "defaultResponse": "That's an interesting question. As a research prototype, I can't generate real AI answers yet, but in the finished version I would give you a helpful answer here. Is there anything else you'd like to discuss?",
     "emotionalResponse": "I hear that this is weighing on you. It's completely understandable to sometimes feel overwhelmed. Would you like to talk about what helps you in such moments?",
     "dataResponse": "It sounds like you mentioned data that I could suggest as a logbook entry. This feature is coming in a later version!",
@@ -156,7 +156,12 @@
     "letsChat": "Let's talk",
     "goodMorning": "Good morning!",
     "goodAfternoon": "Good afternoon!",
-    "goodEvening": "Good evening!"
+    "goodEvening": "Good evening!",
+    "endConversation": "End conversation?",
+    "endConfirm": "Yes, end it",
+    "continueChat": "Keep talking",
+    "activeConversation": "You have an active conversation",
+    "resume": "Resume"
   },
   "insights": {
     "title": "Insights",

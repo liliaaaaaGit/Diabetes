@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Message } from "@/lib/types"
-import { getConversation, addMessage } from "@/lib/db"
+import { getConversation, addMessage, updateConversationTitle } from "@/lib/db"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/useTranslation"
 
@@ -33,12 +33,32 @@ function writeRateWindow(timestamps: number[]) {
   localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(timestamps))
 }
 
+function parseAssistantPayload(raw: string): { text: string; chips: string[] } {
+  const chipMatch = raw.match(/<!--chips:\s*(\[[\s\S]*?\])\s*-->/)
+  if (!chipMatch) return { text: raw, chips: [] }
+
+  let chips: string[] = []
+  try {
+    const parsed = JSON.parse(chipMatch[1])
+    if (Array.isArray(parsed)) {
+      chips = parsed.map((c) => String(c).trim()).filter(Boolean).slice(0, 3)
+    }
+  } catch {
+    chips = []
+  }
+
+  const text = raw.replace(chipMatch[0], "").trim()
+  return { text, chips }
+}
+
 export function useChat(conversationId?: string) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<ChatError>({ type: "none" })
+  const [suggestionChips, setSuggestionChips] = useState<string[]>([])
+  const [conversationTitle, setConversationTitle] = useState<string>("")
 
   const messagesRef = useRef<Message[]>([])
   const abortRef = useRef<AbortController | null>(null)
@@ -61,6 +81,7 @@ export function useChat(conversationId?: string) {
         if (cancelled) return
         setMessages(conv.messages || [])
         setConversationIsActive(conv.isActive)
+        setConversationTitle(conv.title || "")
       } catch {
         if (cancelled) return
         setMessages([])
@@ -139,20 +160,24 @@ export function useChat(conversationId?: string) {
         if (!reader) throw new Error("No response body")
         const decoder = new TextDecoder()
 
-        let fullText = ""
+        let rawText = ""
         while (true) {
           const { value, done } = await reader.read()
           if (done) break
           const chunk = decoder.decode(value)
           if (!chunk) continue
-          fullText += chunk
+          rawText += chunk
+          const parsed = parseAssistantPayload(rawText)
           setMessages((prev) =>
-            prev.map((m) => (m.id === assistantId ? { ...m, content: fullText } : m))
+            prev.map((m) => (m.id === assistantId ? { ...m, content: parsed.text } : m))
           )
+          setSuggestionChips(parsed.chips)
         }
 
-        if (fullText.trim()) {
-          await addMessage(conversationId, "assistant", fullText)
+        const parsedFinal = parseAssistantPayload(rawText)
+        if (parsedFinal.text.trim()) {
+          await addMessage(conversationId, "assistant", parsedFinal.text)
+          setSuggestionChips(parsedFinal.chips)
         }
       } catch {
         toast({
@@ -165,7 +190,7 @@ export function useChat(conversationId?: string) {
         setIsStreaming(false)
       }
     },
-    [addMessage, conversationId, toast]
+    [conversationId, t, toast]
   )
 
   const sendMessage = useCallback(
@@ -189,6 +214,7 @@ export function useChat(conversationId?: string) {
 
       setError({ type: "none" })
       setIsStreaming(true)
+      setSuggestionChips([])
 
       const userMessage: Message = {
         id: `local-${Date.now()}`,
@@ -206,7 +232,35 @@ export function useChat(conversationId?: string) {
 
       try {
         // Persist user message in DB
-        void addMessage(conversationId, "user", text)
+        await addMessage(conversationId, "user", text)
+
+        const userMessagesCount =
+          messagesRef.current.filter((m) => m.role === "user").length + 1
+        if (userMessagesCount === 1) {
+          void (async () => {
+            try {
+              const res = await fetch("/api/buddy/title", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ conversationId, firstMessage: text }),
+              })
+              if (!res.ok) {
+                const fallback = `${text.slice(0, 40).trim()}...`
+                setConversationTitle(fallback)
+                await updateConversationTitle(conversationId, fallback)
+                return
+              }
+              const json = (await res.json()) as { title?: string }
+              if (json.title) {
+                setConversationTitle(json.title)
+              }
+            } catch {
+              const fallback = `${text.slice(0, 40).trim()}...`
+              setConversationTitle(fallback)
+              void updateConversationTitle(conversationId, fallback)
+            }
+          })()
+        }
 
         const requestMessages: Array<{ role: Message["role"]; content: string }> = [
           ...messagesRef.current
@@ -226,7 +280,7 @@ export function useChat(conversationId?: string) {
         setIsStreaming(false)
       }
     },
-    [canSend, conversationId, streamAssistantResponse, toast]
+    [canSend, conversationId, streamAssistantResponse, t, toast]
   )
 
   const retry = useCallback(() => {
@@ -242,6 +296,10 @@ export function useChat(conversationId?: string) {
     void streamAssistantResponse(requestMessages)
   }, [canSend, conversationId, streamAssistantResponse])
 
+  const clearSuggestionChips = useCallback(() => {
+    setSuggestionChips([])
+  }, [])
+
   return {
     messages,
     sendMessage,
@@ -249,6 +307,9 @@ export function useChat(conversationId?: string) {
     error,
     canSend,
     retry,
+    suggestionChips,
+    clearSuggestionChips,
+    conversationTitle,
   }
 }
 

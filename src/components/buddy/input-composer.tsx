@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils"
 interface InputComposerProps {
   onSend: (text: string) => void
   isDisabled?: boolean
+  onTypingChange?: (isTyping: boolean) => void
 }
 
-export function InputComposer({ onSend, isDisabled = false }: InputComposerProps) {
+export function InputComposer({ onSend, isDisabled = false, onTypingChange }: InputComposerProps) {
   const { t } = useTranslation()
   const [text, setText] = useState("")
 
@@ -35,7 +36,11 @@ export function InputComposer({ onSend, isDisabled = false }: InputComposerProps
       <div className="flex items-end gap-2 max-w-3xl mx-auto">
         <Textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            const next = e.target.value
+            setText(next)
+            onTypingChange?.(next.trim().length > 0)
+          }}
           onKeyDown={handleKeyDown}
           placeholder={t("buddy.placeholder")}
           disabled={isDisabled}
