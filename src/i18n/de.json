@@ -121,7 +121,19 @@
   },
   "buddy": {
     "chat": "Chat",
-    "history": "Verlauf",
+    "history": {
+      "tab": "Verlauf",
+      "total": "Gespräche gesamt",
+      "thisMonth": "Dieser Monat",
+      "avgLength": "Ø Länge",
+      "messages": "Nachrichten",
+      "search": "Gespräche durchsuchen...",
+      "noResults": "Keine Gespräche gefunden",
+      "empty": "Noch keine Gespräche",
+      "startFirst": "Erstes Gespräch starten",
+      "ended": "Dieses Gespräch ist abgeschlossen.",
+      "active": "Laufend"
+    },
     "title": "Diabetes-Buddy",
     "introTitle": "Dein Diabetes-Buddy",
     "intro": "Ich bin dein Diabetes-Buddy. Hier kannst du offen über deinen Alltag mit Diabetes sprechen – über Frustrationen, Erfolge und alles, was dich beschäftigt. Ich bin kein Therapeut und kein Arzt. Meine Antworten können Fehler enthalten.",

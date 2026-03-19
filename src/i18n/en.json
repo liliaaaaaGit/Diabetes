@@ -121,7 +121,19 @@
   },
   "buddy": {
     "chat": "Chat",
-    "history": "History",
+    "history": {
+      "tab": "History",
+      "total": "Total conversations",
+      "thisMonth": "This month",
+      "avgLength": "Avg. length",
+      "messages": "messages",
+      "search": "Search conversations...",
+      "noResults": "No conversations found",
+      "empty": "No conversations yet",
+      "startFirst": "Start your first conversation",
+      "ended": "This conversation has ended.",
+      "active": "Active"
+    },
     "title": "Diabetes Buddy",
     "introTitle": "Your Diabetes Buddy",
     "intro": "I'm your Diabetes Buddy. Here you can openly talk about your everyday life with diabetes – about frustrations, achievements, and everything that's on your mind. I'm not a therapist and not a doctor. My answers may contain errors.",

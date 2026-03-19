@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InputComposer } from "@/components/buddy/input-composer"
 import { ChatContainer } from "@/components/buddy/chat-container"
 import { ConversationList } from "@/components/buddy/conversation-list"
+import { ConversationDetailView } from "@/components/buddy/conversation-detail-view"
 import { SuggestionChips } from "@/components/buddy/suggestion-chips"
 import { DailyImpulseCard } from "@/components/buddy/daily-impulse-card"
 import { DailyGoals, type BuddyDailyGoal } from "@/components/buddy/daily-goals"
@@ -14,7 +15,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
 import { useChat } from "@/hooks/useChat"
 import { useConversations } from "@/hooks/useConversations"
-import { createConversation, endConversation, updateConversationSummary, createEntry } from "@/lib/db"
+import { createConversation, endConversation, updateConversationSummary, createEntry, getConversation } from "@/lib/db"
 import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { Conversation, ExtractedEntry, Message, NewEntry } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -58,10 +59,15 @@ export default function BuddyPage() {
   const [overviewRefreshNonce, setOverviewRefreshNonce] = useState(0)
   const [showEndPrompt, setShowEndPrompt] = useState(false)
   const [isEndingConversation, setIsEndingConversation] = useState(false)
+  const [selectedHistoryConversation, setSelectedHistoryConversation] = useState<Conversation | null>(null)
+  const [backfillingIds, setBackfillingIds] = useState<Set<string>>(new Set())
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
+  const [pendingStarterMessage, setPendingStarterMessage] = useState<string | null>(null)
 
   const activeConversationIdRef = useRef<string | undefined>(undefined)
   const activeMessagesRef = useRef<Message[]>([])
   const endingRef = useRef(false)
+  const backfilledRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     activeConversationIdRef.current = activeConversationId
@@ -168,6 +174,16 @@ export default function BuddyPage() {
       activeMessagesRef.current = messages
     }
   }, [messages, viewConversationId])
+
+  useEffect(() => {
+    if (!pendingStarterMessage) return
+    if (!isFullChatView) return
+    if (!canSend) return
+    const text = pendingStarterMessage
+    setPendingStarterMessage(null)
+    handleSendWithExtraction(text)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingStarterMessage, isFullChatView, canSend])
 
   // Pick/create an active conversation on first load.
   useEffect(() => {
@@ -356,6 +372,37 @@ export default function BuddyPage() {
 
   const activeConversationWithMessages = conversations.find((c) => c.isActive && (c.messageCount || 0) > 0)
 
+  useEffect(() => {
+    if (conversations.length === 0) return
+    const targets = conversations.filter(
+      (c) => !c.isActive && !c.summary && (c.messageCount || 0) > 0 && !backfilledRef.current.has(c.id)
+    )
+    if (targets.length === 0) return
+
+    void (async () => {
+      for (const conv of targets) {
+        backfilledRef.current.add(conv.id)
+        setBackfillingIds((prev) => new Set(prev).add(conv.id))
+        try {
+          const full = await getConversation(conv.id)
+          if (!full.messages || full.messages.length === 0) continue
+          const { title, summary, tags, moodEmoji } = await summarizeConversation(full.messages)
+          await updateConversationSummary(conv.id, summary, tags, moodEmoji, title)
+        } catch {
+          // keep silent backfill behavior
+        } finally {
+          setBackfillingIds((prev) => {
+            const next = new Set(prev)
+            next.delete(conv.id)
+            return next
+          })
+        }
+      }
+      await refetchConversations()
+      setHistoryRefreshKey((v) => v + 1)
+    })()
+  }, [conversations, refetchConversations])
+
   const handleToggleGoal = async (goal: BuddyDailyGoal) => {
     const updated = dailyGoals.map((g) => (g.id === goal.id ? { ...g, completed: !g.completed } : g))
     setDailyGoals(updated)
@@ -419,7 +466,7 @@ export default function BuddyPage() {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "chat" | "history")} className="flex-1 flex flex-col">
           <TabsList className="mb-4">
             <TabsTrigger value="chat">{t("pages.buddy")}</TabsTrigger>
-            <TabsTrigger value="history">{t("buddy.history")}</TabsTrigger>
+            <TabsTrigger value="history">{t("buddy.history.tab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="chat" className="flex-1 flex flex-col min-h-0">
@@ -552,7 +599,34 @@ export default function BuddyPage() {
 
           <TabsContent value="history" className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto">
-              <ConversationList conversations={conversations} onSelect={handleConversationSelect} />
+              {selectedHistoryConversation ? (
+                <ConversationDetailView
+                  conversation={selectedHistoryConversation}
+                  onBack={() => setSelectedHistoryConversation(null)}
+                  onStartFromTopic={() => {
+                    setSelectedHistoryConversation(null)
+                    handleStartConversation()
+                    const prefill = selectedHistoryConversation.summary
+                      ? `Ich moechte an folgendes Thema anknuepfen: ${selectedHistoryConversation.summary}`
+                      : `Ich moechte unser Gespraech "${selectedHistoryConversation.title || "Thema"}" fortsetzen.`
+                    setPendingStarterMessage(prefill)
+                  }}
+                />
+              ) : (
+                <ConversationList
+                  conversations={conversations}
+                  onSelect={async (conversation) => {
+                    const full = await getConversation(conversation.id)
+                    setSelectedHistoryConversation(full)
+                  }}
+                  onStartFirstConversation={() => {
+                    setActiveTab("chat")
+                    handleStartConversation()
+                  }}
+                  backfillingIds={backfillingIds}
+                  statsRefreshKey={historyRefreshKey}
+                />
+              )}
             </div>
           </TabsContent>
         </Tabs>

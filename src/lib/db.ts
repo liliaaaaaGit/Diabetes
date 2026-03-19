@@ -641,6 +641,40 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
   }))
 }
 
+export async function searchConversations(userId: string, query: string): Promise<Conversation[]> {
+  const normalized = query.trim().toLowerCase()
+  if (!normalized) return getConversations(userId)
+
+  const all = await getConversations(userId)
+  return all.filter((c) => {
+    const title = (c.title || "").toLowerCase()
+    const summary = (c.summary || "").toLowerCase()
+    const tags = (c.tags || []).join(", ").toLowerCase()
+    return title.includes(normalized) || summary.includes(normalized) || tags.includes(normalized)
+  })
+}
+
+export async function getConversationStats(userId: string): Promise<{
+  total: number
+  thisMonth: number
+  avgLength: number
+}> {
+  const conversations = await getConversations(userId)
+  const now = new Date()
+  const total = conversations.length
+  const thisMonth = conversations.filter((c) => {
+    const d = new Date(c.startedAt)
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+  }).length
+  const avgLength =
+    total > 0
+      ? Math.round(
+          conversations.reduce((acc, c) => acc + (c.messageCount ?? c.messages.length ?? 0), 0) / total
+        )
+      : 0
+  return { total, thisMonth, avgLength }
+}
+
 export async function endConversation(conversationId: string): Promise<void> {
   if (USE_MOCK) {
     conversationsStore = conversationsStore.map((c) =>
