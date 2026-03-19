@@ -97,6 +97,7 @@ export default function BuddyPage() {
     suggestionChips,
     clearSuggestionChips,
     conversationTitle,
+    hasCrisisFlag,
   } = useChat(viewConversationId)
 
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), [])
@@ -570,6 +571,7 @@ export default function BuddyPage() {
                   onSuggestionSelect={handleSuggestionSelect}
                   showTyping={isStreaming}
                   contextualSuggestions={suggestionChips}
+                  showCrisisBanner={hasCrisisFlag}
                 />
                 {buddyExtraction &&
                   viewConversationId === activeConversationIdRef.current &&

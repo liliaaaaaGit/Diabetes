@@ -6,12 +6,14 @@ import { MessageBubble } from "./message-bubble"
 import { AssistantIntroCard } from "./assistant-intro-card"
 import { SuggestionChips } from "./suggestion-chips"
 import { TypingIndicator } from "./typing-indicator"
+import { CrisisBanner } from "./crisis-banner"
 
 interface ChatContainerProps {
   messages: Message[]
   onSuggestionSelect: (text: string) => void
   showTyping?: boolean
   contextualSuggestions?: string[]
+  showCrisisBanner?: boolean
 }
 
 export function ChatContainer({
@@ -19,6 +21,7 @@ export function ChatContainer({
   onSuggestionSelect,
   showTyping = false,
   contextualSuggestions = [],
+  showCrisisBanner = false,
 }: ChatContainerProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -36,6 +39,7 @@ export function ChatContainer({
       ref={scrollRef}
       className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
     >
+      {showCrisisBanner && <CrisisBanner />}
       {showIntro && <AssistantIntroCard />}
       {showSuggestions && messages.length === 0 && (
         <SuggestionChips onSelect={onSuggestionSelect} />

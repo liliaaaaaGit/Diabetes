@@ -16,6 +16,35 @@ const RATE_LIMIT_KEY = "glucoBuddy_rate_timestamps"
 const MAX_MESSAGES = 30
 const WINDOW_MS = 5 * 60 * 1000
 
+const CRISIS_KEYWORDS = [
+  "umbringen",
+  "suizid",
+  "selbstmord",
+  "nicht mehr leben",
+  "aufhören zu leben",
+  "alles beenden",
+  "keinen sinn",
+  "wehtun",
+  "selbst verletzen",
+  "ritzen",
+  "will nicht mehr",
+  "kann nicht mehr",
+  "verschwinden",
+  "tot sein",
+]
+
+function normalizeCrisisText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+}
+
+export function detectCrisisKeywords(text: string): boolean {
+  const normalized = normalizeCrisisText(text)
+  return CRISIS_KEYWORDS.some((keyword) => normalized.includes(normalizeCrisisText(keyword)))
+}
+
 function readRateWindow(): number[] {
   if (typeof window === "undefined") return []
   try {
@@ -64,6 +93,7 @@ export function useChat(conversationId?: string) {
   const abortRef = useRef<AbortController | null>(null)
 
   const [conversationIsActive, setConversationIsActive] = useState<boolean>(true)
+  const [hasCrisisFlag, setHasCrisisFlag] = useState(false)
 
   const canSend = useMemo(() => conversationIsActive, [conversationIsActive])
 
@@ -82,9 +112,14 @@ export function useChat(conversationId?: string) {
         setMessages(conv.messages || [])
         setConversationIsActive(conv.isActive)
         setConversationTitle(conv.title || "")
+        const crisisInHistory = (conv.messages || []).some(
+          (m) => m.role === "user" && detectCrisisKeywords(m.content || "")
+        )
+        setHasCrisisFlag(crisisInHistory)
       } catch {
         if (cancelled) return
         setMessages([])
+        setHasCrisisFlag(false)
       }
     })()
 
@@ -226,6 +261,9 @@ export function useChat(conversationId?: string) {
 
       // Optimistic UI: show user immediately, then stream assistant.
       setMessages((prev) => [...prev, userMessage])
+      if (detectCrisisKeywords(text)) {
+        setHasCrisisFlag(true)
+      }
       abortRef.current?.abort()
       const controller = new AbortController()
       abortRef.current = controller
@@ -310,6 +348,7 @@ export function useChat(conversationId?: string) {
     suggestionChips,
     clearSuggestionChips,
     conversationTitle,
+    hasCrisisFlag,
   }
 }
 
