@@ -146,7 +146,17 @@
     "retry": "Try again",
     "rateLimited": "Please wait a moment",
     "historyLoadFailed": "Conversation history could not be loaded.",
-    "suggestedEntries": "Suggested entries"
+    "suggestedEntries": "Suggested entries",
+    "dailyImpulse": "Daily Impulses",
+    "basedOnConversations": "Based on your recent conversations",
+    "thoughtOfDay": "Thought of the day",
+    "newConversation": "New conversation",
+    "startConversation": "Start conversation",
+    "backToBuddy": "Back to Buddy",
+    "letsChat": "Let's talk",
+    "goodMorning": "Good morning!",
+    "goodAfternoon": "Good afternoon!",
+    "goodEvening": "Good evening!"
   },
   "insights": {
     "title": "Insights",

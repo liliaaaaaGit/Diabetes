@@ -146,7 +146,17 @@
     "retry": "Erneut versuchen",
     "rateLimited": "Bitte warte einen Moment",
     "historyLoadFailed": "Verlauf konnte nicht geladen werden.",
-    "suggestedEntries": "Vorgeschlagene Einträge"
+    "suggestedEntries": "Vorgeschlagene Einträge",
+    "dailyImpulse": "Tägliche Impulse",
+    "basedOnConversations": "Basierend auf deinen letzten Gesprächen",
+    "thoughtOfDay": "Gedanke des Tages",
+    "newConversation": "Neues Gespräch",
+    "startConversation": "Gespräch starten",
+    "backToBuddy": "Zurück zum Buddy",
+    "letsChat": "Lass uns reden",
+    "goodMorning": "Guten Morgen!",
+    "goodAfternoon": "Guten Tag!",
+    "goodEvening": "Guten Abend!"
   },
   "insights": {
     "title": "Einblicke",
