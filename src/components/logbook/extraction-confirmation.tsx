@@ -358,6 +358,68 @@ export function ExtractionConfirmation({
     return null
   }
 
+  const renderValueHint = (entry: (typeof computed)[number]) => {
+    const type = entry.type
+    if (!type) return null
+    const d = entry.data as any
+
+    const estimated = Boolean(d?.estimated)
+    const estimatedLabel = estimated ? (
+      <span className="ml-1 text-xs text-slate-400">(geschaetzt)</span>
+    ) : null
+
+    if (type === "glucose" && typeof d.value === "number") {
+      const unit = d.unit === "mmol_l" ? t("units.mmoll") : t("units.mgdl")
+      return (
+        <p className="mt-1 text-sm text-slate-700">
+          {d.value} {unit}
+        </p>
+      )
+    }
+
+    if (type === "insulin" && typeof d.dose === "number") {
+      return (
+        <p className="mt-1 text-sm text-slate-700">
+          {d.dose} {t("units.units")}
+        </p>
+      )
+    }
+
+    if (type === "meal" && (typeof d.carbsGrams === "number" || typeof d.description === "string")) {
+      return (
+        <p className="mt-1 text-sm text-slate-700">
+          {typeof d.carbsGrams === "number" ? (
+            <>
+              {d.carbsGrams}g KH{estimatedLabel}
+            </>
+          ) : (
+            <>
+              {t("logbook.estimatedCarbs")}{estimatedLabel}
+            </>
+          )}
+        </p>
+      )
+    }
+
+    if (type === "activity") {
+      const mins =
+        d.durationMinutes !== null && d.durationMinutes !== undefined && Number.isFinite(Number(d.durationMinutes))
+          ? Number(d.durationMinutes)
+          : null
+      return mins !== null ? (
+        <p className="mt-1 text-sm text-slate-700">
+          {mins} {t("units.minutes")}
+        </p>
+      ) : null
+    }
+
+    if (type === "mood" && typeof d.moodValue === "number") {
+      return <p className="mt-1 text-sm text-slate-700">{t("common.mood")} {d.moodValue}/5</p>
+    }
+
+    return null
+  }
+
   return (
     <Card className="mt-4 rounded-xl border border-blue-100 bg-blue-50/90">
       <CardContent className="p-4">
@@ -384,6 +446,7 @@ export function ExtractionConfirmation({
                     {entry.type ? getTypeLabel(t, entry.type) : t("logbook.entry")}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">{entry.sourceText}</p>
+                  {renderValueHint(entry)}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
                   <div className="flex items-center gap-2">
