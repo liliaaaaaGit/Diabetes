@@ -1,9 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { getEntries } from "@/lib/db"
 import type { Entry, EntryType } from "@/lib/types"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 
 export type EntriesFilters = {
   type?: EntryType
@@ -12,34 +11,38 @@ export type EntriesFilters = {
   limit?: number
 }
 
-export function useEntries(filters?: EntriesFilters, userId: string = DEFAULT_USER_ID) {
+export function useEntries(filters?: EntriesFilters, userId: string | null = null) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const filtersKey = useMemo(() => JSON.stringify(filters ?? {}), [filters])
+
   const refetch = useCallback(async () => {
+    if (!userId) {
+      setEntries([])
+      setError(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
-      const data = await getEntries(
-        userId,
-        // DEFAULT to "all types" when no filter.type is provided
-        filters?.type
-          ? {
-              type: filters.type,
-              from: filters.from,
-              to: filters.to,
-              limit: filters.limit,
-            }
-          : filters
-      )
+      const parsed = JSON.parse(filtersKey) as EntriesFilters
+      const hasKeys = Object.keys(parsed).length > 0
+      const filterArg = !hasKeys
+        ? undefined
+        : parsed.type
+          ? { type: parsed.type, from: parsed.from, to: parsed.to, limit: parsed.limit }
+          : parsed
+      const data = await getEntries(userId, filterArg)
       setEntries(data)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load entries")
     } finally {
       setLoading(false)
     }
-  }, [JSON.stringify(filters ?? {})])
+  }, [userId, filtersKey])
 
   useEffect(() => {
     void refetch()
@@ -47,4 +50,3 @@ export function useEntries(filters?: EntriesFilters, userId: string = DEFAULT_US
 
   return { entries, loading, error, refetch }
 }
-

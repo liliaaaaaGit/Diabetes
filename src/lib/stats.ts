@@ -1,5 +1,4 @@
 import type { Entry, GlucoseEntry, MoodEntry, ActivityEntry } from "./types"
-import { DEFAULT_USER_ID } from "./constants"
 
 /**
  * Calculate percentage of glucose values within target range (70-180 mg/dL)

@@ -1,15 +1,21 @@
 import { subDays } from "date-fns"
 import { openai } from "@/lib/openai-server"
 import { getConversations } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const FALLBACK_QUOTE = "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
 
 export async function GET() {
   try {
-    const conversations = await getConversations(DEFAULT_USER_ID)
+    const userId = await getSessionUserId()
+    if (!userId) {
+      return Response.json({ code: "unauthorized" }, { status: 401 })
+    }
+
+    const conversations = await getConversations(userId)
     const from = subDays(new Date(), 14)
     const tags = conversations
       .filter((c) => !c.isActive && new Date(c.startedAt) >= from)

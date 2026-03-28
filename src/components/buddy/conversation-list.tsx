@@ -7,10 +7,10 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { getConversation, searchConversations } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import { HistoryStats } from "./history-stats"
 
 interface ConversationListProps {
+  userId: string | null
   conversations: Conversation[]
   onSelect: (conversation: Conversation) => void
   onStartFirstConversation: () => void
@@ -19,6 +19,7 @@ interface ConversationListProps {
 }
 
 export function ConversationList({
+  userId,
   conversations,
   onSelect,
   onStartFirstConversation,
@@ -42,9 +43,13 @@ export function ConversationList({
           setFiltered(conversations.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
           return
         }
+        if (!userId) {
+          setFiltered([])
+          return
+        }
         setSearching(true)
         try {
-          const rows = await searchConversations(DEFAULT_USER_ID, query.trim())
+          const rows = await searchConversations(userId, query.trim())
           setFiltered(rows.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
         } finally {
           setSearching(false)
@@ -53,7 +58,7 @@ export function ConversationList({
     }, 300)
 
     return () => clearTimeout(id)
-  }, [conversations, query])
+  }, [conversations, query, userId])
 
   const sortedConversations = useMemo(() => {
     const arr = [...filtered]
@@ -77,7 +82,8 @@ export function ConversationList({
     void (async () => {
       for (const id of missing) {
         try {
-          const full = await getConversation(id)
+          if (!userId) continue
+          const full = await getConversation(id, userId)
           const firstUser = full.messages.find((m) => m.role === "user")?.content?.trim()
           if (!firstUser) continue
           setFallbackTitles((prev) => ({ ...prev, [id]: `${firstUser.slice(0, 40)}...` }))
@@ -86,7 +92,7 @@ export function ConversationList({
         }
       }
     })()
-  }, [fallbackTitles, sortedConversations])
+  }, [fallbackTitles, sortedConversations, userId])
 
   if (conversations.length === 0) {
     return (
@@ -107,7 +113,7 @@ export function ConversationList({
 
   return (
     <div className="space-y-3">
-      <HistoryStats refreshKey={statsRefreshKey} />
+      <HistoryStats userId={userId} refreshKey={statsRefreshKey} />
 
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

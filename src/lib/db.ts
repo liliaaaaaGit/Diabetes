@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import type {
   Entry,
   EntryType,
@@ -28,8 +27,8 @@ const toNumber = (v: unknown): number => {
 
 const mmolToMgdl = (mmol: number) => mmol * 18.0182
 
-export async function deleteEntry(entryId: string): Promise<void> {
-  const { error } = await supabase.from("entries").delete().eq("id", entryId)
+export async function deleteEntry(entryId: string, userId: string): Promise<void> {
+  const { error } = await supabase.from("entries").delete().eq("id", entryId).eq("user_id", userId)
   if (error) throw error
 }
 
@@ -151,8 +150,7 @@ async function getEntryById(entryId: string, userId: string): Promise<Entry> {
   }
 }
 
-export async function createEntry(entry: NewEntry | Entry): Promise<Entry> {
-  const userId = DEFAULT_USER_ID
+export async function createEntry(userId: string, entry: NewEntry | Entry): Promise<Entry> {
   const {
     type,
     timestamp,
@@ -470,11 +468,12 @@ export async function createConversation(userId: string): Promise<Conversation> 
   }
 }
 
-export async function getConversation(conversationId: string): Promise<Conversation> {
+export async function getConversation(conversationId: string, userId: string): Promise<Conversation> {
   const { data: convRow, error } = await supabase
     .from("conversations")
     .select("id,user_id,title,summary,tags,mood_emoji,started_at,ended_at,is_active")
     .eq("id", conversationId)
+    .eq("user_id", userId)
     .maybeSingle()
   if (error) throw error
   if (!convRow) throw new Error("Conversation not found")
@@ -596,19 +595,21 @@ export async function cleanupEmptyConversations(userId: string): Promise<number>
   return emptyIds.length
 }
 
-export async function endConversation(conversationId: string): Promise<void> {
+export async function endConversation(conversationId: string, userId: string): Promise<void> {
   const { error } = await supabase
     .from("conversations")
     .update({ is_active: false, ended_at: new Date().toISOString() })
     .eq("id", conversationId)
+    .eq("user_id", userId)
   if (error) throw error
 }
 
-export async function dismissInsight(insightId: string): Promise<void> {
+export async function dismissInsight(insightId: string, userId: string): Promise<void> {
   const { error } = await supabase
     .from("insights")
     .update({ dismissed: true })
     .eq("id", insightId)
+    .eq("user_id", userId)
   if (error) throw error
 }
 
@@ -712,19 +713,30 @@ export async function getGoals(userId: string): Promise<Goal[]> {
   }))
 }
 
-export async function updateGoalProgress(goalId: string, completedDays: number): Promise<void> {
+export async function updateGoalProgress(goalId: string, completedDays: number, userId: string): Promise<void> {
   const { error } = await supabase
     .from("goals")
     .update({ completed_days: completedDays })
     .eq("id", goalId)
+    .eq("user_id", userId)
   if (error) throw error
 }
 
 export async function addMessage(
   conversationId: string,
   role: Message["role"],
-  content: string
+  content: string,
+  userId: string
 ): Promise<Message> {
+  const { data: conv, error: convErr } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("id", conversationId)
+    .eq("user_id", userId)
+    .maybeSingle()
+  if (convErr) throw convErr
+  if (!conv) throw new Error("Conversation not found")
+
   const { data, error } = await supabase
     .from("messages")
     .insert({ conversation_id: conversationId, role, content })
@@ -744,6 +756,7 @@ export async function addMessage(
 
 export async function updateConversationSummary(
   conversationId: string,
+  userId: string,
   summary: string,
   tags: string[],
   moodEmoji: string,
@@ -758,14 +771,16 @@ export async function updateConversationSummary(
       title: title || summaryToTitle(summary),
     })
     .eq("id", conversationId)
+    .eq("user_id", userId)
   if (error) throw error
 }
 
-export async function updateConversationTitle(conversationId: string, title: string): Promise<void> {
+export async function updateConversationTitle(conversationId: string, title: string, userId: string): Promise<void> {
   const { error } = await supabase
     .from("conversations")
     .update({ title })
     .eq("id", conversationId)
+    .eq("user_id", userId)
   if (error) throw error
 }
 

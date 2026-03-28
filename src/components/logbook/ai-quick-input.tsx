@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/hooks/useUser"
 import type { ExtractedEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
@@ -24,6 +25,7 @@ export function AiQuickInput({
 }: AiQuickInputProps) {
   const { t } = useTranslation()
   const { toast } = useToast()
+  const { userId } = useUser()
   const [text, setText] = useState("")
   const [isExtracting, setIsExtracting] = useState(false)
   const [aiMessage, setAiMessage] = useState("")
@@ -172,7 +174,8 @@ export function AiQuickInput({
             aiMessage={aiMessage}
             source="manual"
             onSaveEntry={async (entry) => {
-              await createEntry(entry)
+              if (!userId) throw new Error("Not signed in")
+              await createEntry(userId, entry)
             }}
             onSaveResult={({ saved, failed }) => {
               if (saved > 0) {

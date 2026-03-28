@@ -2,15 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { getInsights } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { Insight } from "@/lib/types"
 
-export function useInsights(userId: string = DEFAULT_USER_ID) {
+export function useInsights(userId: string | null) {
   const [insights, setInsights] = useState<Insight[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refetch = useCallback(async () => {
+    if (!userId) {
+      setInsights([])
+      setError(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -29,4 +34,3 @@ export function useInsights(userId: string = DEFAULT_USER_ID) {
 
   return { insights, loading, error, refetch }
 }
-

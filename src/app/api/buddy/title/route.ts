@@ -1,7 +1,9 @@
 import { openai } from "@/lib/openai-server"
 import { updateConversationTitle } from "@/lib/db"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 function fallbackTitle(firstMessage: string) {
   const trimmed = firstMessage.trim()
@@ -11,6 +13,11 @@ function fallbackTitle(firstMessage: string) {
 
 export async function POST(req: Request) {
   try {
+    const userId = await getSessionUserId()
+    if (!userId) {
+      return Response.json({ code: "unauthorized" }, { status: 401 })
+    }
+
     const body = (await req.json()) as { conversationId?: string; firstMessage?: string }
     const conversationId = body.conversationId?.trim()
     const firstMessage = body.firstMessage?.trim() || ""
@@ -43,7 +50,7 @@ export async function POST(req: Request) {
       }
     }
 
-    await updateConversationTitle(conversationId, title)
+    await updateConversationTitle(conversationId, title, userId)
     return Response.json({ title })
   } catch (error) {
     console.error("[api/buddy/title] Error:", error)

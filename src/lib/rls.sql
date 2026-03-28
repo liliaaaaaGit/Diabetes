@@ -1,11 +1,10 @@
 -- RLS (Row Level Security) setup
 -- NOTE:
--- This project currently uses a hardcoded DEFAULT_USER_ID (no auth yet).
--- Therefore, these policies restrict access to only that single user's rows.
--- For real multi-user / full GDPR security, add Supabase Auth and switch policies to use `auth.uid()`.
+-- The app uses cookie-based sessions and filters by user_id in application code.
+-- These example policies still use a fixed UUID; for production, align policies with your
+-- auth model (e.g. Supabase Auth + auth.uid()) or service-role server access.
 
--- Hardcoded user id used by the app
--- (keep in sync with `src/lib/constants.ts`)
+-- Example fixed user id (legacy demo policies below — update for your deployment)
  
   -- USERS
   ALTER TABLE users ENABLE ROW LEVEL SECURITY;

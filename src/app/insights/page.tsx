@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useCallback, useRef } from "react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
@@ -19,7 +19,7 @@ import { useInsights } from "@/hooks/useInsights"
 import { useGoals } from "@/hooks/useGoals"
 import { useConversations } from "@/hooks/useConversations"
 import { dismissInsight, createInsight, createGoal } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
+import { useUser } from "@/hooks/useUser"
 import { subDays, differenceInHours } from "date-fns"
 import { getTimeInRange } from "@/lib/stats"
 import type { GlucoseEntry, MoodEntry, Goal, Insight } from "@/lib/types"
@@ -41,6 +41,8 @@ function isWithinLastDays(iso: string, days: number) {
 export default function InsightsPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
+  const { userId } = useUser()
+  const autoInsightsOnceRef = useRef(false)
 
   const [timeRange, setTimeRange] = useState<"week" | "7d" | "30d">("7d")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -50,10 +52,13 @@ export default function InsightsPage() {
   const toIso = useMemo(() => new Date().toISOString(), [])
   const fromIso = useMemo(() => subDays(new Date(), days).toISOString(), [days])
 
-  const { entries, loading: entriesLoading, refetch: refetchEntries } = useEntries({ from: fromIso, to: toIso })
-  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights()
-  const { goals, loading: goalsLoading, refetch: refetchGoals } = useGoals()
-  const { conversations } = useConversations()
+  const { entries, loading: entriesLoading, refetch: refetchEntries } = useEntries(
+    { from: fromIso, to: toIso },
+    userId
+  )
+  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights(userId)
+  const { goals, loading: goalsLoading, refetch: refetchGoals } = useGoals(userId)
+  const { conversations } = useConversations(userId)
 
   const glucoseEntries = useMemo(() => entries.filter((e) => e.type === "glucose") as GlucoseEntry[], [entries])
   const moodEntries = useMemo(() => entries.filter((e) => e.type === "mood") as MoodEntry[], [entries])
@@ -94,28 +99,15 @@ export default function InsightsPage() {
     return hoursSinceNewest > 24
   }, [insights])
 
-  // Generate insights on mount if stale
-  useEffect(() => {
-    if (insightsAreStale && !isGenerating && !insightsLoading) {
-      void generateInsights()
-    }
-  }, [insightsAreStale, isGenerating, insightsLoading])
-
-  // Load motivation from most recent insight
-  useEffect(() => {
-    const motivationInsight = insights.find((i) => i.type === "motivation" && !i.dismissed)
-    if (motivationInsight) {
-      setMotivationQuote({ quote: motivationInsight.title, context: motivationInsight.description })
-    }
-  }, [insights])
-
-  const generateInsights = async () => {
+  const generateInsights = useCallback(async () => {
+    if (!userId) return
     setIsGenerating(true)
     try {
       const res = await fetch("/api/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: DEFAULT_USER_ID }),
+        credentials: "include",
+        body: JSON.stringify({}),
       })
 
       if (!res.ok) {
@@ -128,10 +120,9 @@ export default function InsightsPage() {
         motivation: { quote: string; context: string }
       }
 
-      // Save patterns as insights
       for (const pattern of data.patterns) {
         await createInsight({
-          userId: DEFAULT_USER_ID,
+          userId,
           type: "pattern",
           title: pattern.title,
           description: pattern.description,
@@ -139,10 +130,9 @@ export default function InsightsPage() {
         })
       }
 
-      // Save goals
       for (const goal of data.goals) {
         await createGoal({
-          userId: DEFAULT_USER_ID,
+          userId,
           title: goal.title,
           description: goal.description,
           targetDays: goal.targetDays ?? 7,
@@ -150,10 +140,9 @@ export default function InsightsPage() {
         })
       }
 
-      // Save motivation as insight
       if (data.motivation.quote) {
         await createInsight({
-          userId: DEFAULT_USER_ID,
+          userId,
           type: "motivation",
           title: data.motivation.quote,
           description: data.motivation.context,
@@ -173,15 +162,37 @@ export default function InsightsPage() {
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [userId, refetchInsights, refetchGoals, t, toast])
+
+  useEffect(() => {
+    autoInsightsOnceRef.current = false
+  }, [userId])
+
+  // Generate insights once after initial load if stale (avoids infinite retry on failure)
+  useEffect(() => {
+    if (!userId || insightsLoading || isGenerating || autoInsightsOnceRef.current) return
+    if (!insightsAreStale) return
+    autoInsightsOnceRef.current = true
+    void generateInsights()
+  }, [userId, insightsAreStale, isGenerating, insightsLoading, generateInsights])
+
+  // Load motivation from most recent insight
+  useEffect(() => {
+    const motivationInsight = insights.find((i) => i.type === "motivation" && !i.dismissed)
+    if (motivationInsight) {
+      setMotivationQuote({ quote: motivationInsight.title, context: motivationInsight.description })
+    }
+  }, [insights])
 
   const handleRefreshMotivation = async () => {
+    if (!userId) return
     setIsGenerating(true)
     try {
       const res = await fetch("/api/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: DEFAULT_USER_ID }),
+        credentials: "include",
+        body: JSON.stringify({}),
       })
 
       if (!res.ok) throw new Error("Failed to refresh motivation")
@@ -189,7 +200,7 @@ export default function InsightsPage() {
       const data = (await res.json()) as { motivation: { quote: string; context: string } }
       if (data.motivation.quote) {
         await createInsight({
-          userId: DEFAULT_USER_ID,
+          userId,
           type: "motivation",
           title: data.motivation.quote,
           description: data.motivation.context,
@@ -220,8 +231,9 @@ export default function InsightsPage() {
   }, [goals])
 
   const handleDismissInsight = async (id: string) => {
+    if (!userId) return
     try {
-      await dismissInsight(id)
+      await dismissInsight(id, userId)
       await refetchInsights()
     } catch (e) {
       toast({
@@ -380,7 +392,7 @@ export default function InsightsPage() {
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
                 {activeGoals.map((goal) => (
-                  <GoalCard key={goal.id} goal={goal} onComplete={handleGoalComplete} />
+                  <GoalCard key={goal.id} goal={goal} userId={userId} onComplete={handleGoalComplete} />
                 ))}
               </div>
             )}

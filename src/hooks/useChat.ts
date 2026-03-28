@@ -80,7 +80,7 @@ function parseAssistantPayload(raw: string): { text: string; chips: string[] } {
   return { text, chips }
 }
 
-export function useChat(conversationId?: string) {
+export function useChat(conversationId: string | undefined, userId: string | null) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
@@ -102,12 +102,12 @@ export function useChat(conversationId?: string) {
   }, [messages])
 
   useEffect(() => {
-    if (!conversationId) return
+    if (!conversationId || !userId) return
 
     let cancelled = false
     ;(async () => {
       try {
-        const conv = await getConversation(conversationId)
+        const conv = await getConversation(conversationId, userId)
         if (cancelled) return
         setMessages(conv.messages || [])
         setConversationIsActive(conv.isActive)
@@ -126,7 +126,7 @@ export function useChat(conversationId?: string) {
     return () => {
       cancelled = true
     }
-  }, [conversationId])
+  }, [conversationId, userId])
 
   const resetRateWindowIfNeeded = () => {
     const now = Date.now()
@@ -138,7 +138,7 @@ export function useChat(conversationId?: string) {
 
   const streamAssistantResponse = useCallback(
     async (requestMessages: Array<{ role: Message["role"]; content: string }>) => {
-      if (!conversationId) return
+      if (!conversationId || !userId) return
       setError({ type: "none" })
       setIsStreaming(true)
 
@@ -211,7 +211,7 @@ export function useChat(conversationId?: string) {
 
         const parsedFinal = parseAssistantPayload(rawText)
         if (parsedFinal.text.trim()) {
-          await addMessage(conversationId, "assistant", parsedFinal.text)
+          await addMessage(conversationId, "assistant", parsedFinal.text, userId)
           setSuggestionChips(parsedFinal.chips)
         }
       } catch {
@@ -225,12 +225,12 @@ export function useChat(conversationId?: string) {
         setIsStreaming(false)
       }
     },
-    [conversationId, t, toast]
+    [conversationId, userId, t, toast]
   )
 
   const sendMessage = useCallback(
     async (text: string) => {
-      if (!conversationId) return
+      if (!conversationId || !userId) return
       if (!canSend) return
 
       const now = Date.now()
@@ -270,7 +270,7 @@ export function useChat(conversationId?: string) {
 
       try {
         // Persist user message in DB
-        await addMessage(conversationId, "user", text)
+        await addMessage(conversationId, "user", text, userId)
 
         const userMessagesCount =
           messagesRef.current.filter((m) => m.role === "user").length + 1
@@ -280,12 +280,13 @@ export function useChat(conversationId?: string) {
               const res = await fetch("/api/buddy/title", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({ conversationId, firstMessage: text }),
               })
               if (!res.ok) {
                 const fallback = `${text.slice(0, 40).trim()}...`
                 setConversationTitle(fallback)
-                await updateConversationTitle(conversationId, fallback)
+                await updateConversationTitle(conversationId, fallback, userId)
                 return
               }
               const json = (await res.json()) as { title?: string }
@@ -295,7 +296,7 @@ export function useChat(conversationId?: string) {
             } catch {
               const fallback = `${text.slice(0, 40).trim()}...`
               setConversationTitle(fallback)
-              void updateConversationTitle(conversationId, fallback)
+              void updateConversationTitle(conversationId, fallback, userId)
             }
           })()
         }
@@ -318,11 +319,11 @@ export function useChat(conversationId?: string) {
         setIsStreaming(false)
       }
     },
-    [canSend, conversationId, streamAssistantResponse, t, toast]
+    [canSend, conversationId, userId, streamAssistantResponse, t, toast]
   )
 
   const retry = useCallback(() => {
-    if (!conversationId) return
+    if (!conversationId || !userId) return
     if (!canSend) return
 
     const requestMessages: Array<{ role: Message["role"]; content: string }> = [
@@ -332,7 +333,7 @@ export function useChat(conversationId?: string) {
     ]
 
     void streamAssistantResponse(requestMessages)
-  }, [canSend, conversationId, streamAssistantResponse])
+  }, [canSend, conversationId, userId, streamAssistantResponse])
 
   const clearSuggestionChips = useCallback(() => {
     setSuggestionChips([])

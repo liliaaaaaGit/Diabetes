@@ -12,14 +12,16 @@ import { Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { useEntries } from "@/hooks/useEntries"
+import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db"
 
 export default function LogbookPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
+  const { userId } = useUser()
   const [activeFilter, setActiveFilter] = useState<EntryType | "all">("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { entries, loading, error, refetch } = useEntries()
+  const { entries, loading, error, refetch } = useEntries(undefined, userId)
 
   // Calculate counts for each filter
   const counts = useMemo(() => {
@@ -36,8 +38,9 @@ export default function LogbookPage() {
 
   const handleSave = (newEntry: Entry) => {
     void (async () => {
+      if (!userId) return
       try {
-        await createEntry(newEntry)
+        await createEntry(userId, newEntry)
         await refetch()
         toast({
           title: t("logbook.entrySaved"),

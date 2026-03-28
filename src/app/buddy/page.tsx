@@ -14,6 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
 import { useChat } from "@/hooks/useChat"
 import { useConversations } from "@/hooks/useConversations"
+import { useUser } from "@/hooks/useUser"
 import {
   createConversation,
   endConversation,
@@ -22,7 +23,6 @@ import {
   getConversation,
   cleanupEmptyConversations,
 } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { Conversation, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowLeft, MessageCirclePlus } from "lucide-react"
@@ -50,6 +50,7 @@ async function summarizeConversation(messages: Message[]) {
 export default function BuddyPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
+  const { userId } = useUser()
 
   const [activeTab, setActiveTab] = useState<"chat" | "history">("chat")
   const [isFullChatView, setIsFullChatView] = useState(false)
@@ -90,7 +91,7 @@ export default function BuddyPage() {
     loading: conversationsLoading,
     error: conversationsError,
     refetch: refetchConversations,
-  } = useConversations(DEFAULT_USER_ID)
+  } = useConversations(userId)
 
   const {
     messages,
@@ -103,10 +104,13 @@ export default function BuddyPage() {
     clearSuggestionChips,
     conversationTitle,
     hasCrisisFlag,
-  } = useChat(viewConversationId)
+  } = useChat(viewConversationId, userId)
 
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), [])
-  const cacheKey = useCallback((name: string) => `buddy_${name}_${todayKey}`, [todayKey])
+  const cacheKey = useCallback(
+    (name: string) => `buddy_${userId ?? "none"}_${name}_${todayKey}`,
+    [userId, todayKey]
+  )
   const invalidateOverviewCache = useCallback(() => {
     localStorage.removeItem(cacheKey("impulse"))
     localStorage.removeItem(cacheKey("goals"))
@@ -114,13 +118,17 @@ export default function BuddyPage() {
   }, [cacheKey])
 
   useEffect(() => {
+    if (!userId) {
+      setOverviewLoading(false)
+      return
+    }
     const loadOverview = async () => {
       setOverviewLoading(true)
       try {
         const loadImpulse = async () => {
           const cached = localStorage.getItem(cacheKey("impulse"))
           if (cached) return cached
-          const res = await fetch("/api/buddy/impulse")
+          const res = await fetch("/api/buddy/impulse", { credentials: "include" })
           if (!res.ok) return "Wie geht es dir heute mit deinem Diabetes? Lass uns darueber sprechen."
           const json = (await res.json()) as { impulse?: string }
           const value = json.impulse || "Wie geht es dir heute mit deinem Diabetes? Lass uns darueber sprechen."
@@ -131,7 +139,7 @@ export default function BuddyPage() {
         const loadMotivation = async () => {
           const cached = localStorage.getItem(cacheKey("motivation"))
           if (cached) return cached
-          const res = await fetch("/api/buddy/motivation")
+          const res = await fetch("/api/buddy/motivation", { credentials: "include" })
           if (!res.ok) return "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
           const json = (await res.json()) as { quote?: string }
           const value = json.quote || "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
@@ -148,7 +156,7 @@ export default function BuddyPage() {
               // ignore cache parse errors
             }
           }
-          const res = await fetch("/api/buddy/goals")
+          const res = await fetch("/api/buddy/goals", { credentials: "include" })
           if (!res.ok) {
             return [
               { id: "f-1", text: "Nenne heute einen kleinen Erfolg.", completed: false },
@@ -172,7 +180,7 @@ export default function BuddyPage() {
     }
 
     void loadOverview()
-  }, [cacheKey, todayKey, overviewRefreshNonce])
+  }, [cacheKey, todayKey, overviewRefreshNonce, userId])
 
   useEffect(() => {
     if (!pendingStarterMessage) return
@@ -209,16 +217,18 @@ export default function BuddyPage() {
       setBuddyAiMessage("")
 
       // 1) Mark as ended first
-      await endConversation(endingId)
+      const uid = userId
+      if (!uid) return
+      await endConversation(endingId, uid)
       console.log("[buddy/end] Conversation marked as ended")
 
       // 2) Fetch messages from DB and summarize (best effort)
       try {
-        const full = await getConversation(endingId)
+        const full = await getConversation(endingId, uid)
         console.log("[buddy/end] Loaded messages for summarize:", full.messages.length)
         if (full.messages.length > 0) {
           const { title, summary, tags, moodEmoji } = await summarizeConversation(full.messages)
-          await updateConversationSummary(endingId, summary, tags, moodEmoji, title)
+          await updateConversationSummary(endingId, uid, summary, tags, moodEmoji, title)
           console.log("[buddy/end] Summary saved")
         }
       } catch (error) {
@@ -287,7 +297,8 @@ export default function BuddyPage() {
     if (!conversationId) {
       void (async () => {
         try {
-          const created = await createConversation(DEFAULT_USER_ID)
+          if (!userId) return
+          const created = await createConversation(userId)
           setActiveConversationId(created.id)
           setViewConversationId(created.id)
           await refetchConversations()
@@ -345,7 +356,8 @@ export default function BuddyPage() {
     if (conversations.length === 0) return
     void (async () => {
       try {
-        const removed = await cleanupEmptyConversations(DEFAULT_USER_ID)
+        if (!userId) return
+        const removed = await cleanupEmptyConversations(userId)
         if (removed > 0) {
           console.log("[buddy/history] Removed empty conversations:", removed)
           await refetchConversations()
@@ -369,10 +381,11 @@ export default function BuddyPage() {
         backfilledRef.current.add(conv.id)
         setBackfillingIds((prev) => new Set(prev).add(conv.id))
         try {
-          const full = await getConversation(conv.id)
+          if (!userId) break
+          const full = await getConversation(conv.id, userId)
           if (!full.messages || full.messages.length === 0) continue
           const { title, summary, tags, moodEmoji } = await summarizeConversation(full.messages)
-          await updateConversationSummary(conv.id, summary, tags, moodEmoji, title)
+          await updateConversationSummary(conv.id, userId, summary, tags, moodEmoji, title)
         } catch {
           // keep silent backfill behavior
         } finally {
@@ -386,7 +399,7 @@ export default function BuddyPage() {
       await refetchConversations()
       setHistoryRefreshKey((v) => v + 1)
     })()
-  }, [activeTab, conversations, refetchConversations])
+  }, [activeTab, conversations, refetchConversations, userId])
 
   const handleToggleGoal = async (goal: BuddyDailyGoal) => {
     const updated = dailyGoals.map((g) => (g.id === goal.id ? { ...g, completed: !g.completed } : g))
@@ -397,6 +410,7 @@ export default function BuddyPage() {
       await fetch("/api/buddy/goals", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ goalId: goal.id, completed: !goal.completed }),
       })
     } catch {
@@ -408,7 +422,7 @@ export default function BuddyPage() {
     setRefreshingQuote(true)
     try {
       localStorage.removeItem(cacheKey("motivation"))
-      const res = await fetch("/api/buddy/motivation")
+      const res = await fetch("/api/buddy/motivation", { credentials: "include" })
       if (!res.ok) return
       const json = (await res.json()) as { quote?: string }
       const quote = json.quote || "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
@@ -561,7 +575,8 @@ export default function BuddyPage() {
                   title={t("buddy.suggestedEntries")}
                   source="conversation"
                   onSaveEntry={async (entry) => {
-                    await createEntry(entry)
+                    if (!userId) throw new Error("Not signed in")
+                    await createEntry(userId, entry)
                   }}
                   onSaveResult={({ saved, failed }) => {
                     if (failed === 0 && saved > 0) {
@@ -604,9 +619,11 @@ export default function BuddyPage() {
               />
             ) : (
               <ConversationList
+                userId={userId}
                 conversations={conversations}
                 onSelect={async (conversation) => {
-                  const full = await getConversation(conversation.id)
+                  if (!userId) return
+                  const full = await getConversation(conversation.id, userId)
                   setSelectedHistoryConversation(full)
                 }}
                 onStartFirstConversation={() => {

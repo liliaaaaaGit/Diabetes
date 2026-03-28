@@ -11,10 +11,11 @@ import { useState } from "react"
 
 interface GoalCardProps {
   goal: Goal
+  userId: string | null
   onComplete: () => void
 }
 
-export function GoalCard({ goal, onComplete }: GoalCardProps) {
+export function GoalCard({ goal, userId, onComplete }: GoalCardProps) {
   const { t } = useTranslation()
   const [isCompleting, setIsCompleting] = useState(false)
   const [lastCompletedDate, setLastCompletedDate] = useState<string | null>(null)
@@ -27,9 +28,10 @@ export function GoalCard({ goal, onComplete }: GoalCardProps) {
     // Prevent multiple completions per day
     if (lastCompletedDate === today) return
 
+    if (!userId) return
     setIsCompleting(true)
     try {
-      await updateGoalProgress(goal.id, goal.completedDays + 1)
+      await updateGoalProgress(goal.id, goal.completedDays + 1, userId)
       setLastCompletedDate(today)
       onComplete()
     } catch (error) {

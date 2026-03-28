@@ -2,10 +2,11 @@ import { NextRequest } from "next/server"
 import { openai } from "@/lib/openai-server"
 import { getConversations, getEntries } from "@/lib/db"
 import { getWeeklyStats, getEntryCountsByType, getMoodTrend } from "@/lib/stats"
-import { DEFAULT_USER_ID } from "@/lib/constants"
+import { getSessionUserId } from "@/lib/auth-session"
 import type { GlucoseEntry, MoodEntry } from "@/lib/types"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const SYSTEM_PROMPT = `Du bist ein Diabetes-Insights-Assistent. Analysiere Gesprächszusammenfassungen und Tagebuchdaten, generiere personalisierte Einblicke.
 
@@ -53,8 +54,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = (await req.json()) as { userId: string }
-    const userId = body?.userId || DEFAULT_USER_ID
+    const userId = await getSessionUserId()
+    if (!userId) {
+      return new Response(JSON.stringify({ code: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
 
     // Fetch conversations and entries
     const conversations = await getConversations(userId)

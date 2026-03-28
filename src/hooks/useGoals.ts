@@ -2,15 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { getGoals } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { Goal } from "@/lib/types"
 
-export function useGoals(userId: string = DEFAULT_USER_ID) {
+export function useGoals(userId: string | null) {
   const [goals, setGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refetch = useCallback(async () => {
+    if (!userId) {
+      setGoals([])
+      setError(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -29,4 +34,3 @@ export function useGoals(userId: string = DEFAULT_USER_ID) {
 
   return { goals, loading, error, refetch }
 }
-

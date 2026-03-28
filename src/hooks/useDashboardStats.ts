@@ -2,15 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { getDashboardStats } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { DashboardStats } from "@/lib/types"
 
-export function useDashboardStats(userId: string = DEFAULT_USER_ID) {
+export function useDashboardStats(userId: string | null) {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refetch = useCallback(async () => {
+    if (!userId) {
+      setStats(null)
+      setError(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -29,4 +34,3 @@ export function useDashboardStats(userId: string = DEFAULT_USER_ID) {
 
   return { stats, loading, error, refetch }
 }
-

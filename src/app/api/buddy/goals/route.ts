@@ -1,8 +1,9 @@
 import { openai } from "@/lib/openai-server"
 import { createGoal, getConversations, getGoals, updateGoalProgress } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const PREFIX = "BUDDY_DAILY::"
 
@@ -20,15 +21,20 @@ function toResponseGoals(goals: Array<{ id: string; title: string; completedDays
 
 export async function GET() {
   try {
+    const userId = await getSessionUserId()
+    if (!userId) {
+      return Response.json({ code: "unauthorized" }, { status: 401 })
+    }
+
     const day = todayKey()
-    const allGoals = await getGoals(DEFAULT_USER_ID)
+    const allGoals = await getGoals(userId)
     const todays = allGoals.filter((g) => g.description.startsWith(`${PREFIX}${day}::`)).slice(0, 3)
 
     if (todays.length > 0) {
       return Response.json({ goals: toResponseGoals(todays) })
     }
 
-    const conversations = await getConversations(DEFAULT_USER_ID)
+    const conversations = await getConversations(userId)
     const context = conversations
       .filter((c) => !c.isActive && c.summary)
       .slice(0, 5)
@@ -65,7 +71,7 @@ export async function GET() {
     const created = await Promise.all(
       texts.map((text) =>
         createGoal({
-          userId: DEFAULT_USER_ID,
+          userId,
           title: text,
           description: `${PREFIX}${day}::${text}`,
           targetDays: 1,
@@ -85,11 +91,16 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
+    const userId = await getSessionUserId()
+    if (!userId) {
+      return Response.json({ success: false, code: "unauthorized" }, { status: 401 })
+    }
+
     const body = (await req.json()) as { goalId?: string; completed?: boolean }
     if (!body.goalId) {
       return Response.json({ success: false }, { status: 400 })
     }
-    await updateGoalProgress(body.goalId, body.completed ? 1 : 0)
+    await updateGoalProgress(body.goalId, body.completed ? 1 : 0, userId)
     return Response.json({ success: true })
   } catch (error) {
     console.error("[api/buddy/goals] PATCH error:", error)

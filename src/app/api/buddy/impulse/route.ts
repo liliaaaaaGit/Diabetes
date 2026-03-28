@@ -1,14 +1,20 @@
 import { openai } from "@/lib/openai-server"
 import { getConversations } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const FALLBACK_IMPULSE = "Wie geht es dir heute mit deinem Diabetes? Lass uns darueber sprechen."
 
 export async function GET() {
   try {
-    const conversations = await getConversations(DEFAULT_USER_ID)
+    const userId = await getSessionUserId()
+    if (!userId) {
+      return Response.json({ code: "unauthorized" }, { status: 401 })
+    }
+
+    const conversations = await getConversations(userId)
     const summaries = conversations
       .filter((c) => !c.isActive && c.summary)
       .slice(0, 5)

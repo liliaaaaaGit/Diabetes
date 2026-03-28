@@ -56,6 +56,3 @@ export const COLORS = {
   activity: "#10B981",   // Green
   mood: "#EC4899",       // Pink
 } as const
-
-// Hardcoded test user for MVP (no auth yet)
-export const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000001"

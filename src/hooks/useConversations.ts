@@ -2,15 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { getConversations } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import type { Conversation } from "@/lib/types"
 
-export function useConversations(userId: string = DEFAULT_USER_ID) {
+export function useConversations(userId: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const refetch = useCallback(async () => {
+    if (!userId) {
+      setConversations([])
+      setError(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -29,4 +34,3 @@ export function useConversations(userId: string = DEFAULT_USER_ID) {
 
   return { conversations, loading, error, refetch }
 }
-

@@ -2,22 +2,26 @@
 
 import { useEffect, useState } from "react"
 import { getConversationStats } from "@/lib/db"
-import { DEFAULT_USER_ID } from "@/lib/constants"
 import { useTranslation } from "@/hooks/useTranslation"
 
 interface HistoryStatsProps {
+  userId: string | null
   refreshKey?: number
 }
 
-export function HistoryStats({ refreshKey = 0 }: HistoryStatsProps) {
+export function HistoryStats({ userId, refreshKey = 0 }: HistoryStatsProps) {
   const { t } = useTranslation()
   const [stats, setStats] = useState({ total: 0, thisMonth: 0, avgLength: 0 })
 
   useEffect(() => {
+    if (!userId) {
+      setStats({ total: 0, thisMonth: 0, avgLength: 0 })
+      return
+    }
     let cancelled = false
     void (async () => {
       try {
-        const data = await getConversationStats(DEFAULT_USER_ID)
+        const data = await getConversationStats(userId)
         if (!cancelled) setStats(data)
       } catch {
         if (!cancelled) setStats({ total: 0, thisMonth: 0, avgLength: 0 })
@@ -26,7 +30,7 @@ export function HistoryStats({ refreshKey = 0 }: HistoryStatsProps) {
     return () => {
       cancelled = true
     }
-  }, [refreshKey])
+  }, [refreshKey, userId])
 
   return (
     <div className="grid grid-cols-3 gap-2">

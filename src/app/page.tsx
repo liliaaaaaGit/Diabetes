@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useEntries } from "@/hooks/useEntries"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
 import { useInsights } from "@/hooks/useInsights"
+import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db"
 import type { Entry, GlucoseEntry, MoodEntry, GlucoseUnit } from "@/lib/types"
 import { formatDistanceToNow, parseISO } from "date-fns"
@@ -31,6 +32,7 @@ const moodEmojis: Record<number, string> = {
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
+  const { userId } = useUser()
 
   const unit: GlucoseUnit = "mg_dl"
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -41,17 +43,20 @@ export default function DashboardPage() {
     return d.toISOString()
   }, [])
 
-  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats()
+  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats(userId)
   const { entries: glucoseEntries, loading: glucoseLoading, refetch: refetchGlucose } = useEntries(
-    { type: "glucose", from: start14d }
+    { type: "glucose", from: start14d },
+    userId
   )
   const { entries: moodEntries, loading: moodLoading, refetch: refetchMood } = useEntries(
-    { type: "mood", limit: 1 }
+    { type: "mood", limit: 1 },
+    userId
   )
   const { entries: recentEntries, loading: recentLoading, refetch: refetchRecent } = useEntries(
-    { limit: 8 }
+    { limit: 8 },
+    userId
   )
-  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights()
+  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights(userId)
 
   const statsSafe =
     stats ?? ({ avgGlucose: 0, unit: "mg_dl", entriesToday: 0, timeInRange: 0 } as const)
@@ -102,7 +107,8 @@ export default function DashboardPage() {
 
   const handleSaveEntry = async (entry: Entry) => {
     try {
-      await createEntry(entry)
+      if (!userId) return
+      await createEntry(userId, entry)
       toast({
         title: t("logbook.entrySaved"),
         description: t("logbook.entrySavedSuccess"),
