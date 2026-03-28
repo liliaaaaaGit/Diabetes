@@ -31,7 +31,7 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     setIsLoggingOut(true)
     try {
-      const res = await fetch("/api/auth/logout", { method: "POST" })
+      const res = await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
       if (res.ok) {
         router.push("/login")
         router.refresh()
@@ -54,7 +54,7 @@ export default function SettingsPage() {
   const handleDeleteAccount = async () => {
     setIsDeleting(true)
     try {
-      const res = await fetch("/api/auth/delete-account", { method: "POST" })
+      const res = await fetch("/api/auth/delete-account", { method: "POST", credentials: "include" })
       const data = (await res.json()) as { success: boolean; error?: string }
 
       if (data.success) {

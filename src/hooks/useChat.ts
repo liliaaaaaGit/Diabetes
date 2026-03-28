@@ -160,6 +160,7 @@ export function useChat(conversationId: string | undefined, userId: string | nul
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ messages: requestMessages }),
           signal: controller.signal,
         })

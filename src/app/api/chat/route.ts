@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server"
+import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { Message } from "@/lib/types"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const SYSTEM_PROMPT = `Du bist der Diabetes-Buddy – ein warmherziger Begleiter und Gesprächspartner in einer Forschungs-App für Menschen mit Diabetes. Du bist KEIN Therapeut, KEIN Arzt und KEIN medizinischer Berater. Trotzdem sollst du in deiner Art zu antworten die Qualität, Tiefe und Gesprächsführung eines sehr erfahrenen Gesprächspartners erreichen: individuell, präzise, sokratisch und reflektionsorientiert – ohne dich als Fachperson zu bezeichnen.
 
@@ -97,6 +99,15 @@ function buildOpenAiMessages(messages: Message[]) {
 
 export async function POST(req: NextRequest) {
   try {
+    const cookieStore = await cookies()
+    const userId = cookieStore.get("gc_user_id")?.value
+    if (!userId) {
+      return new Response(JSON.stringify({ code: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       return new Response(
         JSON.stringify({ code: "missing_api_key" }),

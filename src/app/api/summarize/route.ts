@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server"
+import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { Message } from "@/lib/types"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const SUMMARY_PROMPT = `Fasse dieses Gespräch zusammen. Fokussiere auf das, was der NUTZER gesagt, gefühlt und geteilt hat – NICHT auf die Antworten des Assistenten. Schreibe in der dritten Person: "Sprach über...", "Teilte Gefühle von...". Antworte als JSON:
 {
@@ -14,6 +16,15 @@ const SUMMARY_PROMPT = `Fasse dieses Gespräch zusammen. Fokussiere auf das, was
 
 export async function POST(req: NextRequest) {
   try {
+    const cookieStore = await cookies()
+    const userId = cookieStore.get("gc_user_id")?.value
+    if (!userId) {
+      return new Response(JSON.stringify({ code: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
     const apiKeyMissing = !process.env.OPENAI_API_KEY || !openai
     if (apiKeyMissing) {
       return new Response(

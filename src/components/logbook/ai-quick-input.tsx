@@ -51,6 +51,7 @@ export function AiQuickInput({
       const res = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ text: payloadText }),
       })
       if (!res.ok) {

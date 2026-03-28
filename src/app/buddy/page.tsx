@@ -32,6 +32,7 @@ async function summarizeConversation(messages: Message[]) {
   const res = await fetch("/api/summarize", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ messages }),
   })
 
@@ -256,6 +257,7 @@ export default function BuddyPage() {
       const res = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ text: userText.slice(0, 500) }),
       })
       if (!res.ok) {

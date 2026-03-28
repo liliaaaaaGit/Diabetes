@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server"
+import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { EntryType, ExtractedEntry } from "@/lib/types"
 
 export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 const ENTRY_TYPES: EntryType[] = ["glucose", "insulin", "meal", "activity", "mood"]
 
@@ -69,6 +71,15 @@ function normalizeExtractedType(raw: unknown): EntryType | undefined {
 
 export async function POST(req: NextRequest) {
   try {
+    const cookieStore = await cookies()
+    const userId = cookieStore.get("gc_user_id")?.value
+    if (!userId) {
+      return new Response(JSON.stringify({ code: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
     if (!process.env.OPENAI_API_KEY) {
       console.error("[api/extract] Missing OPENAI_API_KEY")
       return new Response(
