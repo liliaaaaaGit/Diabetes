@@ -111,13 +111,22 @@
     "aiNoData": "Ich konnte keine Daten erkennen. Versuche es genauer zu beschreiben oder erfasse den Eintrag manuell.",
     "aiAnalyzeFailed": "Analyse fehlgeschlagen. Bitte versuche es erneut oder erfasse den Eintrag manuell.",
     "aiSaveSuccess": "{{count}} Einträge gespeichert",
+    "aiSavePartialFailed": "{{count}} Einträge konnten nicht gespeichert werden.",
     "aiSaveFailed": "Speichern fehlgeschlagen. Bitte versuche es erneut.",
+    "estimatedCarbsHint": "(geschaetzt)",
     "extractionDetectedEntries": "Erkannte Einträge",
     "unsure": "Unsicher",
     "discard": "Verwerfen",
     "insulinNote": "Insulindaten werden nur dokumentiert, nicht bewertet.",
     "insulinNoteLong": "Insulindaten werden nur dokumentiert, nicht bewertet oder zur Behandlung verwendet.",
-    "checkValue": "Wert prüfen"
+    "checkValue": "Wert prüfen",
+    "savingEntries": "Speichern…",
+    "moodPickHint": "Stimmung anpassen:",
+    "moodVeryBad": "Sehr schlecht",
+    "moodBad": "Schlecht",
+    "moodNeutral": "Mittel",
+    "moodGood": "Gut",
+    "moodGreat": "Sehr gut"
   },
   "buddy": {
     "chat": "Chat",

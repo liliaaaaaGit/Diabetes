@@ -1,75 +1,71 @@
 import { NextRequest } from "next/server"
 import { openai } from "@/lib/openai-server"
-import type { ExtractedEntry } from "@/lib/types"
+import type { EntryType, ExtractedEntry } from "@/lib/types"
 
 export const runtime = "nodejs"
 
-const SYSTEM_PROMPT = `Du bist ein intelligenter Daten-Extraktions-Assistent fuer eine Diabetes-Tagebuch-App. Deine KERNKOMPETENZ: Du erkennst Diabetes-relevante Daten in natuerlicher Sprache und SCHAETZT fehlende Werte basierend auf Ernaehrungswissen.
+const ENTRY_TYPES: EntryType[] = ["glucose", "insulin", "meal", "activity", "mood"]
 
-WICHTIGSTE REGEL: Du musst NICHT auf exakte Angaben warten. Wenn jemand "Breze" schreibt, SCHAETZE die Kohlenhydrate. Wenn jemand "mir gehts scheisse" schreibt, erkenne die Stimmung. Sei intelligent, nicht rigid.
+const SYSTEM_PROMPT = `Du bist Ernaehrungs- und Diabetes-Experte mit Zugriff auf umfassendes Wissen zu Lebensmitteln, Sport und Stimmung. Du extrahierst aus Freitext ALLE erkennbaren Tagebuch-Eintraege fuer eine Diabetes-App.
 
-EXTRAHIERE FOLGENDE DATENTYPEN:
-glucose: { value: number, unit: "mg_dl"|"mmol_l", context: "fasting"|"pre_meal"|"post_meal"|"bedtime"|"other" }
-insulin: { dose: number, insulinType: "rapid"|"long_acting"|"mixed"|"other", insulinName: string|null }
-meal: { description: string, carbsGrams: number, mealType: "breakfast"|"lunch"|"dinner"|"snack", estimated: boolean }
-activity: { activityType: string, durationMinutes: number|null, intensity: "low"|"medium"|"high" }
-mood: { moodValue: 1|2|3|4|5, note: string|null }
+KERNREGELN:
+- Nutze dein eigenes Ernaehrungs- und Alltagswissen: Schaetze Kohlenhydrate (g) fuer JEDES genannte Essen/Trinken — auch ungewoehnliche Mengen (z.B. "2 Kilo Steak" ~0g KH, "500g Schokoeis" ~130g KH, "Spaghetti Bolognese" ~55g KH, "Breze mit Butter" ~50g KH). NIEMALS sagen du koenntest nicht schaetzen; IMMER eine Zahl liefern.
+- Extrahiere ALLE erkennbaren Infoteile aus EINER Nachricht: mehrere Mahlzeiten, BZ, Insulin, Aktivitaet, Stimmung — nichts weglassen wenn es im Text steht.
+- Jeder Eintrag hat ein Pflichtfeld "type" (siehe unten) plus "data", "confidence" (0.6-1), "sourceText" (exaktes Zitat/Teilstring aus der User-Nachricht).
 
-STIMMUNGS-ERKENNUNG (1=sehr schlecht, 5=sehr gut):
-- "scheisse"/"miserabel"/"furchtbar"/"am Ende" = 1
-- "schlecht"/"genervt"/"frustriert"/"gestresst" = 2
-- "ok"/"geht so"/"normal"/"naja" = 3
-- "gut"/"zufrieden"/"entspannt" = 4
-- "super"/"fantastisch"/"richtig gut"/"gluecklich" = 5
+FUENF ENTRY-TYPEN UND DATA-SCHEMATA:
 
-LEBENSMITTEL-DATENBANK (Kohlenhydrate in Gramm, IMMER schaetzen!):
-Backwaren:
-Breze/Brezel=48, Semmel/Broetchen=28, Scheibe Brot=20, Croissant=25, Laugenbroetchen=35, Toast (1 Scheibe)=14, Vollkornbrot (1 Scheibe)=22, Baguette (Stueck)=30
-Hauptgerichte:
-Portion Nudeln (gekocht)=50, Portion Reis (gekocht)=40, Pizza (1 Stueck)=35, ganze Pizza=110, Doener=50, Schnitzel mit Pommes=60, Kartoffelpueree (Portion)=30, Kartoffeln (Portion)=30, Lasagne (Portion)=45, Sushi (8 Stueck)=55, Burger=35, Pommes (Portion)=40
-Fruehstueck:
-Muesli mit Milch=45, Porridge=35, Cornflakes mit Milch=40, Pancakes (3 Stueck)=50, Joghurt mit Fruechten=25, Nutellabrot=30
-Snacks:
-Apfel=15, Banane=25, Orange=12, Weintrauben (Handvoll)=15, Schokoriegel=30, Keks (1 Stueck)=10, Kuchen (1 Stueck)=40, Eis (Kugel)=20, Muffin=35, Chips (Tuete)=50
-Getraenke:
-Cola/Limo 330ml=35, Saft 200ml=22, Bier 500ml=15, Bier 330ml=10, Milch 250ml=12, Kakao=25, Smoothie=30, Energy Drink=28
+1) type "glucose"
+   data: { value: number, unit: "mg_dl"|"mmol_l", context: "fasting"|"pre_meal"|"post_meal"|"bedtime"|"other" }
 
-WENN EIN LEBENSMITTEL NICHT IN DER LISTE IST: Schaetze trotzdem! Setze estimated=true und confidence=0.7
+2) type "insulin"
+   data: { dose: number, insulinType: "rapid"|"long_acting"|"mixed"|"other", insulinName: string|null }
 
-REGELN:
-- Wenn unklar ob mg/dL oder mmol/L: Werte >30 = mg/dL, Werte <30 = mmol/L
-- "BZ" = Blutzucker, "KH" = Kohlenhydrate, "E" oder "IE" = Insulin-Einheiten
-- "NovoRapid", "Fiasp", "Humalog", "Apidra" = rapid
-- "Lantus", "Tresiba", "Levemir", "Toujeo" = long_acting
-- Erkenne MEHRERE Eintraege aus einer Nachricht
-- "nuechtern" / "morgens vor dem Essen" = fasting
-- "nach dem Essen" / "2h nach" / "postprandial" = post_meal
-- Confidence >= 0.6, sonst nicht zurueckgeben
-- Tageszeit beachten: morgens = breakfast, mittags = lunch, abends = dinner
-- Bei kombinierten Nachrichten (Essen + Stimmung + BZ) ALLE Teile extrahieren
+3) type "meal"
+   data: { description: string, carbsGrams: number, mealType: "breakfast"|"lunch"|"dinner"|"snack", estimated: boolean }
+   Setze estimated IMMER true wenn du KH schaetzt (fast immer). Nur false wenn der User die Grammzahl explizit nennt.
 
-BEISPIELE:
-Input: "mir gehts beschissen, hab ne breze gegessen und mein bz war 180"
-Output: entries mit mood(1), meal(Breze, 48g, estimated=true), glucose(180, mg_dl, other)
+4) type "activity"
+   data: { activityType: string, durationMinutes: number|null, intensity: "low"|"medium"|"high" }
+   Beispiele: joggen/laufen, spazieren, Spaziergang, Rad fahren, Gym/Krafttraining, schwimmen. Dauer aus "30 min", "eine Stunde" ableiten; ohne Dauer null und moderate Intensity.
 
-Input: "heute morgen nuechtern 95, dann 4 einheiten novorapid zum fruehstueck"
-Output: entries mit glucose(95, fasting), insulin(4, rapid, NovoRapid)
+5) type "mood"
+   data: { moodValue: 1|2|3|4|5 }
+   Mappe umgangssprachliches Deutsch auf 1-5:
+   - 1: scheisse, beschissen, miserabel, furchtbar, am Ende
+   - 2: schlecht, genervt, frustriert, gestresst
+   - 3: ok, geht so, naja, normal
+   - 4: gut, zufrieden, entspannt
+   - 5: super, wunderbar, mega, fantastisch, richtig gut, gluecklich
 
-Input: "hatte pizza und cola zum mittag, danach 240"
-Output: entries mit meal(Pizza, 35g, lunch, estimated), meal(Cola, 35g, lunch, estimated), glucose(240, post_meal)
+WEITERE REGELN:
+- BZ-Einheiten: Werte >30 eher mg_dl, <30 eher mmol_l wenn nicht klar.
+- "BZ", "Blutzucker", "nuechtern" -> glucose; "nuechtern" oft context fasting.
+- "KH" = Kohlenhydrate in Gramm; "E"/"IE" = Insulin-Einheiten.
+- NovoRapid/Fiasp/Humalog/Apidra -> rapid; Lantus/Tresiba/Levemir/Toujeo -> long_acting.
+- Tageszeit: morgens breakfast, mittags lunch, abends dinner (wenn keine Mahlzeit genannt).
+- Confidence mindestens 0.6 sonst weglassen.
 
-Antworte IMMER als JSON:
+TEST-LOGIK (intern): "2 kilo steak, 500g schokoeis, mir gehts wunderbar, 30 min joggen" -> 4 Eintraege: 2x meal, 1x mood(5), 1x activity.
+"120 nuechtern, 4 novorapid, ne banane, war spazieren" -> glucose, insulin, meal, activity.
+
+Antworte NUR als JSON-Objekt:
 {
   "entries": [
     {
       "type": "meal",
-      "data": { "description": "Breze", "carbsGrams": 48, "mealType": "snack", "estimated": true },
-      "confidence": 0.9,
-      "sourceText": "ne breze gegessen"
+      "data": { "description": "...", "carbsGrams": 0, "mealType": "dinner", "estimated": true },
+      "confidence": 0.85,
+      "sourceText": "..."
     }
   ],
-  "message": "Breze (~48g KH geschaetzt), Stimmung und BZ erkannt. Stimmt das so?"
+  "message": "Kurze freundliche Bestaetigung auf Deutsch."
 }`
+
+function normalizeExtractedType(raw: unknown): EntryType | undefined {
+  const s = typeof raw === "string" ? raw.toLowerCase().trim() : ""
+  return ENTRY_TYPES.includes(s as EntryType) ? (s as EntryType) : undefined
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -101,7 +97,7 @@ export async function POST(req: NextRequest) {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.2,
-      max_tokens: 600,
+      max_tokens: 800,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
@@ -133,12 +129,24 @@ export async function POST(req: NextRequest) {
 
     const entries: ExtractedEntry[] = (parsed.entries ?? [])
       .filter((e) => typeof e?.confidence === "number" && e.confidence >= 0.6)
-      .map((e) => ({
-        sourceText: String(e.sourceText ?? ""),
-        data: e.data ?? {},
-        confidence: Number(e.confidence),
-        included: true,
-      }))
+      .map((e) => {
+        const type = normalizeExtractedType(e.type)
+        const data = { ...(e.data ?? {}) }
+
+        if (type === "meal") {
+          if (data.estimated === undefined && typeof data.carbsGrams === "number") {
+            data.estimated = true
+          }
+        }
+
+        return {
+          type,
+          sourceText: String(e.sourceText ?? ""),
+          data,
+          confidence: Number(e.confidence),
+          included: true,
+        }
+      })
 
     return new Response(
       JSON.stringify({ entries, message: parsed.message ?? "" }),
@@ -153,4 +161,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-

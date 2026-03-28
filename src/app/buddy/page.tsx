@@ -23,7 +23,7 @@ import {
   cleanupEmptyConversations,
 } from "@/lib/db"
 import { DEFAULT_USER_ID } from "@/lib/constants"
-import type { Conversation, ExtractedEntry, Message, NewEntry } from "@/lib/types"
+import type { Conversation, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowLeft, MessageCirclePlus } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
@@ -311,26 +311,6 @@ export default function BuddyPage() {
     handleSendWithExtraction(text)
   }
 
-  const handleSaveBuddyExtraction = async (newEntries: NewEntry[]) => {
-    if (newEntries.length === 0) return
-    try {
-      for (const e of newEntries) {
-        // eslint-disable-next-line no-await-in-loop
-        await createEntry(e)
-      }
-      toast({
-        title: t("logbook.aiSaveSuccess", { count: newEntries.length }),
-      })
-      setBuddyExtraction(null)
-      setBuddyAiMessage("")
-    } catch {
-      toast({
-        title: t("logbook.aiSaveFailed"),
-        variant: "destructive",
-      })
-    }
-  }
-
   const openAiMissing = chatError.type === "openai_missing"
   const connectFailed = chatError.type === "failed"
 
@@ -579,7 +559,16 @@ export default function BuddyPage() {
                   extractedEntries={buddyExtraction}
                   aiMessage={buddyAiMessage}
                   title={t("buddy.suggestedEntries")}
-                  onSave={handleSaveBuddyExtraction}
+                  source="conversation"
+                  onSaveEntry={async (entry) => {
+                    await createEntry(entry)
+                  }}
+                  onSaveResult={({ saved, failed }) => {
+                    if (failed === 0 && saved > 0) {
+                      setBuddyExtraction(null)
+                      setBuddyAiMessage("")
+                    }
+                  }}
                   onDiscard={() => {
                     setBuddyExtraction(null)
                     setBuddyAiMessage("")

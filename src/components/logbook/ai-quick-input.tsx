@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
-import type { ExtractedEntry, NewEntry } from "@/lib/types"
+import type { ExtractedEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 
@@ -78,29 +78,6 @@ export function AiQuickInput({
       })
     } finally {
       setIsExtracting(false)
-    }
-  }
-
-  const handleSaveExtracted = async (newEntries: NewEntry[]) => {
-    if (newEntries.length === 0) return
-    try {
-      for (const e of newEntries) {
-        // eslint-disable-next-line no-await-in-loop
-        await createEntry(e)
-      }
-      toast({
-        title: t("logbook.aiSaveSuccess", { count: newEntries.length }),
-      })
-      onRefetch?.()
-      setText("")
-      setExtractedEntries(null)
-      setEmptyMessage(null)
-      setAiMessage("")
-    } catch {
-      toast({
-        title: t("logbook.aiSaveFailed"),
-        variant: "destructive",
-      })
     }
   }
 
@@ -193,7 +170,21 @@ export function AiQuickInput({
           <ExtractionConfirmation
             extractedEntries={extractedEntries}
             aiMessage={aiMessage}
-            onSave={handleSaveExtracted}
+            source="manual"
+            onSaveEntry={async (entry) => {
+              await createEntry(entry)
+            }}
+            onSaveResult={({ saved, failed }) => {
+              if (saved > 0) {
+                onRefetch?.()
+              }
+              if (failed === 0 && saved > 0) {
+                setText("")
+                setExtractedEntries(null)
+                setEmptyMessage(null)
+                setAiMessage("")
+              }
+            }}
             onDiscard={handleDiscard}
           />
         )}

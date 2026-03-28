@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type {
   ExtractedEntry,
   EntryType,
@@ -10,13 +10,15 @@ import type {
   MealEntry,
   ActivityEntry,
   MoodEntry,
+  MoodValue,
 } from "@/lib/types"
-import { Sparkles, Check, X } from "lucide-react"
+import { Sparkles, Check, Loader2, X } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useToast } from "@/hooks/use-toast"
 import {
   Select,
   SelectContent,
@@ -26,25 +28,42 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 
+const ENTRY_TYPES: EntryType[] = ["glucose", "insulin", "meal", "activity", "mood"]
+
+const MOOD_EMOJIS: { value: MoodValue; emoji: string; labelKey: string }[] = [
+  { value: 1, emoji: "😫", labelKey: "logbook.moodVeryBad" },
+  { value: 2, emoji: "😕", labelKey: "logbook.moodBad" },
+  { value: 3, emoji: "😐", labelKey: "logbook.moodNeutral" },
+  { value: 4, emoji: "🙂", labelKey: "logbook.moodGood" },
+  { value: 5, emoji: "😄", labelKey: "logbook.moodGreat" },
+]
+
 type ExtractionConfirmationProps = {
   extractedEntries: ExtractedEntry[]
   aiMessage: string
   title?: string
-  onSave: (entries: NewEntry[]) => void
+  onSaveEntry: (entry: NewEntry) => Promise<void>
+  /** Called after attempting all saves; parent can clear UI when failed === 0 and saved > 0. */
+  onSaveResult?: (result: { saved: number; failed: number }) => void
   onDiscard: () => void
-  source?: "conversation"
+  source?: "manual" | "conversation"
   conversationId?: string
 }
 
 function getEntryTypeFromData(data: ExtractedEntry["data"]): EntryType | null {
-  if (typeof (data as any).value === "number") return "glucose"
-  if (typeof (data as any).dose === "number") return "insulin"
-  if (typeof (data as any).mealType === "string") return "meal"
-  if (typeof (data as any).activityType === "string") return "activity"
-  if (typeof (data as any).moodValue === "number") return "mood"
-  // fallback: some fields might be named differently
-  if (typeof (data as any).context === "string" && typeof (data as any).value === "number") return "glucose"
+  const d = data as Record<string, unknown>
+  if (typeof d.moodValue === "number") return "mood"
+  if (typeof d.dose === "number") return "insulin"
+  if (typeof d.value === "number") return "glucose"
+  if (typeof d.mealType === "string" || (typeof d.description === "string" && d.description !== ""))
+    return "meal"
+  if (typeof d.activityType === "string") return "activity"
   return null
+}
+
+function resolveEntryType(entry: ExtractedEntry): EntryType | null {
+  if (entry.type && ENTRY_TYPES.includes(entry.type)) return entry.type
+  return getEntryTypeFromData(entry.data)
 }
 
 function getTypeLabel(t: (key: string) => string, type: EntryType) {
@@ -64,24 +83,38 @@ function getTypeLabel(t: (key: string) => string, type: EntryType) {
   }
 }
 
+function isMealCarbsEstimated(data: Record<string, unknown>): boolean {
+  if (data.estimated === false) return false
+  return true
+}
+
+type Row = ExtractedEntry & { resolvedType: EntryType | null }
+
 export function ExtractionConfirmation({
   extractedEntries,
   aiMessage,
   title,
-  onSave,
+  onSaveEntry,
+  onSaveResult,
   onDiscard,
   source = "conversation",
   conversationId,
 }: ExtractionConfirmationProps) {
   const { t } = useTranslation()
+  const { toast } = useToast()
 
   const [entries, setEntries] = useState<ExtractedEntry[]>(extractedEntries)
+  const [saving, setSaving] = useState(false)
 
-  const computed = useMemo(() => {
-    return entries.map((e) => {
-      const type = getEntryTypeFromData(e.data)
-      return { ...e, type }
-    })
+  useEffect(() => {
+    setEntries(extractedEntries)
+  }, [extractedEntries])
+
+  const computed: Row[] = useMemo(() => {
+    return entries.map((e) => ({
+      ...e,
+      resolvedType: resolveEntryType(e),
+    }))
   }, [entries])
 
   const handleToggleIncluded = (idx: number) => {
@@ -90,15 +123,15 @@ export function ExtractionConfirmation({
     )
   }
 
-  const updateEntryData = (idx: number, patch: any) => {
+  const updateEntryData = (idx: number, patch: Record<string, unknown>) => {
     setEntries((prev) =>
       prev.map((e, i) => (i === idx ? { ...e, data: { ...e.data, ...patch } } : e))
     )
   }
 
   const buildNewEntryFromExtracted = (entry: ExtractedEntry): NewEntry | null => {
-    const data = entry.data as any
-    const type = getEntryTypeFromData(entry.data)
+    const data = entry.data as Record<string, unknown>
+    const type = resolveEntryType(entry)
     if (!type) return null
 
     const timestamp = new Date().toISOString()
@@ -114,8 +147,8 @@ export function ExtractionConfirmation({
         note,
         conversationId,
         value,
-        unit: (data.unit as any) ?? "mg_dl",
-        context: (data.context as any) ?? "other",
+        unit: (data.unit as GlucoseEntry["unit"]) ?? "mg_dl",
+        context: (data.context as GlucoseEntry["context"]) ?? "other",
       } as NewEntry
     }
 
@@ -129,8 +162,8 @@ export function ExtractionConfirmation({
         note,
         conversationId,
         dose,
-        insulinType: (data.insulinType as any) ?? "rapid",
-        insulinName: data.insulinName ?? undefined,
+        insulinType: (data.insulinType as InsulinEntry["insulinType"]) ?? "rapid",
+        insulinName: (data.insulinName as string | undefined) ?? undefined,
       } as NewEntry
     }
 
@@ -145,7 +178,7 @@ export function ExtractionConfirmation({
         conversationId,
         description,
         carbsGrams: data.carbsGrams !== undefined ? Number(data.carbsGrams) : undefined,
-        mealType: (data.mealType as any) ?? "lunch",
+        mealType: (data.mealType as MealEntry["mealType"]) ?? "lunch",
       } as NewEntry
     }
 
@@ -163,23 +196,66 @@ export function ExtractionConfirmation({
           data.durationMinutes !== null && data.durationMinutes !== undefined
             ? Number(data.durationMinutes)
             : 0,
-        intensity: (data.intensity as any) ?? "medium",
+        intensity: (data.intensity as ActivityEntry["intensity"]) ?? "medium",
       } as NewEntry
     }
 
-    // mood
+    const moodVal = Number(data.moodValue)
+    const moodValue = (Number.isFinite(moodVal) ? Math.min(5, Math.max(1, Math.round(moodVal))) : 3) as MoodValue
     return {
       type: "mood",
       source,
       timestamp,
       note,
       conversationId,
-      moodValue: (data.moodValue as any) ?? 3,
+      moodValue,
     } as NewEntry
   }
 
-  const renderMiniForm = (entry: (typeof computed)[number], idx: number) => {
-    const type = entry.type
+  const handleConfirmSave = async () => {
+    const included = entries.filter((e) => e.included)
+    const newEntries = included
+      .map((e) => buildNewEntryFromExtracted(e))
+      .filter(Boolean) as NewEntry[]
+
+    if (newEntries.length === 0) return
+
+    setSaving(true)
+    let saved = 0
+    let failed = 0
+
+    for (const ne of newEntries) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        await onSaveEntry(ne)
+        saved += 1
+      } catch {
+        failed += 1
+      }
+    }
+
+    setSaving(false)
+
+    if (saved > 0) {
+      toast({
+        title: t("logbook.aiSaveSuccess", { count: saved }),
+      })
+    }
+    if (failed > 0) {
+      toast({
+        title:
+          saved > 0
+            ? t("logbook.aiSavePartialFailed", { count: failed })
+            : t("logbook.aiSaveFailed"),
+        variant: "destructive",
+      })
+    }
+
+    onSaveResult?.({ saved, failed })
+  }
+
+  const renderMiniForm = (entry: Row, idx: number) => {
+    const type = entry.resolvedType
     if (!type) return null
 
     const warn = entry.confidence < 0.8
@@ -191,7 +267,7 @@ export function ExtractionConfirmation({
             <Input
               type="number"
               inputMode="decimal"
-              value={((entry.data as any).value as any) ?? ""}
+              value={(entry.data as GlucoseEntry).value ?? ""}
               onChange={(e) => updateEntryData(idx, { value: Number(e.target.value) })}
               className={warn ? "border-yellow-300" : undefined}
               placeholder={t("logbook.value")}
@@ -199,7 +275,7 @@ export function ExtractionConfirmation({
           </div>
           <div>
             <Select
-              value={((entry.data as any).unit as any) ?? "mg_dl"}
+              value={(entry.data as GlucoseEntry).unit ?? "mg_dl"}
               onValueChange={(v) => updateEntryData(idx, { unit: v })}
             >
               <SelectTrigger>
@@ -213,7 +289,7 @@ export function ExtractionConfirmation({
           </div>
           <div className="col-span-2">
             <Select
-              value={((entry.data as any).context as any) ?? "other"}
+              value={(entry.data as GlucoseEntry).context ?? "other"}
               onValueChange={(v) => updateEntryData(idx, { context: v })}
             >
               <SelectTrigger>
@@ -239,7 +315,7 @@ export function ExtractionConfirmation({
             <Input
               type="number"
               inputMode="decimal"
-              value={((entry.data as any).dose as any) ?? ""}
+              value={(entry.data as InsulinEntry).dose ?? ""}
               onChange={(e) => updateEntryData(idx, { dose: Number(e.target.value) })}
               className={warn ? "border-yellow-300" : undefined}
               placeholder={t("logbook.dose")}
@@ -247,7 +323,7 @@ export function ExtractionConfirmation({
           </div>
           <div>
             <Select
-              value={((entry.data as any).insulinType as any) ?? "rapid"}
+              value={(entry.data as InsulinEntry).insulinType ?? "rapid"}
               onValueChange={(v) => updateEntryData(idx, { insulinType: v })}
             >
               <SelectTrigger>
@@ -263,13 +339,11 @@ export function ExtractionConfirmation({
           </div>
           <div className="col-span-2">
             <Input
-              value={((entry.data as any).insulinName as any) ?? ""}
+              value={(entry.data as InsulinEntry).insulinName ?? ""}
               onChange={(e) => updateEntryData(idx, { insulinName: e.target.value || undefined })}
               placeholder={t("logbook.insulinName")}
             />
-            <p className="text-xs text-slate-500 mt-2">
-              {t("logbook.insulinNote")}
-            </p>
+            <p className="text-xs text-slate-500 mt-2">{t("logbook.insulinNote")}</p>
           </div>
         </div>
       )
@@ -280,25 +354,37 @@ export function ExtractionConfirmation({
         <div className="grid grid-cols-2 gap-3 mt-3">
           <div className="col-span-2">
             <Textarea
-              value={((entry.data as any).description as any) ?? ""}
+              value={(entry.data as MealEntry).description ?? ""}
               onChange={(e) => updateEntryData(idx, { description: e.target.value })}
               placeholder={t("logbook.description")}
               className={warn ? "border-yellow-300" : undefined}
               rows={1}
             />
           </div>
-          <div>
-            <Input
-              type="number"
-              inputMode="decimal"
-              value={((entry.data as any).carbsGrams as any) ?? ""}
-              onChange={(e) => updateEntryData(idx, { carbsGrams: e.target.value ? Number(e.target.value) : undefined })}
-              placeholder={t("logbook.estimatedCarbs")}
-            />
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={(entry.data as MealEntry).carbsGrams ?? ""}
+                onChange={(e) =>
+                  updateEntryData(idx, {
+                    carbsGrams: e.target.value ? Number(e.target.value) : undefined,
+                    estimated: false,
+                  })
+                }
+                placeholder={t("logbook.estimatedCarbs")}
+              />
+              {isMealCarbsEstimated(entry.data as Record<string, unknown>) ? (
+                <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
+                  {t("logbook.estimatedCarbsHint")}
+                </span>
+              ) : null}
+            </div>
           </div>
           <div>
             <Select
-              value={((entry.data as any).mealType as any) ?? "lunch"}
+              value={(entry.data as MealEntry).mealType ?? "lunch"}
               onValueChange={(v) => updateEntryData(idx, { mealType: v })}
             >
               <SelectTrigger>
@@ -321,7 +407,7 @@ export function ExtractionConfirmation({
         <div className="grid grid-cols-2 gap-3 mt-3">
           <div className="col-span-2">
             <Input
-              value={((entry.data as any).activityType as any) ?? ""}
+              value={(entry.data as ActivityEntry).activityType ?? ""}
               onChange={(e) => updateEntryData(idx, { activityType: e.target.value })}
               placeholder={t("logbook.activity")}
               className={warn ? "border-yellow-300" : undefined}
@@ -331,14 +417,18 @@ export function ExtractionConfirmation({
             <Input
               type="number"
               inputMode="numeric"
-              value={((entry.data as any).durationMinutes as any) ?? ""}
-              onChange={(e) => updateEntryData(idx, { durationMinutes: e.target.value ? Number(e.target.value) : undefined })}
+              value={(entry.data as ActivityEntry).durationMinutes ?? ""}
+              onChange={(e) =>
+                updateEntryData(idx, {
+                  durationMinutes: e.target.value ? Number(e.target.value) : undefined,
+                })
+              }
               placeholder={t("logbook.duration")}
             />
           </div>
           <div>
             <Select
-              value={((entry.data as any).intensity as any) ?? "low"}
+              value={(entry.data as ActivityEntry).intensity ?? "low"}
               onValueChange={(v) => updateEntryData(idx, { intensity: v })}
             >
               <SelectTrigger>
@@ -355,18 +445,47 @@ export function ExtractionConfirmation({
       )
     }
 
+    if (type === "mood") {
+      const current = Math.min(
+        5,
+        Math.max(1, Math.round(Number((entry.data as MoodEntry).moodValue) || 3))
+      ) as MoodValue
+      return (
+        <div className="mt-3">
+          <p className="text-xs text-slate-500 mb-2">{t("logbook.moodPickHint")}</p>
+          <div className="flex flex-wrap gap-2">
+            {MOOD_EMOJIS.map(({ value, emoji, labelKey }) => (
+              <Button
+                key={value}
+                type="button"
+                variant={current === value ? "default" : "outline"}
+                size="sm"
+                className="h-11 min-w-[3rem] text-xl rounded-xl"
+                onClick={() => updateEntryData(idx, { moodValue: value })}
+                title={t(labelKey)}
+              >
+                {emoji}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
     return null
   }
 
-  const renderValueHint = (entry: (typeof computed)[number]) => {
-    const type = entry.type
+  const renderValueHint = (entry: Row) => {
+    const type = entry.resolvedType
     if (!type) return null
-    const d = entry.data as any
+    const d = entry.data as Record<string, unknown>
 
-    const estimated = Boolean(d?.estimated)
-    const estimatedLabel = estimated ? (
-      <span className="ml-1 text-xs text-slate-400">(geschaetzt)</span>
-    ) : null
+    const mealEstimated =
+      type === "meal" && isMealCarbsEstimated(d)
+        ? (
+            <span className="ml-1 text-xs text-slate-400">{t("logbook.estimatedCarbsHint")}</span>
+          )
+        : null
 
     if (type === "glucose" && typeof d.value === "number") {
       const unit = d.unit === "mmol_l" ? t("units.mmoll") : t("units.mgdl")
@@ -390,11 +509,12 @@ export function ExtractionConfirmation({
         <p className="mt-1 text-sm text-slate-700">
           {typeof d.carbsGrams === "number" ? (
             <>
-              {d.carbsGrams}g KH{estimatedLabel}
+              {d.carbsGrams}g KH{mealEstimated}
             </>
           ) : (
             <>
-              {t("logbook.estimatedCarbs")}{estimatedLabel}
+              {t("logbook.estimatedCarbs")}
+              {mealEstimated}
             </>
           )}
         </p>
@@ -403,7 +523,9 @@ export function ExtractionConfirmation({
 
     if (type === "activity") {
       const mins =
-        d.durationMinutes !== null && d.durationMinutes !== undefined && Number.isFinite(Number(d.durationMinutes))
+        d.durationMinutes !== null &&
+        d.durationMinutes !== undefined &&
+        Number.isFinite(Number(d.durationMinutes))
           ? Number(d.durationMinutes)
           : null
       return mins !== null ? (
@@ -414,7 +536,11 @@ export function ExtractionConfirmation({
     }
 
     if (type === "mood" && typeof d.moodValue === "number") {
-      return <p className="mt-1 text-sm text-slate-700">{t("common.mood")} {d.moodValue}/5</p>
+      return (
+        <p className="mt-1 text-sm text-slate-700">
+          {t("common.mood")} {d.moodValue}/5
+        </p>
+      )
     }
 
     return null
@@ -443,7 +569,7 @@ export function ExtractionConfirmation({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900 line-clamp-1">
-                    {entry.type ? getTypeLabel(t, entry.type) : t("logbook.entry")}
+                    {entry.resolvedType ? getTypeLabel(t, entry.resolvedType) : t("logbook.entry")}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">{entry.sourceText}</p>
                   {renderValueHint(entry)}
@@ -451,11 +577,17 @@ export function ExtractionConfirmation({
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const d = entry.data as any
+                      const d = entry.data as Record<string, unknown>
                       const implausible =
-                        (entry.type === "glucose" && typeof d.value === "number" && d.value > 600) ||
-                        (entry.type === "insulin" && typeof d.dose === "number" && d.dose > 100) ||
-                        (entry.type === "meal" && typeof d.carbsGrams === "number" && d.carbsGrams > 500)
+                        (entry.resolvedType === "glucose" &&
+                          typeof d.value === "number" &&
+                          d.value > 600) ||
+                        (entry.resolvedType === "insulin" &&
+                          typeof d.dose === "number" &&
+                          d.dose > 100) ||
+                        (entry.resolvedType === "meal" &&
+                          typeof d.carbsGrams === "number" &&
+                          d.carbsGrams > 500)
 
                       return implausible ? (
                         <Badge
@@ -488,25 +620,23 @@ export function ExtractionConfirmation({
                 </div>
               </div>
 
-              {renderMiniForm(entry as any, idx)}
+              {renderMiniForm(entry, idx)}
             </div>
           ))}
         </div>
 
         <div className="flex gap-3 mt-4">
-          <Button
-            className="flex-1"
-            onClick={() => {
-              const included = entries.filter((e) => e.included)
-              const newEntries = included
-                .map((e) => buildNewEntryFromExtracted(e))
-                .filter(Boolean) as NewEntry[]
-              onSave(newEntries)
-            }}
-          >
-            {t("common.save")}
+          <Button className="flex-1" onClick={() => void handleConfirmSave()} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t("logbook.savingEntries")}
+              </>
+            ) : (
+              t("common.save")
+            )}
           </Button>
-          <Button variant="ghost" onClick={onDiscard} className="flex-1">
+          <Button variant="ghost" onClick={onDiscard} className="flex-1" disabled={saving}>
             {t("logbook.discard")}
           </Button>
         </div>
@@ -514,4 +644,3 @@ export function ExtractionConfirmation({
     </Card>
   )
 }
-

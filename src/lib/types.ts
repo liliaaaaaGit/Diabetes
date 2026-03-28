@@ -62,6 +62,8 @@ export interface MoodEntry extends BaseEntry {
 export type Entry = GlucoseEntry | InsulinEntry | MealEntry | ActivityEntry | MoodEntry
 
 export interface ExtractedEntry {
+  /** Explicit entry kind from the extraction API (preferred over guessing from data fields). */
+  type?: EntryType
   sourceText: string
   data: Partial<GlucoseEntry | InsulinEntry | MealEntry | ActivityEntry | MoodEntry>
   confidence: number
