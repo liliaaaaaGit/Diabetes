@@ -291,37 +291,42 @@ export default function InsightsPage() {
         {/* Glucose Distribution */}
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardContent className="p-6">
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{t("insights.underTarget")}</span>
-                  <span className="font-semibold text-slate-900">{glucoseDistribution.under}%</span>
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.glucoseDistribution")}</h2>
+            {glucoseEntries.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">{t("empty.glucoseChartEmpty")}</p>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-700">{t("insights.underTarget")}</span>
+                    <span className="font-semibold text-slate-900">{glucoseDistribution.under}%</span>
+                  </div>
+                  <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-300 rounded-full" style={{ width: `${glucoseDistribution.under}%` }} />
+                  </div>
                 </div>
-                <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-300 rounded-full" style={{ width: `${glucoseDistribution.under}%` }} />
-                </div>
-              </div>
 
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{t("insights.inTarget")}</span>
-                  <span className="font-semibold text-slate-900">{glucoseDistribution.in}%</span>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-700">{t("insights.inTarget")}</span>
+                    <span className="font-semibold text-slate-900">{glucoseDistribution.in}%</span>
+                  </div>
+                  <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${glucoseDistribution.in}%` }} />
+                  </div>
                 </div>
-                <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${glucoseDistribution.in}%` }} />
-                </div>
-              </div>
 
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{t("insights.overTarget")}</span>
-                  <span className="font-semibold text-slate-900">{glucoseDistribution.over}%</span>
-                </div>
-                <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-800 rounded-full" style={{ width: `${glucoseDistribution.over}%` }} />
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-slate-700">{t("insights.overTarget")}</span>
+                    <span className="font-semibold text-slate-900">{glucoseDistribution.over}%</span>
+                  </div>
+                  <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-800 rounded-full" style={{ width: `${glucoseDistribution.over}%` }} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -395,59 +400,6 @@ export default function InsightsPage() {
             )}
           </div>
         )}
-
-        {/* Glucose Distribution */}
-        <Card className="rounded-xl border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.glucoseDistribution")}</h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{t("insights.underTarget")}</span>
-                  <span className="font-semibold text-slate-900">{glucoseDistribution.under}%</span>
-                </div>
-                <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-300 rounded-full" style={{ width: `${glucoseDistribution.under}%` }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{t("insights.inTarget")}</span>
-                  <span className="font-semibold text-slate-900">{glucoseDistribution.in}%</span>
-                </div>
-                <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${glucoseDistribution.in}%` }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-700">{t("insights.overTarget")}</span>
-                  <span className="font-semibold text-slate-900">{glucoseDistribution.over}%</span>
-                </div>
-                <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-800 rounded-full" style={{ width: `${glucoseDistribution.over}%` }} />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Mood */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.mood")}</h2>
-              <MoodChart entries={moodEntries} days={days} />
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-6">
-              <MoodSummary entries={moodEntries} days={days} />
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Loading guard */}
         {(entriesLoading || insightsLoading || isGenerating) && (

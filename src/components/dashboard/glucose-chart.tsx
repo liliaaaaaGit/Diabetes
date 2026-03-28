@@ -95,6 +95,9 @@ export function GlucoseChart({ entries, timeRange: initialTimeRange = "24h" }: G
         </div>
       </CardHeader>
       <CardContent>
+        {chartData.length === 0 ? (
+          <p className="text-sm text-slate-500 text-center py-12 px-2">{t("empty.glucoseChartEmpty")}</p>
+        ) : (
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <defs>
@@ -138,6 +141,7 @@ export function GlucoseChart({ entries, timeRange: initialTimeRange = "24h" }: G
             />
           </LineChart>
         </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   )

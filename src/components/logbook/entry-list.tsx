@@ -51,11 +51,12 @@ export function EntryList({ entries, filter }: EntryListProps) {
   }
 
   if (sortedDates.length === 0) {
+    const allEmpty = filter === "all" && entries.length === 0
     return (
       <EmptyState
         icon={BookOpen}
-        title={t("empty.noEntries")}
-        description={t("empty.noEntriesDesc")}
+        title={allEmpty ? t("empty.noEntriesYet") : t("empty.noEntries")}
+        description={allEmpty ? t("empty.noEntriesYetDesc") : t("empty.noEntriesDesc")}
       />
     )
   }

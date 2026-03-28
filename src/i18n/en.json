@@ -253,7 +253,15 @@
     "imported": "entries imported",
     "skipped": "skipped (invalid data)",
     "success": "Import successful",
-    "noFile": "No file selected"
+    "noFile": "No file selected",
+    "exampleCaption": "Example (not from your file)",
+    "exampleHeaderDate": "Date",
+    "exampleHeaderTime": "Time",
+    "exampleHeaderValue": "Glucose",
+    "noColumnsParsed": "Could not read the first row as a table header. Please use a CSV file with a header row.",
+    "previewRowsHint": "First rows from your file",
+    "notAvailableTitle": "Import not available yet",
+    "notAvailableDesc": "Importing into the database is not implemented in this version. Add entries in the logbook or use the AI quick input."
   },
   "settings": {
     "title": "Settings",
@@ -267,9 +275,6 @@
     "disclaimer": "Disclaimer",
     "thesisInfo": "Thesis Information",
     "appVersion": "0.1.0",
-    "seedTitle": "Load test data",
-    "seedAction": "Load test data",
-    "seedNote": "First run `schema.sql` in Supabase. Then set up RLS with `rls.sql`. After that, you can load demo data here.",
     "account": "Account",
     "loggedInAs": "Logged in as"
   },
@@ -324,6 +329,14 @@
     "noConversations": "No conversations yet",
     "noConversationsDesc": "Start a conversation with your diabetes buddy.",
     "noFile": "No file selected",
-    "noFileDesc": "Select a CSV file to import data."
+    "noFileDesc": "Select a CSV file to import data.",
+    "noEntriesYet": "No entries yet",
+    "noEntriesYetDesc": "Add an entry in the logbook or use the AI quick input.",
+    "dashboardNoGlucose": "No glucose readings in the last 14 days. Once you log values, the chart will appear here.",
+    "dashboardNoInsight": "No insights yet. Open Insights when you have enough data.",
+    "glucoseChartEmpty": "No glucose readings in this time range.",
+    "moodChartEmpty": "No mood entries in this time range.",
+    "moodSummaryEmpty": "No mood entries in this time range.",
+    "buddyStartChatDesc": "Start a chat with your Diabetes Buddy."
   }
 }

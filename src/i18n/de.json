@@ -253,7 +253,15 @@
     "imported": "Einträge importiert",
     "skipped": "übersprungen (ungültige Daten)",
     "success": "Import erfolgreich",
-    "noFile": "Keine Datei ausgewählt"
+    "noFile": "Keine Datei ausgewählt",
+    "exampleCaption": "Beispiel (nicht aus deiner Datei)",
+    "exampleHeaderDate": "Datum",
+    "exampleHeaderTime": "Zeit",
+    "exampleHeaderValue": "Blutzucker",
+    "noColumnsParsed": "Die erste Zeile der Datei konnte nicht als Tabellenkopf gelesen werden. Bitte eine CSV-Datei mit Kopfzeile verwenden.",
+    "previewRowsHint": "Erste Zeilen aus deiner Datei",
+    "notAvailableTitle": "Import noch nicht verfügbar",
+    "notAvailableDesc": "Der Datenimport in die Datenbank ist in dieser Version noch nicht umgesetzt. Du kannst Einträge im Tagebuch oder per KI-Eingabe erfassen."
   },
   "settings": {
     "title": "Einstellungen",
@@ -267,9 +275,6 @@
     "disclaimer": "Disclaimer",
     "thesisInfo": "Thesis-Informationen",
     "appVersion": "0.1.0",
-    "seedTitle": "Testdaten laden",
-    "seedAction": "Testdaten laden",
-    "seedNote": "Bitte führe zuerst `schema.sql` in Supabase aus. Danach setze RLS mit `rls.sql` um. Danach kannst du hier die Demo-Daten laden.",
     "account": "Konto",
     "loggedInAs": "Angemeldet als"
   },
@@ -324,6 +329,14 @@
     "noConversations": "Noch keine Gespräche",
     "noConversationsDesc": "Beginne ein Gespräch mit deinem Diabetes-Buddy.",
     "noFile": "Keine Datei ausgewählt",
-    "noFileDesc": "Wähle eine CSV-Datei aus, um Daten zu importieren."
+    "noFileDesc": "Wähle eine CSV-Datei aus, um Daten zu importieren.",
+    "noEntriesYet": "Noch keine Einträge vorhanden",
+    "noEntriesYetDesc": "Lege im Tagebuch einen Eintrag an oder nutze die KI-Schnelleingabe.",
+    "dashboardNoGlucose": "Noch keine Blutzuckerwerte in den letzten 14 Tagen. Sobald du Messungen erfasst, erscheint der Verlauf hier.",
+    "dashboardNoInsight": "Noch keine Einblicke. Nutze die Seite „Einblicke“, sobald genügend Daten vorliegen.",
+    "glucoseChartEmpty": "Keine Blutzuckerwerte in diesem Zeitraum.",
+    "moodChartEmpty": "Keine Stimmungseinträge in diesem Zeitraum.",
+    "moodSummaryEmpty": "Noch keine Stimmungseinträge in diesem Zeitraum.",
+    "buddyStartChatDesc": "Starte ein Gespräch mit dem Diabetes-Buddy."
   }
 }

@@ -80,6 +80,9 @@ export default function LogbookPage() {
           onChange={setActiveFilter}
         />
 
+        {loading && (
+          <p className="text-sm text-slate-500 py-4">{t("common.loading")}</p>
+        )}
         {!loading && <EntryList entries={entries} filter={activeFilter} />}
       </div>
 

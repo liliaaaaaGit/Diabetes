@@ -1,8 +1,5 @@
 import { supabase } from "@/lib/supabase"
-import {
-  DEFAULT_USER_ID,
-  // existing constants in file
-} from "@/lib/constants"
+import { DEFAULT_USER_ID } from "@/lib/constants"
 import type {
   Entry,
   EntryType,
@@ -15,7 +12,6 @@ import type {
   ActivityEntry,
   MoodEntry,
   MoodValue,
-  InsulinEntry as InsulinEntryType,
   DashboardStats,
   Conversation,
   Message,
@@ -24,16 +20,6 @@ import type {
   NewEntry,
   NewGoal,
 } from "@/lib/types"
-import {
-  mockEntries,
-  mockConversations,
-  mockInsights,
-  getDashboardStats as getMockDashboardStats,
-  getRecentEntries as getMockRecentEntries,
-} from "@/lib/mock-data"
-
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"
-
 const toNumber = (v: unknown): number => {
   if (typeof v === "number") return v
   if (typeof v === "string") return Number(v)
@@ -41,36 +27,13 @@ const toNumber = (v: unknown): number => {
 }
 
 const mmolToMgdl = (mmol: number) => mmol * 18.0182
-const mgdlToMmol = (mgdl: number) => mgdl / 18.0182
-
-const uuid = () =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `id-${Date.now()}`
-
-// In-memory stores for mock mode
-let entriesStore: Entry[] = [...mockEntries]
-let conversationsStore: Conversation[] = [...mockConversations]
-let insightsStore: Insight[] = [...mockInsights]
-let goalsStore: Goal[] = []
 
 export async function deleteEntry(entryId: string): Promise<void> {
-  if (USE_MOCK) {
-    entriesStore = entriesStore.filter((e) => e.id !== entryId)
-    return
-  }
-
   const { error } = await supabase.from("entries").delete().eq("id", entryId)
   if (error) throw error
 }
 
 async function getEntryById(entryId: string, userId: string): Promise<Entry> {
-  if (USE_MOCK) {
-    const found = entriesStore.find((e) => e.id === entryId)
-    if (!found) throw new Error("Entry not found")
-    return found
-  }
-
   const { data: baseRows, error: baseError } = await supabase
     .from("entries")
     .select("id,user_id,source,type,timestamp,note,created_at,conversation_id")
@@ -189,16 +152,6 @@ async function getEntryById(entryId: string, userId: string): Promise<Entry> {
 }
 
 export async function createEntry(entry: NewEntry | Entry): Promise<Entry> {
-  if (USE_MOCK) {
-    const id = uuid()
-    const createdAt = new Date().toISOString()
-    const userId = DEFAULT_USER_ID
-
-    const stored = { ...(entry as any), id, userId, createdAt } as Entry
-    entriesStore = [stored, ...entriesStore]
-    return stored
-  }
-
   const userId = DEFAULT_USER_ID
   const {
     type,
@@ -309,15 +262,6 @@ export async function getEntries(
     limit?: number
   }
 ): Promise<Entry[]> {
-  if (USE_MOCK) {
-    let arr = entriesStore
-    if (filters?.type) arr = arr.filter((e) => e.type === filters.type)
-    if (filters?.from) arr = arr.filter((e) => new Date(e.timestamp) >= new Date(filters.from!))
-    if (filters?.to) arr = arr.filter((e) => new Date(e.timestamp) < new Date(filters.to!))
-    if (filters?.limit) arr = arr.slice(0, filters.limit)
-    return [...arr].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-  }
-
   let query = supabase
     .from("entries")
     .select("id,user_id,source,type,timestamp,note,created_at,conversation_id")
@@ -453,16 +397,12 @@ export async function getEntries(
 }
 
 export async function getRecentEntries(userId: string, limit: number): Promise<Entry[]> {
-  if (USE_MOCK) return getMockRecentEntries(limit)
-
   return getEntries(userId, { limit }).then((arr) =>
     [...arr].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   )
 }
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
-  if (USE_MOCK) return getMockDashboardStats("mg_dl")
-
   const now = new Date()
   const start7d = new Date(now)
   start7d.setDate(now.getDate() - 7)
@@ -507,25 +447,6 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 }
 
 export async function createConversation(userId: string): Promise<Conversation> {
-  if (USE_MOCK) {
-    const id = uuid()
-    const conv: Conversation = {
-      id,
-      userId,
-      title: "Neue Unterhaltung",
-      summary: "",
-      dominantEmoji: undefined,
-      tags: [],
-      messageCount: 0,
-      startedAt: new Date().toISOString(),
-      endedAt: undefined,
-      isActive: true,
-      messages: [],
-    }
-    conversationsStore = [conv, ...conversationsStore]
-    return conv
-  }
-
   const { data, error } = await supabase
     .from("conversations")
     .insert({ user_id: userId, is_active: true })
@@ -550,12 +471,6 @@ export async function createConversation(userId: string): Promise<Conversation> 
 }
 
 export async function getConversation(conversationId: string): Promise<Conversation> {
-  if (USE_MOCK) {
-    const found = conversationsStore.find((c) => c.id === conversationId)
-    if (!found) throw new Error("Conversation not found")
-    return found
-  }
-
   const { data: convRow, error } = await supabase
     .from("conversations")
     .select("id,user_id,title,summary,tags,mood_emoji,started_at,ended_at,is_active")
@@ -593,16 +508,6 @@ export async function getConversation(conversationId: string): Promise<Conversat
 }
 
 export async function getConversations(userId: string): Promise<Conversation[]> {
-  if (USE_MOCK) {
-    return [...conversationsStore].sort(
-      (a, b) =>
-        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
-    ).map((c) => ({
-      ...c,
-      messageCount: c.messages.length,
-    }))
-  }
-
   const { data: convRows, error } = await supabase
     .from("conversations")
     .select("id,user_id,title,summary,tags,mood_emoji,started_at,ended_at,is_active")
@@ -682,11 +587,6 @@ export async function cleanupEmptyConversations(userId: string): Promise<number>
     .map((c) => c.id)
   if (emptyIds.length === 0) return 0
 
-  if (USE_MOCK) {
-    conversationsStore = conversationsStore.filter((c) => !emptyIds.includes(c.id))
-    return emptyIds.length
-  }
-
   const { error } = await supabase
     .from("conversations")
     .delete()
@@ -697,13 +597,6 @@ export async function cleanupEmptyConversations(userId: string): Promise<number>
 }
 
 export async function endConversation(conversationId: string): Promise<void> {
-  if (USE_MOCK) {
-    conversationsStore = conversationsStore.map((c) =>
-      c.id === conversationId ? { ...c, isActive: false, endedAt: new Date().toISOString() } : c
-    )
-    return
-  }
-
   const { error } = await supabase
     .from("conversations")
     .update({ is_active: false, ended_at: new Date().toISOString() })
@@ -712,13 +605,6 @@ export async function endConversation(conversationId: string): Promise<void> {
 }
 
 export async function dismissInsight(insightId: string): Promise<void> {
-  if (USE_MOCK) {
-    insightsStore = insightsStore.map((i) =>
-      i.id === insightId ? { ...i, dismissed: true } : i
-    )
-    return
-  }
-
   const { error } = await supabase
     .from("insights")
     .update({ dismissed: true })
@@ -727,8 +613,6 @@ export async function dismissInsight(insightId: string): Promise<void> {
 }
 
 export async function getInsights(userId: string): Promise<Insight[]> {
-  if (USE_MOCK) return insightsStore
-
   const { data, error } = await supabase
     .from("insights")
     .select("id,user_id,type,title,description,category,created_at,dismissed")
@@ -755,23 +639,6 @@ export async function createInsight(insight: {
   description: string
   category: string
 }): Promise<Insight> {
-  if (USE_MOCK) {
-    const id = uuid()
-    const createdAt = new Date().toISOString()
-    const created: Insight = {
-      id,
-      userId: insight.userId,
-      type: insight.type,
-      title: insight.title,
-      description: insight.description,
-      category: insight.category,
-      createdAt,
-      dismissed: false,
-    }
-    insightsStore = [created, ...insightsStore]
-    return created
-  }
-
   const { data, error } = await supabase
     .from("insights")
     .insert({
@@ -799,23 +666,6 @@ export async function createInsight(insight: {
 }
 
 export async function createGoal(goal: NewGoal): Promise<Goal> {
-  if (USE_MOCK) {
-    const id = uuid()
-    const createdAt = new Date().toISOString()
-    const created: Goal = {
-      id,
-      userId: goal.userId,
-      title: goal.title,
-      description: goal.description,
-      targetDays: goal.targetDays ?? 7,
-      completedDays: 0,
-      active: goal.active ?? true,
-      createdAt,
-    }
-    goalsStore = [created, ...goalsStore]
-    return created
-  }
-
   const { data, error } = await supabase
     .from("goals")
     .insert({
@@ -843,8 +693,6 @@ export async function createGoal(goal: NewGoal): Promise<Goal> {
 }
 
 export async function getGoals(userId: string): Promise<Goal[]> {
-  if (USE_MOCK) return goalsStore
-
   const { data, error } = await supabase
     .from("goals")
     .select("id,user_id,title,description,target_days,completed_days,active,created_at")
@@ -865,13 +713,6 @@ export async function getGoals(userId: string): Promise<Goal[]> {
 }
 
 export async function updateGoalProgress(goalId: string, completedDays: number): Promise<void> {
-  if (USE_MOCK) {
-    goalsStore = goalsStore.map((g) =>
-      g.id === goalId ? { ...g, completedDays } : g
-    )
-    return
-  }
-
   const { error } = await supabase
     .from("goals")
     .update({ completed_days: completedDays })
@@ -884,22 +725,6 @@ export async function addMessage(
   role: Message["role"],
   content: string
 ): Promise<Message> {
-  if (USE_MOCK) {
-    const newMessage: Message = {
-      id: uuid(),
-      conversationId,
-      role,
-      content,
-      timestamp: new Date().toISOString(),
-    }
-    conversationsStore = conversationsStore.map((c) => {
-      if (c.id !== conversationId) return c
-      const messages = [...c.messages, newMessage]
-      return { ...c, messages, messageCount: messages.length }
-    })
-    return newMessage
-  }
-
   const { data, error } = await supabase
     .from("messages")
     .insert({ conversation_id: conversationId, role, content })
@@ -924,15 +749,6 @@ export async function updateConversationSummary(
   moodEmoji: string,
   title?: string
 ): Promise<void> {
-  if (USE_MOCK) {
-    conversationsStore = conversationsStore.map((c) =>
-      c.id === conversationId
-        ? { ...c, summary, tags, dominantEmoji: moodEmoji, title: title || c.title }
-        : c
-    )
-    return
-  }
-
   const { error } = await supabase
     .from("conversations")
     .update({
@@ -946,13 +762,6 @@ export async function updateConversationSummary(
 }
 
 export async function updateConversationTitle(conversationId: string, title: string): Promise<void> {
-  if (USE_MOCK) {
-    conversationsStore = conversationsStore.map((c) =>
-      c.id === conversationId ? { ...c, title } : c
-    )
-    return
-  }
-
   const { error } = await supabase
     .from("conversations")
     .update({ title })

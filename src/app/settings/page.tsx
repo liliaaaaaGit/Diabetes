@@ -13,7 +13,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useTranslation } from "@/hooks/useTranslation"
 import { LanguageSwitcher } from "@/components/shared/language-switcher"
 import { TARGET_RANGE } from "@/lib/constants"
-import { seedTestData } from "@/lib/seed"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/useUser"
 
@@ -25,7 +24,6 @@ export default function SettingsPage() {
   const [unit, setUnit] = useState<"mg_dl" | "mmol_l">("mg_dl")
   const [targetMin, setTargetMin] = useState<number>(TARGET_RANGE.low)
   const [targetMax, setTargetMax] = useState<number>(TARGET_RANGE.high)
-  const [isSeeding, setIsSeeding] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -196,38 +194,6 @@ export default function SettingsPage() {
                 {t("auth.deleteAccount")}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Seed data */}
-        <Card className="rounded-xl border-slate-200 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">{t("settings.seedTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-slate-700">{t("settings.seedNote")}</p>
-            <Button
-              onClick={async () => {
-                setIsSeeding(true)
-                try {
-                  await seedTestData()
-                  toast({
-                    title: t("settings.seedAction"),
-                  })
-                } catch (e) {
-                  toast({
-                    title: t("settings.seedAction"),
-                    description: e instanceof Error ? e.message : undefined,
-                    variant: "destructive",
-                  })
-                } finally {
-                  setIsSeeding(false)
-                }
-              }}
-              disabled={isSeeding}
-            >
-              {isSeeding ? t("common.loading") : t("settings.seedAction")}
-            </Button>
           </CardContent>
         </Card>
       </div>

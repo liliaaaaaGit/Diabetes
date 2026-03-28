@@ -34,21 +34,11 @@ export default function ImportPage() {
     setIsImporting(true)
     setImportResult(null)
 
-    // Simulate import with 2 second delay
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Mock results
-    const result = {
-      imported: 23,
-      skipped: 2,
-    }
-
-    setImportResult(result)
     setIsImporting(false)
 
     toast({
-      title: t("import.success"),
-      description: `${result.imported} ${t("import.imported")}`,
+      title: t("import.notAvailableTitle"),
+      description: t("import.notAvailableDesc"),
     })
   }
 

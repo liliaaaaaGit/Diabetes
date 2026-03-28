@@ -19,7 +19,6 @@ import { createEntry } from "@/lib/db"
 import type { Entry, GlucoseEntry, MoodEntry, GlucoseUnit } from "@/lib/types"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
-import { GlucoseUnit as GlucoseUnitType } from "@/lib/types"
 
 const moodEmojis: Record<number, string> = {
   1: "😞",
@@ -76,6 +75,8 @@ export default function DashboardPage() {
     const active = insights.find((i) => !i.dismissed)
     return active ?? insights[0]
   }, [insights])
+
+  const showDashboardInsightPlaceholder = !insightsLoading && !todayInsight
 
   const getContextText = (context: string) => {
     if (context === "fasting") return t("dashboard.fasting")
@@ -180,11 +181,23 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {!glucoseLoading && glucoseTyped.length === 0 ? (
+            <p className="text-sm text-slate-500 px-1">{t("empty.dashboardNoGlucose")}</p>
+          ) : null}
+
           {/* Glucose Chart */}
           <GlucoseChart entries={glucoseTyped} />
 
           {/* Daily Insight */}
-          {todayInsight && <DailyInsightCard insight={todayInsight} />}
+          {todayInsight ? (
+            <DailyInsightCard insight={todayInsight} />
+          ) : showDashboardInsightPlaceholder ? (
+            <Card className="rounded-xl border-slate-200 bg-slate-50/90 shadow-sm">
+              <CardContent className="p-4">
+                <p className="text-sm text-slate-600">{t("empty.dashboardNoInsight")}</p>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {/* Recent Activity */}
           <RecentActivityFeed entries={recentEntries} limit={8} />
@@ -209,6 +222,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             )}
+
+            {!glucoseLoading && glucoseTyped.length === 0 ? (
+              <p className="text-sm text-slate-500 px-1">{t("empty.dashboardNoGlucose")}</p>
+            ) : null}
 
             <GlucoseChart entries={glucoseTyped} />
             <RecentActivityFeed entries={recentEntries} limit={8} />
@@ -246,7 +263,15 @@ export default function DashboardPage() {
             </div>
 
             {/* Daily Insight */}
-            {todayInsight && <DailyInsightCard insight={todayInsight} />}
+            {todayInsight ? (
+              <DailyInsightCard insight={todayInsight} />
+            ) : showDashboardInsightPlaceholder ? (
+              <Card className="rounded-xl border-slate-200 bg-slate-50/90 shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm text-slate-600">{t("empty.dashboardNoInsight")}</p>
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
         </div>
       </div>

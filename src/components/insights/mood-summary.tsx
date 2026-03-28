@@ -38,6 +38,12 @@ export function MoodSummary({ entries, days }: MoodSummaryProps) {
     return entryDate >= cutoffDate
   })
 
+  if (filteredEntries.length === 0) {
+    return (
+      <p className="text-sm text-slate-500 text-center py-6">{t("empty.moodSummaryEmpty")}</p>
+    )
+  }
+
   const thisWeekEntries = filteredEntries.filter((entry) => {
     const entryDate = parseISO(entry.timestamp)
     return isAfter(entryDate, midPoint)

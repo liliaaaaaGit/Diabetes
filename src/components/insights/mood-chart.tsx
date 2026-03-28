@@ -13,6 +13,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { format, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { useTranslation } from "@/hooks/useTranslation"
 
 interface MoodChartProps {
   entries: MoodEntry[]
@@ -28,6 +29,7 @@ const moodEmojis: Record<number, string> = {
 }
 
 export function MoodChart({ entries, days }: MoodChartProps) {
+  const { t } = useTranslation()
   const cutoffDate = subDays(new Date(), days)
 
   const filteredEntries = entries
@@ -82,6 +84,9 @@ export function MoodChart({ entries, days }: MoodChartProps) {
   return (
     <Card className="rounded-xl border-slate-200 shadow-sm">
       <CardContent className="p-6">
+        {chartData.length === 0 ? (
+          <p className="text-sm text-slate-500 text-center py-12">{t("empty.moodChartEmpty")}</p>
+        ) : (
         <ResponsiveContainer width="100%" height={250}>
           <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <defs>
@@ -118,6 +123,7 @@ export function MoodChart({ entries, days }: MoodChartProps) {
             />
           </AreaChart>
         </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   )

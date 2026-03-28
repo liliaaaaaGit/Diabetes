@@ -93,7 +93,7 @@ export function ConversationList({
       <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
         <MessageCircle className="mx-auto h-10 w-10 text-slate-300" />
         <p className="mt-3 text-sm font-semibold text-slate-800">{t("buddy.history.empty")}</p>
-        <p className="mt-1 text-sm text-slate-500">Starte dein erstes Gespräch mit deinem Diabetes-Buddy!</p>
+        <p className="mt-1 text-sm text-slate-500">{t("empty.buddyStartChatDesc")}</p>
         <button
           type="button"
           onClick={onStartFirstConversation}
