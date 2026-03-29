@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   let timeRange: InsightsTimeRangeKey = "7d"
   try {
     const body = (await req.json()) as { timeRange?: InsightsTimeRangeKey }
-    if (body.timeRange === "week" || body.timeRange === "7d" || body.timeRange === "30d") {
+    if (body.timeRange === "7d" || body.timeRange === "30d" || body.timeRange === "3m") {
       timeRange = body.timeRange
     }
   } catch {

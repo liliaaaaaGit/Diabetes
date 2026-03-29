@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowLeft } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
+import { format } from "date-fns"
 
 const FALLBACK_PERSONAL_QUOTE_DE =
   "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt."
@@ -243,7 +244,10 @@ export default function BuddyPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ text: userText.slice(0, 500) }),
+        body: JSON.stringify({
+          text: userText.slice(0, 500),
+          todayYmd: format(new Date(), "yyyy-MM-dd"),
+        }),
       })
       if (!res.ok) {
         toast({

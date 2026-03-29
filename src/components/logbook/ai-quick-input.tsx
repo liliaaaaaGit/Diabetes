@@ -11,6 +11,7 @@ import { useUser } from "@/hooks/useUser"
 import type { ExtractedEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
+import { format } from "date-fns"
 
 interface AiQuickInputProps {
   onManualFallback: () => void
@@ -52,7 +53,10 @@ export function AiQuickInput({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ text: payloadText }),
+        body: JSON.stringify({
+          text: payloadText,
+          todayYmd: format(new Date(), "yyyy-MM-dd"),
+        }),
       })
       if (!res.ok) {
         toast({

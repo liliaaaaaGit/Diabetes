@@ -68,6 +68,11 @@ export interface ExtractedEntry {
   data: Partial<GlucoseEntry | InsulinEntry | MealEntry | ActivityEntry | MoodEntry>
   confidence: number
   included: boolean
+  /**
+   * Calendar day this fact belongs to (YYYY-MM-DD), from natural-language dates in the text.
+   * Omit or null = use "now" when saving (typically "today" for the user).
+   */
+  entryDate?: string | null
 }
 
 /** Theme tag stored with each summarized conversation (emoji + short label). */

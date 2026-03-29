@@ -57,20 +57,12 @@ export default function InsightsPage() {
         <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as InsightsTimeRangeKey)}>
           <TabsList className="bg-slate-100/80 p-1 h-auto">
             <TabsTrigger
-              value="week"
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
-              )}
-            >
-              {t("insights.thisWeek")}
-            </TabsTrigger>
-            <TabsTrigger
               value="7d"
               className={cn(
                 "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
               )}
             >
-              {t("insights.last7Days")}
+              {t("insights.period7d")}
             </TabsTrigger>
             <TabsTrigger
               value="30d"
@@ -78,7 +70,15 @@ export default function InsightsPage() {
                 "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
               )}
             >
-              {t("insights.last30Days")}
+              {t("insights.period30d")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="3m"
+              className={cn(
+                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+              )}
+            >
+              {t("insights.period3m")}
             </TabsTrigger>
           </TabsList>
         </Tabs>

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { EntryType, ExtractedEntry } from "@/lib/types"
+import { isValidDateYmd } from "@/lib/entry-timestamp"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -48,6 +49,13 @@ WEITERE REGELN:
 - Tageszeit: morgens breakfast, mittags lunch, abends dinner (wenn keine Mahlzeit genannt).
 - Confidence mindestens 0.6 sonst weglassen.
 
+DATUM PRO EINTRAG (entryDate):
+- Jeder Eintrag darf zusaetzlich "entryDate" haben: Kalendertag als "YYYY-MM-DD" NUR wenn sich dieser konkrete Infoteil auf einen bestimmten Tag bezieht (z.B. "am 15.3.", "15.03.2026", "gestern", "vorgestern", "letzten Freitag").
+- Bezieht sich der Satz auf HEUTE oder ist kein Datum genannt: "entryDate" weglassen oder null (App traegt dann mit aktuellem Zeitpunkt ein).
+- Du bekommst den heutigen Kalendertag des Nutzers im User-Kontext — nutze ihn fuer "gestern", "morgen", relative Zuordnung.
+- Mehrere Daten in einer Nachricht: setze fuer JEDEN Eintrag das passende entryDate (z.B. zwei Zeilen mit je einem Datum).
+- entryDate muss ein gueltiger Kalendertag sein; kein Jahr erfunden — wenn nur Tag.Monat ohne Jahr: nimm das Jahr vom Nutzer-Heute, ausser der Text macht ein anderes Jahr klar.
+
 TEST-LOGIK (intern): "2 kilo steak, 500g schokoeis, mir gehts wunderbar, 30 min joggen" -> 4 Eintraege: 2x meal, 1x mood(5), 1x activity.
 "120 nuechtern, 4 novorapid, ne banane, war spazieren" -> glucose, insulin, meal, activity.
 
@@ -58,7 +66,8 @@ Antworte NUR als JSON-Objekt:
       "type": "meal",
       "data": { "description": "...", "carbsGrams": 0, "mealType": "dinner", "estimated": true },
       "confidence": 0.85,
-      "sourceText": "..."
+      "sourceText": "...",
+      "entryDate": null
     }
   ],
   "message": "Kurze freundliche Bestaetigung auf Deutsch."
@@ -95,8 +104,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = (await req.json()) as { text: string }
+    const body = (await req.json()) as { text: string; todayYmd?: string }
     const text = (body?.text ?? "").slice(0, 500)
+    const todayYmd =
+      typeof body?.todayYmd === "string" && isValidDateYmd(body.todayYmd) ? body.todayYmd : null
 
     if (!text || text.trim().length === 0) {
       return new Response(
@@ -112,7 +123,16 @@ export async function POST(req: NextRequest) {
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: text },
+        {
+          role: "user",
+          content: [
+            todayYmd ? `KONTEXT Nutzer-Kalendertag HEUTE: ${todayYmd} (fuer gestern/morgen/relative Daten).` : "",
+            "",
+            text,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        },
       ],
     })
 
@@ -123,6 +143,7 @@ export async function POST(req: NextRequest) {
         data: any
         confidence: number
         sourceText: string
+        entryDate?: string | null
       }>
       message?: string
     }
@@ -150,12 +171,17 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        const rawDate = e.entryDate
+        const entryDate =
+          typeof rawDate === "string" && isValidDateYmd(rawDate) ? rawDate : undefined
+
         return {
           type,
           sourceText: String(e.sourceText ?? ""),
           data,
           confidence: Number(e.confidence),
           included: true,
+          ...(entryDate ? { entryDate } : {}),
         }
       })
 

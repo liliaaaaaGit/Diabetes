@@ -43,32 +43,32 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
 
             <div className="flex-1 min-w-0 space-y-4">
               <p className="text-sm font-medium text-slate-700">{t("insights.timeInRange")}</p>
-              <div className="flex h-14 w-full rounded-xl overflow-hidden shadow-inner ring-1 ring-slate-200/80">
+              <div className="flex h-8 w-full rounded-lg overflow-hidden shadow-inner ring-1 ring-slate-200/80">
                 {tir.under > 0 && (
                   <div
-                    className="h-full bg-red-500 flex items-center justify-center text-white text-xs sm:text-sm font-semibold px-1 transition-[width] min-w-0"
+                    className="h-full bg-red-500 flex items-center justify-center text-white text-[11px] font-semibold px-0.5 transition-[width] min-w-0"
                     style={{ width: `${tir.under}%` }}
                     title={`${t("insights.underTarget")}: ${tir.under}%`}
                   >
-                    {tir.under >= 8 ? `${tir.under}%` : ""}
+                    {tir.under >= 12 ? `${tir.under}%` : ""}
                   </div>
                 )}
                 {tir.inRange > 0 && (
                   <div
-                    className="h-full bg-emerald-500 flex items-center justify-center text-white text-xs sm:text-sm font-semibold px-1 min-w-0"
+                    className="h-full bg-emerald-500 flex items-center justify-center text-white text-[11px] font-semibold px-0.5 min-w-0"
                     style={{ width: `${tir.inRange}%` }}
                     title={`${t("insights.inTarget")}: ${tir.inRange}%`}
                   >
-                    {tir.inRange >= 8 ? `${tir.inRange}%` : ""}
+                    {tir.inRange >= 12 ? `${tir.inRange}%` : ""}
                   </div>
                 )}
                 {tir.over > 0 && (
                   <div
-                    className="h-full bg-teal-900 flex items-center justify-center text-white text-xs sm:text-sm font-semibold px-1 min-w-0"
+                    className="h-full bg-teal-900 flex items-center justify-center text-white text-[11px] font-semibold px-0.5 min-w-0"
                     style={{ width: `${tir.over}%` }}
                     title={`${t("insights.overTarget")}: ${tir.over}%`}
                   >
-                    {tir.over >= 8 ? `${tir.over}%` : ""}
+                    {tir.over >= 12 ? `${tir.over}%` : ""}
                   </div>
                 )}
               </div>

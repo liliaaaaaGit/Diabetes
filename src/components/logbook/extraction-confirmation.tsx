@@ -18,6 +18,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
+import { format, parse } from "date-fns"
+import { de as deLocale, enUS } from "date-fns/locale"
+import { isValidDateYmd, timestampForEntryDate } from "@/lib/entry-timestamp"
 import { useToast } from "@/hooks/use-toast"
 import {
   Select,
@@ -100,7 +103,7 @@ export function ExtractionConfirmation({
   source = "conversation",
   conversationId,
 }: ExtractionConfirmationProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { toast } = useToast()
 
   const [entries, setEntries] = useState<ExtractedEntry[]>(extractedEntries)
@@ -134,7 +137,7 @@ export function ExtractionConfirmation({
     const type = resolveEntryType(entry)
     if (!type) return null
 
-    const timestamp = new Date().toISOString()
+    const timestamp = timestampForEntryDate(entry.entryDate)
     const note = entry.sourceText
 
     if (type === "glucose") {
@@ -572,6 +575,16 @@ export function ExtractionConfirmation({
                     {entry.resolvedType ? getTypeLabel(t, entry.resolvedType) : t("logbook.entry")}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">{entry.sourceText}</p>
+                  {entry.entryDate && isValidDateYmd(entry.entryDate) ? (
+                    <p className="text-xs text-teal-700 font-medium mt-1">
+                      {t("logbook.entryDateLabel")}:{" "}
+                      {format(
+                        parse(entry.entryDate, "yyyy-MM-dd", new Date()),
+                        "PPP",
+                        { locale: locale === "en" ? enUS : deLocale }
+                      )}
+                    </p>
+                  ) : null}
                   {renderValueHint(entry)}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">

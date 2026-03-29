@@ -7,17 +7,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { GlucoseChart } from "@/components/dashboard/glucose-chart"
-import { DailyInsightCard } from "@/components/dashboard/daily-insight-card"
-import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed"
 import { ManualEntryModal } from "@/components/logbook/manual-entry-modal"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
 import { useEntries } from "@/hooks/useEntries"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
-import { useInsights } from "@/hooks/useInsights"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db"
-import type { Entry, GlucoseEntry, MoodEntry, GlucoseUnit } from "@/lib/types"
+import type { Entry, GlucoseEntry, MoodEntry } from "@/lib/types"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 
@@ -34,7 +31,6 @@ export default function DashboardPage() {
   const { toast } = useToast()
   const { userId } = useUser()
 
-  const unit: GlucoseUnit = "mg_dl"
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const start14d = useMemo(() => {
@@ -43,21 +39,15 @@ export default function DashboardPage() {
     return d.toISOString()
   }, [])
 
-  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats(userId)
+  const { stats, refetch: refetchStats } = useDashboardStats(userId)
   const { entries: glucoseEntries, loading: glucoseLoading, refetch: refetchGlucose } = useEntries(
     { type: "glucose", from: start14d },
     userId
   )
-  const { entries: moodEntries, loading: moodLoading, refetch: refetchMood } = useEntries(
+  const { entries: moodEntries, refetch: refetchMood } = useEntries(
     { type: "mood", limit: 1 },
     userId
   )
-  const { entries: recentEntries, loading: recentLoading, refetch: refetchRecent } = useEntries(
-    { limit: 8 },
-    userId
-  )
-  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights(userId)
-
   const statsSafe =
     stats ?? ({ avgGlucose: 0, unit: "mg_dl", entriesToday: 0, timeInRange: 0 } as const)
 
@@ -70,18 +60,6 @@ export default function DashboardPage() {
   }, [glucoseTyped])
 
   const lastMoodEntry = moodTyped[0]
-
-  const todayInsight = useMemo(() => {
-    // Prefer motivation insights (quotes) for the dashboard
-    const motivationInsight = insights.find((i) => i.type === "motivation" && !i.dismissed)
-    if (motivationInsight) return motivationInsight
-    
-    // Fallback to any active insight
-    const active = insights.find((i) => !i.dismissed)
-    return active ?? insights[0]
-  }, [insights])
-
-  const showDashboardInsightPlaceholder = !insightsLoading && !todayInsight
 
   const getContextText = (context: string) => {
     if (context === "fasting") return t("dashboard.fasting")
@@ -113,13 +91,7 @@ export default function DashboardPage() {
         title: t("logbook.entrySaved"),
         description: t("logbook.entrySavedSuccess"),
       })
-      await Promise.all([
-        refetchStats(),
-        refetchGlucose(),
-        refetchMood(),
-        refetchRecent(),
-        refetchInsights(),
-      ])
+      await Promise.all([refetchStats(), refetchGlucose(), refetchMood()])
     } catch (e) {
       toast({
         title: t("logbook.entrySaved"),
@@ -194,19 +166,6 @@ export default function DashboardPage() {
           {/* Glucose Chart */}
           <GlucoseChart entries={glucoseTyped} />
 
-          {/* Daily Insight */}
-          {todayInsight ? (
-            <DailyInsightCard insight={todayInsight} />
-          ) : showDashboardInsightPlaceholder ? (
-            <Card className="rounded-xl border-slate-200 bg-slate-50/90 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-600">{t("empty.dashboardNoInsight")}</p>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {/* Recent Activity */}
-          <RecentActivityFeed entries={recentEntries} limit={8} />
         </div>
 
         {/* Desktop Layout */}
@@ -234,7 +193,6 @@ export default function DashboardPage() {
             ) : null}
 
             <GlucoseChart entries={glucoseTyped} />
-            <RecentActivityFeed entries={recentEntries} limit={8} />
           </div>
 
           {/* Right Column (1/3) */}
@@ -268,16 +226,6 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Daily Insight */}
-            {todayInsight ? (
-              <DailyInsightCard insight={todayInsight} />
-            ) : showDashboardInsightPlaceholder ? (
-              <Card className="rounded-xl border-slate-200 bg-slate-50/90 shadow-sm">
-                <CardContent className="p-4">
-                  <p className="text-sm text-slate-600">{t("empty.dashboardNoInsight")}</p>
-                </CardContent>
-              </Card>
-            ) : null}
           </div>
         </div>
       </div>

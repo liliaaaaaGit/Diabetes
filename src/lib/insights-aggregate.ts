@@ -1,10 +1,4 @@
-import {
-  eachDayOfInterval,
-  startOfDay,
-  startOfWeek,
-  subDays,
-  format,
-} from "date-fns"
+import { eachDayOfInterval, startOfDay, subDays, subMonths, format } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
 import type {
@@ -17,18 +11,17 @@ import type {
   MoodEntry,
 } from "@/lib/types"
 
-export type InsightsTimeRangeKey = "week" | "7d" | "30d"
+export type InsightsTimeRangeKey = "7d" | "30d" | "3m"
 
 export function computeInsightsRange(tr: InsightsTimeRangeKey): { from: Date; to: Date } {
   const now = new Date()
-  if (tr === "week") {
-    const start = startOfDay(startOfWeek(now, { weekStartsOn: 1 }))
-    return { from: start, to: now }
-  }
   if (tr === "7d") {
     return { from: startOfDay(subDays(now, 6)), to: now }
   }
-  return { from: startOfDay(subDays(now, 29)), to: now }
+  if (tr === "30d") {
+    return { from: startOfDay(subDays(now, 29)), to: now }
+  }
+  return { from: startOfDay(subMonths(now, 3)), to: now }
 }
 
 export function glucoseMgDl(g: GlucoseEntry): number {
