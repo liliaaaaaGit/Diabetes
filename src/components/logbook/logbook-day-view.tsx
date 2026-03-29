@@ -3,8 +3,7 @@
 import { useMemo } from "react"
 import type { Entry, EntryType, GlucoseEntry, InsulinEntry, MealEntry } from "@/lib/types"
 import { clusterEntriesByTime } from "@/lib/logbook-cluster"
-import { EntryCard } from "./entry-card"
-import { ConsolidatedEntryCard } from "./consolidated-entry-card"
+import { LogbookUnifiedEntryCard } from "./logbook-unified-entry-card"
 import { EmptyState } from "@/components/shared/empty-state"
 import { BookOpen } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
@@ -107,14 +106,13 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 w-full">
-        {displayClusters.map((cluster) => {
-          if (cluster.length === 1) {
-            return <EntryCard key={cluster[0].id} entry={cluster[0]} />
-          }
-          const key = cluster.map((e) => e.id).join("-")
-          return <ConsolidatedEntryCard key={key} entries={cluster} />
-        })}
+      <div className="flex flex-col gap-3 w-full">
+        {displayClusters.map((cluster) => (
+          <LogbookUnifiedEntryCard
+            key={cluster.length === 1 ? cluster[0].id : cluster.map((e) => e.id).join("-")}
+            entries={cluster}
+          />
+        ))}
       </div>
     </div>
   )
