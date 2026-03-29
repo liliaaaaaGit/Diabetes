@@ -28,12 +28,12 @@ export function BuddyHomeHero({
         <div className="flex shrink-0 justify-center lg:w-[48%] lg:justify-end lg:pr-2">
           <div className="relative w-full max-w-[300px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[min(100%,540px)]">
             <Image
-              src="/buddy-robot.png"
+              src="/TherapistRobot4.png"
               alt={robotImageAlt}
-              width={600}
-              height={576}
+              width={3691}
+              height={3691}
               priority
-              className="h-auto w-full object-contain object-left-bottom"
+              className="h-auto w-full object-contain object-bottom"
             />
           </div>
         </div>
