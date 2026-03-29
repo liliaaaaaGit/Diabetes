@@ -23,48 +23,52 @@ export function BuddyHomeHero({
   disabled = false,
 }: BuddyHomeHeroProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col justify-start gap-3 py-1 md:gap-4 md:py-2">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-3 sm:gap-4 lg:flex-row lg:items-stretch lg:gap-5 lg:px-2">
-        <div className="flex shrink-0 justify-center lg:w-[46%] lg:justify-end lg:pr-1">
-          <div className="flex h-[min(28vh,200px)] w-full max-w-[180px] items-end justify-center sm:h-[min(30vh,220px)] sm:max-w-[200px] md:h-[min(32vh,240px)] md:max-w-[220px] lg:h-[min(34vh,260px)] lg:max-w-[min(100%,280px)]">
+    <div className="flex h-full min-h-0 w-full flex-col justify-between gap-3 md:gap-4">
+      {/* Oberer Bereich ~60–65 %: Roboter + Zitat */}
+      <div className="flex min-h-0 w-full flex-[1.65] flex-col gap-3 min-[480px]:gap-4 lg:flex-row lg:items-stretch lg:gap-6 xl:gap-8">
+        <div className="flex min-h-[120px] flex-1 items-stretch justify-center lg:min-h-0 lg:basis-0 lg:max-w-[50%]">
+          <div className="relative flex h-full min-h-0 w-full items-end justify-center">
             <Image
               src="/TherapistRobot4.png"
               alt={robotImageAlt}
               width={3691}
               height={3691}
               priority
-              className="max-h-full w-auto max-w-full object-contain object-bottom"
+              className="h-full max-h-full w-full max-w-full object-contain object-bottom"
             />
           </div>
         </div>
 
-        <div className="relative flex min-h-[88px] flex-1 rounded-xl bg-teal-500/10 p-3 shadow-sm ring-1 ring-teal-500/15 sm:min-h-[96px] sm:p-4 lg:w-[54%]">
-          <span
-            className="pointer-events-none absolute left-2 top-0 font-serif text-5xl leading-none text-teal-500 sm:left-3 sm:text-6xl"
-            aria-hidden
-          >
-            &ldquo;
-          </span>
-          {quoteLoading ? (
-            <div className="ml-1 mt-7 min-h-[72px] flex-1 animate-pulse rounded-md bg-teal-500/15 sm:mt-8 sm:min-h-[80px]" />
-          ) : (
-            <p className="relative z-10 ml-0.5 mt-7 line-clamp-[7] text-sm leading-snug text-slate-800 sm:ml-1 sm:mt-8 sm:line-clamp-none sm:text-[0.9375rem] sm:leading-relaxed md:text-base">
-              {quote}
-            </p>
-          )}
+        <div className="relative flex min-h-[100px] flex-1 flex-col lg:min-h-0 lg:basis-0 lg:max-w-[50%]">
+          <div className="flex h-full min-h-0 flex-col justify-center overflow-y-auto overscroll-contain rounded-xl bg-teal-500/10 p-4 shadow-sm ring-1 ring-teal-500/15 md:p-5 lg:p-6">
+            <span
+              className="pointer-events-none absolute left-3 top-1 font-serif text-5xl leading-none text-teal-500 md:left-4 md:top-2 md:text-6xl lg:text-7xl"
+              aria-hidden
+            >
+              &ldquo;
+            </span>
+            {quoteLoading ? (
+              <div className="mt-8 min-h-[4rem] shrink-0 animate-pulse rounded-md bg-teal-500/15 md:mt-10" />
+            ) : (
+              <p className="relative z-10 mt-8 shrink-0 text-base leading-relaxed text-slate-800 md:mt-10 md:text-lg lg:text-xl lg:leading-relaxed">
+                {quote}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-6xl shrink-0 flex-col items-center px-3 pt-0">
+      {/* Unterer Bereich ~35–40 %: Button + Disclaimer */}
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-3 px-2 pb-1 md:gap-4 md:pb-0">
         <Button
           type="button"
           onClick={onNewConversation}
           disabled={disabled}
-          className="h-auto min-h-[2.5rem] w-full max-w-[min(100%,360px)] rounded-full bg-teal-500 px-6 py-2 text-sm font-semibold text-white shadow-md hover:bg-teal-600 sm:min-h-[2.75rem] sm:text-base"
+          className="h-auto w-full max-w-xl rounded-full bg-teal-500 px-10 py-4 text-lg font-semibold text-white shadow-md hover:bg-teal-600 md:px-12 md:py-5 md:text-xl"
         >
           {newChatLabel}
         </Button>
-        <p className="mt-2 max-w-lg text-center text-[11px] leading-snug text-slate-500 sm:mt-3 sm:text-xs sm:leading-relaxed">
+        <p className="max-w-xl text-center text-xs leading-snug text-slate-500 md:text-sm md:leading-relaxed">
           {disclaimer}
         </p>
       </div>

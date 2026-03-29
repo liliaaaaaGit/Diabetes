@@ -435,13 +435,13 @@ export default function BuddyPage() {
 
   return (
     <AppShell title={t("buddy.title")}>
-      <div className="relative flex h-[calc(100dvh-7rem)] min-h-0 flex-col md:h-[calc(100dvh-7.5rem)]">
+      <div className="relative flex h-[calc(100dvh-8.5rem)] min-h-0 flex-col md:h-[calc(100dvh-9rem)]">
         {conversationsError && (
-          <p className="text-sm text-red-600">{t("buddy.historyLoadFailed")}</p>
+          <p className="shrink-0 text-sm text-red-600">{t("buddy.historyLoadFailed")}</p>
         )}
 
         {openAiMissing && (
-          <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 flex items-start gap-3">
+          <div className="mb-3 shrink-0 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 flex items-start gap-3">
             <Sparkles className="h-5 w-5 text-amber-700 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-slate-900">{t("buddy.openAiNotConfigured")}</p>
@@ -451,7 +451,7 @@ export default function BuddyPage() {
         )}
 
         {connectFailed && (
-          <div className="mb-3 rounded-xl border border-red-200 bg-red-50/60 px-4 py-3 flex items-start justify-between gap-4">
+          <div className="mb-3 shrink-0 rounded-xl border border-red-200 bg-red-50/60 px-4 py-3 flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-red-900">{t("buddy.connectionProblem")}</p>
               <p className="text-xs text-slate-600 mt-1">{t("buddy.conversationKept")}</p>
@@ -462,7 +462,7 @@ export default function BuddyPage() {
           </div>
         )}
 
-        <div className="mb-2 flex flex-wrap items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 sm:mb-2 sm:gap-1">
+        <div className="mb-2 flex shrink-0 flex-wrap items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 sm:mb-2 sm:gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("chat")}
@@ -487,7 +487,7 @@ export default function BuddyPage() {
         </div>
 
         {activeTab === "chat" && !isFullChatView && (
-          <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-y-auto overflow-x-hidden px-2 pb-3 md:px-4 md:pb-4 lg:px-6">
+          <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-2 pb-2 md:px-4 md:pb-3 lg:px-6">
             <BuddyHomeHero
               quote={buddyPersonalQuote}
               quoteLoading={quoteLoading}
