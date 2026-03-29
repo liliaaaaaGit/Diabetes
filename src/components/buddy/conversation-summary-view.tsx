@@ -122,7 +122,7 @@ export function ConversationSummaryView({
               return (
                 <div key={m.id} className={cn("flex gap-2", showAssistantAvatar ? "" : "pl-11")}>
                   {showAssistantAvatar ? (
-                    <div className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-300 text-amber-950">
+                    <div className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-teal-200 text-teal-800">
                       <Bot className="h-4 w-4" aria-hidden />
                     </div>
                   ) : null}
