@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Entry, EntryType } from "@/lib/types"
 import { AppShell } from "@/components/shared/app-shell"
 import { FilterTabs } from "@/components/logbook/filter-tabs"
-import { EntryList } from "@/components/logbook/entry-list"
+import { LogbookWeekCalendar } from "@/components/logbook/logbook-week-calendar"
+import { LogbookDayView } from "@/components/logbook/logbook-day-view"
 import { ManualEntryModal } from "@/components/logbook/manual-entry-modal"
 import { AiQuickInput } from "@/components/logbook/ai-quick-input"
 import { useTranslation } from "@/hooks/useTranslation"
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { useEntries } from "@/hooks/useEntries"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db"
+import { addDays, isSameDay, parseISO, startOfDay } from "date-fns"
 
 export default function LogbookPage() {
   const { t } = useTranslation()
@@ -21,20 +23,29 @@ export default function LogbookPage() {
   const { userId } = useUser()
   const [activeFilter, setActiveFilter] = useState<EntryType | "all">("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
   const { entries, loading, error, refetch } = useEntries(undefined, userId)
 
-  // Calculate counts for each filter
+  const dayEntries = useMemo(() => {
+    return entries.filter((e) => isSameDay(parseISO(e.timestamp), selectedDate))
+  }, [entries, selectedDate])
+
   const counts = useMemo(() => {
-    const counts: Record<string, number> = {
-      all: entries.length,
+    const c: Record<string, number> = {
+      all: dayEntries.length,
     }
-    ;(["glucose", "insulin", "meal", "activity", "mood"] as EntryType[]).forEach(
-      (type) => {
-        counts[type] = entries.filter((e) => e.type === type).length
-      }
-    )
-    return counts
-  }, [entries])
+    ;(["glucose", "insulin", "meal", "activity", "mood"] as EntryType[]).forEach((type) => {
+      c[type] = dayEntries.filter((e) => e.type === type).length
+    })
+    return c
+  }, [dayEntries])
+
+  const handleShiftWeek = useCallback(
+    (direction: -1 | 1) => {
+      setSelectedDate((d) => addDays(d, direction * 7))
+    },
+    []
+  )
 
   const handleSave = (newEntry: Entry) => {
     void (async () => {
@@ -59,6 +70,7 @@ export default function LogbookPage() {
   return (
     <AppShell
       title={t("pages.logbook")}
+      mainClassName="max-w-none w-full px-4 md:px-6 py-4 md:py-6"
       actions={
         <Button onClick={() => setIsModalOpen(true)} variant="outline">
           <Plus className="h-4 w-4 mr-2" />
@@ -66,27 +78,40 @@ export default function LogbookPage() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 w-full">
         <AiQuickInput
           onManualFallback={() => setIsModalOpen(true)}
           onRefetch={refetch}
         />
 
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+        <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 space-y-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">
+          <LogbookWeekCalendar
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            onShiftWeek={handleShiftWeek}
+            onGoToday={() => setSelectedDate(startOfDay(new Date()))}
+            entries={entries}
+          />
+          <FilterTabs
+            activeFilter={activeFilter}
+            counts={counts}
+            onChange={setActiveFilter}
+          />
+        </div>
 
-        {/* Filter + list */}
-        <FilterTabs
-          activeFilter={activeFilter}
-          counts={counts}
-          onChange={setActiveFilter}
-        />
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         {loading && (
           <p className="text-sm text-slate-500 py-4">{t("common.loading")}</p>
         )}
-        {!loading && <EntryList entries={entries} filter={activeFilter} />}
+
+        {!loading && (
+          <LogbookDayView
+            selectedDate={selectedDate}
+            filter={activeFilter}
+            entriesForDay={dayEntries}
+          />
+        )}
       </div>
 
       <ManualEntryModal

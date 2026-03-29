@@ -2,12 +2,15 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { createEntry } from "@/lib/db"
 import type { CsvImportRowPayload } from "@/lib/csv-import"
-import { GLUCOSE_RANGE, INSULIN_RANGE, CARBS_RANGE } from "@/lib/constants"
+import {
+  GLUCOSE_RANGE,
+  INSULIN_RANGE,
+  CARBS_RANGE,
+  CSV_IMPORT_MEAL_DESCRIPTION,
+} from "@/lib/constants"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-const MEAL_IMPORT_DESCRIPTION = "CSV-Import"
 
 const MAX_BATCH = 80
 
@@ -113,7 +116,7 @@ export async function POST(req: Request) {
           type: "meal",
           timestamp: ts,
           source: "import",
-          description: MEAL_IMPORT_DESCRIPTION,
+          description: CSV_IMPORT_MEAL_DESCRIPTION,
           mealType: "snack",
           carbsGrams: c,
         })

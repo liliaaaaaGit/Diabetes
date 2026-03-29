@@ -14,7 +14,14 @@ import { Badge } from "@/components/ui/badge"
 import { useTranslation } from "@/hooks/useTranslation"
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { enUS } from "date-fns/locale/en-US"
 import { cn } from "@/lib/utils"
+import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
+import { CSV_IMPORT_MEAL_DESCRIPTION } from "@/lib/constants"
+
+function glucoseMgDl(e: GlucoseEntry): number {
+  return e.unit === "mmol_l" ? e.value * 18.0182 : e.value
+}
 
 const moodEmojis: Record<number, string> = {
   1: "😞",
@@ -29,10 +36,11 @@ interface EntryCardProps {
 }
 
 export function EntryCard({ entry }: EntryCardProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [expanded, setExpanded] = useState(false)
+  const dateLocale = locale === "de" ? de : enUS
 
-  const time = format(parseISO(entry.timestamp), "HH:mm", { locale: de })
+  const time = format(parseISO(entry.timestamp), "HH:mm", { locale: dateLocale })
 
   const getIcon = () => {
     switch (entry.type) {
@@ -61,18 +69,28 @@ export function EntryCard({ entry }: EntryCardProps) {
         else if (glucoseEntry.context === "bedtime") contextText = t("dashboard.bedtime")
         else contextText = t("dashboard.other")
 
+        const hideContext =
+          entry.source === "import" && glucoseEntry.context === "other"
+
         return (
           <>
             <div className="flex-1">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Badge variant="outline" className="text-xs font-medium">
                   {t("logbook.glucose")}
                 </Badge>
-                <span className="text-sm text-slate-500">{contextText}</span>
+                {!hideContext && contextText ? (
+                  <span className="text-sm text-slate-500">{contextText}</span>
+                ) : null}
               </div>
             </div>
             <div className="flex flex-col items-end gap-0.5">
-              <span className="text-lg font-semibold text-slate-900">
+              <span
+                className={cn(
+                  "text-lg font-semibold tabular-nums",
+                  glucoseValueTextClassMgDl(glucoseMgDl(glucoseEntry))
+                )}
+              >
                 {glucoseEntry.value} {unit}
               </span>
             </div>
@@ -87,19 +105,26 @@ export function EntryCard({ entry }: EntryCardProps) {
         else if (insulinEntry.insulinType === "mixed") typeText = t("logbook.mixed")
         else typeText = t("logbook.other")
 
+        const hideTypeBadge =
+          entry.source === "import" &&
+          insulinEntry.insulinType === "other" &&
+          !insulinEntry.insulinName
+
         return (
           <>
             <div className="flex-1">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Badge variant="outline" className="text-xs font-medium">
                   {t("logbook.insulin")}
                 </Badge>
                 {insulinEntry.insulinName && (
                   <span className="text-sm text-slate-600">{insulinEntry.insulinName}</span>
                 )}
-                <Badge variant="outline" className="text-xs">
-                  {typeText}
-                </Badge>
+                {!hideTypeBadge ? (
+                  <Badge variant="outline" className="text-xs">
+                    {typeText}
+                  </Badge>
+                ) : null}
               </div>
             </div>
             <div className="flex flex-col items-end gap-0.5">
@@ -118,26 +143,37 @@ export function EntryCard({ entry }: EntryCardProps) {
         else if (mealEntry.mealType === "dinner") mealTypeText = t("logbook.dinner")
         else mealTypeText = t("logbook.snack")
 
+        const hideMealTypeBadge =
+          entry.source === "import" &&
+          mealEntry.mealType === "snack" &&
+          mealEntry.description === CSV_IMPORT_MEAL_DESCRIPTION
+
+        const showDescription =
+          mealEntry.description &&
+          !(entry.source === "import" && mealEntry.description === CSV_IMPORT_MEAL_DESCRIPTION)
+
         return (
           <>
             <div className="flex-1">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Badge variant="outline" className="text-xs font-medium">
                   {t("logbook.meal")}
                 </Badge>
-                <span className="text-sm font-semibold text-slate-900">
-                  {mealEntry.description}
-                </span>
+                {showDescription ? (
+                  <span className="text-sm font-semibold text-slate-900">{mealEntry.description}</span>
+                ) : null}
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="text-xs">
-                  {mealTypeText}
-                </Badge>
-                {mealEntry.carbsGrams && (
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {!hideMealTypeBadge ? (
+                  <Badge variant="outline" className="text-xs">
+                    {mealTypeText}
+                  </Badge>
+                ) : null}
+                {mealEntry.carbsGrams != null && mealEntry.carbsGrams > 0 ? (
                   <span className="text-xs text-slate-600">
                     {mealEntry.carbsGrams}g {t("dashboard.carbs")}
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
           </>

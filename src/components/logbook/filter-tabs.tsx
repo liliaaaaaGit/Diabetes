@@ -16,11 +16,11 @@ export function FilterTabs({ activeFilter, counts, onChange }: FilterTabsProps) 
 
   const filters: Array<{ value: EntryType | "all"; label: string }> = [
     { value: "all", label: t("logbook.all") },
-    { value: "glucose", label: t("common.glucose") },
-    { value: "insulin", label: t("common.insulin") },
-    { value: "meal", label: t("common.meal") },
-    { value: "activity", label: t("common.activity") },
-    { value: "mood", label: t("common.mood") },
+    { value: "glucose", label: t("logbook.glucose") },
+    { value: "insulin", label: t("logbook.insulin") },
+    { value: "meal", label: t("logbook.meal") },
+    { value: "activity", label: t("logbook.activity") },
+    { value: "mood", label: t("logbook.mood") },
   ]
 
   return (

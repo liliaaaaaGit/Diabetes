@@ -11,9 +11,11 @@ interface AppShellProps {
   children: React.ReactNode
   title: string
   actions?: React.ReactNode
+  /** Override main content wrapper (e.g. full width without max-w-7xl). */
+  mainClassName?: string
 }
 
-export function AppShell({ children, title, actions }: AppShellProps) {
+export function AppShell({ children, title, actions, mainClassName }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { t } = useTranslation()
 
@@ -47,7 +49,12 @@ export function AppShell({ children, title, actions }: AppShellProps) {
         />
 
         {/* Content */}
-        <main className="max-w-7xl mx-auto p-4 md:p-6">
+        <main
+          className={cn(
+            "max-w-7xl mx-auto p-4 md:p-6",
+            mainClassName
+          )}
+        >
           {children}
         </main>
 

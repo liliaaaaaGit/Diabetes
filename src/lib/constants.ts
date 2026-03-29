@@ -48,6 +48,9 @@ export type InsulinType = (typeof INSULIN_TYPES)[number]
 export const MOOD_SCALE = [1, 2, 3, 4, 5] as const
 export type MoodScale = (typeof MOOD_SCALE)[number]
 
+/** Meal description used for CSV-imported carb-only rows (hide generic meal-type label in UI). */
+export const CSV_IMPORT_MEAL_DESCRIPTION = "CSV-Import"
+
 // App colors as Tailwind-compatible constants (glucose = teal accent)
 export const COLORS = {
   glucose: "#14B8A6", // teal-500
