@@ -487,7 +487,7 @@ export default function BuddyPage() {
         </div>
 
         {activeTab === "chat" && !isFullChatView && (
-          <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-2 pb-2 md:px-4 md:pb-3 lg:px-6">
+          <div className="mx-auto mt-8 flex h-full min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-2 pb-2 md:mt-10 md:px-4 md:pb-3 lg:mt-12 lg:px-6">
             <BuddyHomeHero
               quote={buddyPersonalQuote}
               quoteLoading={quoteLoading}

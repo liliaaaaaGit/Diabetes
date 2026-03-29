@@ -25,8 +25,9 @@ export function BuddyHomeHero({
   return (
     <div className="flex h-full min-h-0 w-full flex-col justify-between gap-3 md:gap-4">
       {/* Oberer Bereich ~60–65 %: Roboter + Zitat */}
-      <div className="flex min-h-0 w-full flex-[1.65] flex-col gap-3 min-[480px]:gap-4 lg:flex-row lg:items-stretch lg:gap-6 xl:gap-8">
-        <div className="flex min-h-[120px] flex-1 items-stretch justify-center lg:min-h-0 lg:basis-0 lg:max-w-[50%]">
+      <div className="flex min-h-0 w-full flex-[1.65] flex-col gap-3 min-[480px]:gap-4 lg:flex-row lg:items-stretch lg:gap-5 xl:gap-6">
+        {/* Roboter: etwas über die Hälfte der oberen Zeile (~58 %), Bild skaliert groß */}
+        <div className="flex min-h-[120px] flex-1 items-stretch justify-center lg:min-h-0 lg:flex-[1.35] lg:basis-0">
           <div className="relative flex h-full min-h-0 w-full items-end justify-center">
             <Image
               src="/TherapistRobot4.png"
@@ -39,18 +40,18 @@ export function BuddyHomeHero({
           </div>
         </div>
 
-        <div className="relative flex min-h-[100px] flex-1 flex-col lg:min-h-0 lg:basis-0 lg:max-w-[50%]">
-          <div className="flex h-full min-h-0 flex-col justify-center overflow-y-auto overscroll-contain rounded-xl bg-teal-500/10 p-4 shadow-sm ring-1 ring-teal-500/15 md:p-5 lg:p-6">
+        <div className="relative flex min-h-[100px] flex-1 flex-col lg:min-h-0 lg:flex-[0.85] lg:basis-0">
+          <div className="flex h-full min-h-0 flex-col justify-center overflow-y-auto overscroll-contain rounded-lg bg-teal-500/10 p-3 shadow-sm ring-1 ring-teal-500/15 md:p-3.5 lg:p-4">
             <span
-              className="pointer-events-none absolute left-3 top-1 font-serif text-5xl leading-none text-teal-500 md:left-4 md:top-2 md:text-6xl lg:text-7xl"
+              className="pointer-events-none absolute left-2 top-0.5 font-serif text-4xl leading-none text-teal-500 md:left-3 md:top-1 md:text-5xl lg:text-5xl"
               aria-hidden
             >
               &ldquo;
             </span>
             {quoteLoading ? (
-              <div className="mt-8 min-h-[4rem] shrink-0 animate-pulse rounded-md bg-teal-500/15 md:mt-10" />
+              <div className="mt-6 min-h-[3rem] shrink-0 animate-pulse rounded-md bg-teal-500/15 md:mt-7" />
             ) : (
-              <p className="relative z-10 mt-8 shrink-0 text-base leading-relaxed text-slate-800 md:mt-10 md:text-lg lg:text-xl lg:leading-relaxed">
+              <p className="relative z-10 mt-6 shrink-0 text-base leading-snug text-slate-800 md:mt-7 md:leading-relaxed">
                 {quote}
               </p>
             )}
@@ -64,11 +65,11 @@ export function BuddyHomeHero({
           type="button"
           onClick={onNewConversation}
           disabled={disabled}
-          className="h-auto w-full max-w-xl rounded-full bg-teal-500 px-10 py-4 text-lg font-semibold text-white shadow-md hover:bg-teal-600 md:px-12 md:py-5 md:text-xl"
+          className="h-auto w-full max-w-sm rounded-full bg-teal-500 px-8 py-3 text-lg font-semibold text-white shadow-md hover:bg-teal-600"
         >
           {newChatLabel}
         </Button>
-        <p className="max-w-xl text-center text-xs leading-snug text-slate-500 md:text-sm md:leading-relaxed">
+        <p className="max-w-sm text-center text-xs leading-snug text-slate-500 md:text-sm md:leading-relaxed">
           {disclaimer}
         </p>
       </div>
