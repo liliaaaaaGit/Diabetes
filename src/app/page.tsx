@@ -33,15 +33,16 @@ export default function DashboardPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const start14d = useMemo(() => {
+  /** Load up to 1 year of glucose readings for the chart’s longest range. */
+  const glucoseFetchFrom = useMemo(() => {
     const d = new Date()
-    d.setDate(d.getDate() - 14)
+    d.setFullYear(d.getFullYear() - 1)
     return d.toISOString()
   }, [])
 
   const { stats, refetch: refetchStats } = useDashboardStats(userId)
   const { entries: glucoseEntries, loading: glucoseLoading, refetch: refetchGlucose } = useEntries(
-    { type: "glucose", from: start14d },
+    { type: "glucose", from: glucoseFetchFrom },
     userId
   )
   const { entries: moodEntries, refetch: refetchMood } = useEntries(
