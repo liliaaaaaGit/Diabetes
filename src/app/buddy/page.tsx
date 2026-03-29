@@ -19,6 +19,8 @@ import {
   createEntry,
   getConversation,
   cleanupEmptyConversations,
+  deleteConversation,
+  deleteConversationsWithoutUserMessages,
 } from "@/lib/db"
 import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -129,7 +131,6 @@ export default function BuddyPage() {
     error: chatError,
     canSend,
     retry,
-    conversationTitle,
     hasCrisisFlag,
   } = useChat(chatConversationId, userId, {
     openingRequestId: openingAfterCreateId,
@@ -340,16 +341,33 @@ export default function BuddyPage() {
     }
   }
 
-  /** Leerer Chat: Buddy-Hauptseite ohne Beenden. Mit Nachrichten: Gespräch beenden inkl. Zusammenfassung. */
+  /**
+   * Ohne User-Nachricht: Gespräch aus DB löschen und zur Buddy-Startseite.
+   * Mit User-Nachrichten: normal beenden (Zusammenfassung).
+   */
   const handleLeaveChat = () => {
-    if (messages.length === 0) {
-      setIsFullChatView(false)
-      setActiveConversationId(undefined)
-      setViewConversationId(undefined)
-      activeConversationIdRef.current = undefined
-      return
-    }
-    void handleConfirmEndConversation()
+    void (async () => {
+      const cid = activeConversationIdRef.current
+      const hasUserMessage = messages.some((m) => m.role === "user")
+
+      if (!hasUserMessage) {
+        if (cid && userId) {
+          try {
+            await deleteConversation(cid, userId)
+            await refetchConversations()
+          } catch (e) {
+            console.error("[buddy] Failed to discard conversation:", e)
+          }
+        }
+        setIsFullChatView(false)
+        setActiveConversationId(undefined)
+        setViewConversationId(undefined)
+        activeConversationIdRef.current = undefined
+        return
+      }
+
+      await handleConfirmEndConversation()
+    })()
   }
 
   useEffect(() => {
@@ -358,8 +376,9 @@ export default function BuddyPage() {
     void (async () => {
       try {
         if (!userId) return
-        const removed = await cleanupEmptyConversations(userId)
-        if (removed > 0) {
+        const removedEmpty = await cleanupEmptyConversations(userId)
+        const removedGhosts = await deleteConversationsWithoutUserMessages(userId)
+        if (removedEmpty > 0 || removedGhosts > 0) {
           await refetchConversations()
         }
       } catch (error) {
@@ -482,11 +501,6 @@ export default function BuddyPage() {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   {t("buddy.chatLeaveEndConversation")}
                 </Button>
-                {conversationTitle && (
-                  <p className="line-clamp-1 min-w-0 flex-1 text-sm font-semibold text-slate-700 md:text-base">
-                    {conversationTitle}
-                  </p>
-                )}
               </div>
             </div>
             <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 md:px-6 lg:px-8">

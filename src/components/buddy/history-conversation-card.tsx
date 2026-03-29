@@ -13,9 +13,9 @@ function formatHistoryCardDate(iso: string, locale: "de" | "en"): string {
   try {
     const d = parseISO(iso)
     if (locale === "de") {
-      return format(d, "d. MMM yyyy", { locale: de }).toLowerCase()
+      return format(d, "d. MMMM yyyy", { locale: de })
     }
-    return format(d, "MMM d, yyyy", { locale: enUS }).toLowerCase()
+    return format(d, "MMM d, yyyy", { locale: enUS })
   } catch {
     return ""
   }
@@ -67,7 +67,7 @@ export function HistoryConversationCard({
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="min-w-0 flex-1 text-base font-bold lowercase leading-snug tracking-tight text-slate-900">
+        <h3 className="min-w-0 flex-1 text-base font-bold leading-snug tracking-tight text-slate-900">
           {title}
           {isBackfilling && (
             <span className="ml-2 inline-block h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600 align-middle" />
@@ -94,7 +94,7 @@ export function HistoryConversationCard({
             </button>
           ) : null}
           {dateLabel ? (
-            <span className="text-xs font-normal lowercase text-slate-500">{dateLabel}</span>
+            <span className="text-xs font-normal text-slate-500">{dateLabel}</span>
           ) : null}
         </div>
       </div>
@@ -109,13 +109,13 @@ export function HistoryConversationCard({
   )
 }
 
-/** Section title row for the history tab (bold lowercase + icon). */
+/** Section title row for the history tab. */
 export function HistoryListHeader() {
   const { t } = useTranslation()
   return (
     <div className="mb-4 flex items-center gap-2">
       <History className="h-5 w-5 text-slate-600" aria-hidden />
-      <h2 className="text-lg font-bold lowercase tracking-tight text-slate-900">{t("buddy.history.listTitle")}</h2>
+      <h2 className="text-lg font-bold tracking-tight text-slate-900">{t("buddy.history.listTitle")}</h2>
     </div>
   )
 }

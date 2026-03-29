@@ -39,14 +39,24 @@ export function ConversationList({
   const [refreshingSummaryId, setRefreshingSummaryId] = useState<string | null>(null)
 
   useEffect(() => {
-    setFiltered(conversations.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
+    setFiltered(
+      conversations.filter((c) => {
+        const u = (c as Conversation & { userMessageCount?: number }).userMessageCount
+        return u !== undefined ? u > 0 : (c.messageCount ?? c.messages.length ?? 0) > 0
+      })
+    )
   }, [conversations])
 
   useEffect(() => {
     const id = setTimeout(() => {
       void (async () => {
         if (!query.trim()) {
-          setFiltered(conversations.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
+          setFiltered(
+            conversations.filter((c) => {
+              const u = (c as Conversation & { userMessageCount?: number }).userMessageCount
+              return u !== undefined ? u > 0 : (c.messageCount ?? c.messages.length ?? 0) > 0
+            })
+          )
           return
         }
         if (!userId) {
@@ -56,7 +66,12 @@ export function ConversationList({
         setSearching(true)
         try {
           const rows = await searchConversations(userId, query.trim())
-          setFiltered(rows.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
+          setFiltered(
+            rows.filter((c) => {
+              const u = (c as Conversation & { userMessageCount?: number }).userMessageCount
+              return u !== undefined ? u > 0 : (c.messageCount ?? c.messages.length ?? 0) > 0
+            })
+          )
         } finally {
           setSearching(false)
         }

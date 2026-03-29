@@ -38,7 +38,7 @@ export async function POST(req: Request) {
             {
               role: "system",
               content:
-                "Generiere einen kurzen Titel (max 5 Woerter) fuer dieses Diabetes-Gespraech basierend auf der ersten Nutzer-Nachricht oder der ersten Buddy-Antwort (Eroeffnung). Nur der Titel, nichts anderes. Normale deutsche Gross- und Kleinschreibung.",
+                "Generiere einen kurzen Titel (max 5 Wörter) für dieses Diabetes-Gespräch aus der ersten Nutzer-Nachricht oder der ersten Buddy-Antwort (Eröffnung). Nur der Titel, keine Anführungszeichen, kein Zusatztext. WICHTIG: Grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung (Substantive groß, Satzanfang groß); niemals den ganzen Titel nur in Kleinbuchstaben.",
             },
             { role: "user", content: firstMessage },
           ],

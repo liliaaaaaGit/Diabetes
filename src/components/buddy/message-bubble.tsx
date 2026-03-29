@@ -1,7 +1,6 @@
 "use client"
 
 import { Message } from "@/lib/types"
-import { HeartHandshake } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { cn } from "@/lib/utils"
@@ -29,9 +28,7 @@ export function MessageBubble({ message, showAssistantAvatar = true }: MessageBu
     >
       {!isUser && showAssistantAvatar && (
         <div className="flex-shrink-0 mt-1">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 text-teal-700">
-            <HeartHandshake className="h-4 w-4" />
-          </div>
+          <div className="h-7 w-7 shrink-0 rounded-full bg-teal-200" aria-hidden />
         </div>
       )}
       {!isUser && !showAssistantAvatar && <div className="w-7 flex-shrink-0" />}

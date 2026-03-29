@@ -561,30 +561,37 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
 
   const { data: msgRows, error: msgErr } = await supabase
     .from("messages")
-    .select("conversation_id")
+    .select("conversation_id,role")
     .in("conversation_id", ids)
   if (msgErr) throw msgErr
 
-  const counts = (msgRows || []).reduce((acc: Record<string, number>, m: any) => {
-    acc[m.conversation_id] = (acc[m.conversation_id] || 0) + 1
-    return acc
-  }, {})
+  const totalCounts: Record<string, number> = {}
+  const userCounts: Record<string, number> = {}
+  for (const m of msgRows || []) {
+    const cid = (m as any).conversation_id as string
+    totalCounts[cid] = (totalCounts[cid] || 0) + 1
+    if ((m as any).role === "user") {
+      userCounts[cid] = (userCounts[cid] || 0) + 1
+    }
+  }
 
-  return convs.map((c) => ({
-    id: c.id,
-    userId: c.user_id,
-    title: c.title || undefined,
-    summary: c.summary || undefined,
-    dominantEmoji: c.mood_emoji || undefined,
-    tags: normalizeConversationTagsFromDb(c.tags),
-    emotions: normalizeConversationEmotionsFromDb(c.emotions),
-    startedAt: new Date(c.started_at).toISOString(),
-    endedAt: c.ended_at ? new Date(c.ended_at).toISOString() : undefined,
-    isActive: c.is_active,
-    messageCount: counts[c.id] || 0,
-    // messages are loaded only when opening a conversation
-    messages: [],
-  }))
+  return convs
+    .map((c) => ({
+      id: c.id,
+      userId: c.user_id,
+      title: c.title || undefined,
+      summary: c.summary || undefined,
+      dominantEmoji: c.mood_emoji || undefined,
+      tags: normalizeConversationTagsFromDb(c.tags),
+      emotions: normalizeConversationEmotionsFromDb(c.emotions),
+      startedAt: new Date(c.started_at).toISOString(),
+      endedAt: c.ended_at ? new Date(c.ended_at).toISOString() : undefined,
+      isActive: c.is_active,
+      messageCount: totalCounts[c.id] || 0,
+      userMessageCount: userCounts[c.id] || 0,
+      messages: [],
+    }))
+    .filter((c) => c.userMessageCount > 0)
 }
 
 /** Latest ended chats with summaries — for Buddy “first message in new thread” context. */
@@ -705,19 +712,69 @@ export async function getConversationStats(userId: string): Promise<{
 }
 
 export async function cleanupEmptyConversations(userId: string): Promise<number> {
-  const conversations = await getConversations(userId)
-  const emptyIds = conversations
-    .filter((c) => (c.messageCount ?? c.messages.length ?? 0) === 0)
-    .map((c) => c.id)
+  const { data: convRows, error } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("user_id", userId)
+  if (error) throw error
+  const allIds = (convRows || []).map((r: any) => r.id as string)
+  if (allIds.length === 0) return 0
+
+  const { data: msgRows, error: msgErr } = await supabase
+    .from("messages")
+    .select("conversation_id")
+    .in("conversation_id", allIds)
+  if (msgErr) throw msgErr
+
+  const withMessage = new Set((msgRows || []).map((m: any) => m.conversation_id as string))
+  const emptyIds = allIds.filter((id) => !withMessage.has(id))
   if (emptyIds.length === 0) return 0
 
-  const { error } = await supabase
+  const { error: delErr } = await supabase
     .from("conversations")
     .delete()
     .in("id", emptyIds)
     .eq("user_id", userId)
-  if (error) throw error
+  if (delErr) throw delErr
   return emptyIds.length
+}
+
+/** Gespräche ohne einzige User-Nachricht (nur Bot-Öffnung) entfernen. */
+export async function deleteConversationsWithoutUserMessages(userId: string): Promise<number> {
+  const { data: convRows, error } = await supabase.from("conversations").select("id").eq("user_id", userId)
+  if (error) throw error
+  const ids = (convRows || []).map((r: any) => r.id as string)
+  if (ids.length === 0) return 0
+
+  const { data: msgRows, error: msgErr } = await supabase
+    .from("messages")
+    .select("conversation_id,role")
+    .in("conversation_id", ids)
+  if (msgErr) throw msgErr
+
+  const userCounts: Record<string, number> = {}
+  for (const m of msgRows || []) {
+    if ((m as any).role === "user") {
+      const cid = (m as any).conversation_id as string
+      userCounts[cid] = (userCounts[cid] || 0) + 1
+    }
+  }
+
+  const ghostIds = ids.filter((id) => !userCounts[id])
+  if (ghostIds.length === 0) return 0
+
+  const { error: delErr } = await supabase
+    .from("conversations")
+    .delete()
+    .in("id", ghostIds)
+    .eq("user_id", userId)
+  if (delErr) throw delErr
+  return ghostIds.length
+}
+
+export async function deleteConversation(conversationId: string, userId: string): Promise<void> {
+  const { error } = await supabase.from("conversations").delete().eq("id", conversationId).eq("user_id", userId)
+  if (error) throw error
 }
 
 export async function endConversation(conversationId: string, userId: string): Promise<void> {
