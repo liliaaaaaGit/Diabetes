@@ -4,13 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  LayoutDashboard,
+  Droplet,
   BookOpen,
-  HeartHandshake,
+  Circle,
   Lightbulb,
   Upload,
   Settings,
-  Droplet,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -20,9 +19,9 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const mainNavItems = [
-  { href: "/", icon: LayoutDashboard, key: "dashboard" },
+  { href: "/", icon: Droplet, key: "dashboard" },
   { href: "/logbook", icon: BookOpen, key: "logbook" },
-  { href: "/buddy", icon: HeartHandshake, key: "buddy" },
+  { href: "/buddy", icon: Circle, key: "buddy" },
   { href: "/insights", icon: Lightbulb, key: "insights" },
 ]
 

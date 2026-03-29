@@ -2,13 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import {
-  LayoutDashboard,
+  Droplet,
   BookOpen,
-  HeartHandshake,
+  Circle,
   Lightbulb,
   Upload,
   Settings,
-  Droplet,
   X,
 } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
@@ -22,9 +21,9 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const mainNavItems = [
-  { href: "/", icon: LayoutDashboard, key: "dashboard" },
+  { href: "/", icon: Droplet, key: "dashboard" },
   { href: "/logbook", icon: BookOpen, key: "logbook" },
-  { href: "/buddy", icon: HeartHandshake, key: "buddy" },
+  { href: "/buddy", icon: Circle, key: "buddy" },
   { href: "/insights", icon: Lightbulb, key: "insights" },
 ]
 

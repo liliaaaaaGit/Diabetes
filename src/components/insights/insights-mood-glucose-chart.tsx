@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
+import { InsightsPeriodTabs } from "@/components/insights/insights-period-tabs"
 import { useTranslation } from "@/hooks/useTranslation"
 import type { DailyMoodGlucosePoint, InsightsTimeRangeKey } from "@/lib/insights-aggregate"
 
@@ -23,9 +24,14 @@ const MOOD_FILL = "#a78bfa"
 interface InsightsMoodGlucoseChartProps {
   data: DailyMoodGlucosePoint[]
   timeRange: InsightsTimeRangeKey
+  onTimeRangeChange: (v: InsightsTimeRangeKey) => void
 }
 
-export function InsightsMoodGlucoseChart({ data, timeRange }: InsightsMoodGlucoseChartProps) {
+export function InsightsMoodGlucoseChart({
+  data,
+  timeRange,
+  onTimeRangeChange,
+}: InsightsMoodGlucoseChartProps) {
   const { t } = useTranslation()
   const [summary, setSummary] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(true)
@@ -68,8 +74,20 @@ export function InsightsMoodGlucoseChart({ data, timeRange }: InsightsMoodGlucos
   return (
     <Card className="rounded-xl border-teal-100 bg-white shadow-sm w-full">
       <CardContent className="p-5 md:p-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-1">{t("insights.moodGlucoseTitle")}</h2>
-        <p className="text-sm text-slate-600 mb-6">{t("insights.moodGlucoseSubtitle")}</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 mb-6">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">
+              {t("insights.moodGlucoseTitle")}
+            </h2>
+            <p className="text-sm text-slate-600">{t("insights.moodGlucoseSubtitle")}</p>
+          </div>
+          <InsightsPeriodTabs
+            value={timeRange}
+            onValueChange={onTimeRangeChange}
+            size="compact"
+            className="shrink-0"
+          />
+        </div>
 
         {!hasAnySignal ? (
           <p className="text-sm text-slate-500 text-center py-10">{t("insights.chartNoData")}</p>

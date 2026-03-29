@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { AppShell } from "@/components/shared/app-shell"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { InsightsPeriodTabs } from "@/components/insights/insights-period-tabs"
 import { InsightsTirHero } from "@/components/insights/insights-tir-hero"
 import { InsightsSummaryStrip } from "@/components/insights/insights-summary-strip"
 import { InsightsMoodGlucoseChart } from "@/components/insights/insights-mood-glucose-chart"
@@ -20,7 +20,6 @@ import {
   sumCarbsGrams,
   type InsightsTimeRangeKey,
 } from "@/lib/insights-aggregate"
-import { cn } from "@/lib/utils"
 
 export default function InsightsPage() {
   const { t, locale } = useTranslation()
@@ -54,34 +53,7 @@ export default function InsightsPage() {
       <div className="space-y-6 w-full max-w-[1400px] mx-auto">
         <p className="text-sm text-slate-600">{t("insights.subtitle")}</p>
 
-        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as InsightsTimeRangeKey)}>
-          <TabsList className="bg-slate-100/80 p-1 h-auto">
-            <TabsTrigger
-              value="7d"
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
-              )}
-            >
-              {t("insights.period7d")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="30d"
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
-              )}
-            >
-              {t("insights.period30d")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="3m"
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
-              )}
-            >
-              {t("insights.period3m")}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <InsightsPeriodTabs value={timeRange} onValueChange={setTimeRange} />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         {loading && <p className="text-sm text-slate-500">{t("common.loading")}</p>}
@@ -96,7 +68,11 @@ export default function InsightsPage() {
               sumCarbs={sumCarbsGrams(entries)}
               entryCount={entries.length}
             />
-            <InsightsMoodGlucoseChart data={chartPoints} timeRange={timeRange} />
+            <InsightsMoodGlucoseChart
+              data={chartPoints}
+              timeRange={timeRange}
+              onTimeRangeChange={setTimeRange}
+            />
           </>
         )}
       </div>
