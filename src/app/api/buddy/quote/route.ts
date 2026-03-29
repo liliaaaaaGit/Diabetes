@@ -30,14 +30,14 @@ export async function GET() {
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.85,
-      max_tokens: 120,
+      temperature: 0.8,
+      max_tokens: 150,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
           content:
-            "Du schreibst fuer eine Diabetes-Begleit-App. Erzeuge EIN kurzes, personalisiertes Zitat (1-2 Saetze), das sich auf die Themen und Gefuehle aus den letzten Gespraechs-Zusammenfassungen bezieht. Warm, ermutigend, empathisch — kein medizinischer Rat, kein Kitsch, keine Floskeln wie 'du schaffst das'. Grammatikalisch korrektes Deutsch mit korrekter Gross- und Kleinschreibung. Antworte nur als JSON: { \"quote\": string }",
+            "Du schreibst fuer eine Diabetes-Begleit-App. Erzeuge EIN kurzes, personalisiertes Zitat oder einen Impuls in genau 2 bis 3 Saetzen, das sich auf die Themen und Gefuehle aus den letzten Gespraechs-Zusammenfassungen bezieht. Warm, ermutigend, empathisch — kein medizinischer Rat, kein Kitsch, keine Floskeln wie 'du schaffst das'. Grammatikalisch korrektes Deutsch mit korrekter Gross- und Kleinschreibung. Antworte nur als JSON: { \"quote\": string }",
         },
         {
           role: "user",

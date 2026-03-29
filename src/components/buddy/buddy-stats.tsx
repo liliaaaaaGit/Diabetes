@@ -215,7 +215,7 @@ export function BuddyStats({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-8 p-4 md:p-6 lg:p-8">
+    <div className="mx-auto w-full max-w-6xl space-y-8 p-4 md:p-6 lg:px-8">
       <section>
         <h2 className="mb-4 text-base font-semibold text-slate-800">{t("buddy.stats.dailySection")}</h2>
         {dailyLoading ? (

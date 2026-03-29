@@ -6,8 +6,7 @@ import { InputComposer } from "@/components/buddy/input-composer"
 import { ChatContainer } from "@/components/buddy/chat-container"
 import { ConversationList } from "@/components/buddy/conversation-list"
 import { ConversationSummaryView } from "@/components/buddy/conversation-summary-view"
-import { SuggestionChips } from "@/components/buddy/suggestion-chips"
-import { MotivationQuote } from "@/components/buddy/motivation-quote"
+import { BuddyHomeHero } from "@/components/buddy/buddy-home-hero"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
 import { useChat } from "@/hooks/useChat"
@@ -23,7 +22,7 @@ import {
 } from "@/lib/db"
 import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { Sparkles, ArrowLeft, MessageCirclePlus, Plus, PhoneOff } from "lucide-react"
+import { Sparkles, ArrowLeft, PhoneOff } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 
@@ -76,7 +75,6 @@ export default function BuddyPage() {
   const [buddyAiMessage, setBuddyAiMessage] = useState<string>("")
   const [buddyPersonalQuote, setBuddyPersonalQuote] = useState(FALLBACK_PERSONAL_QUOTE_DE)
   const [quoteLoading, setQuoteLoading] = useState(true)
-  const [personalQuoteRefreshNonce, setPersonalQuoteRefreshNonce] = useState(0)
   const [statsDailyNonce, setStatsDailyNonce] = useState(0)
   const [openingAfterCreateId, setOpeningAfterCreateId] = useState<string | null>(null)
   const [showEndPrompt, setShowEndPrompt] = useState(false)
@@ -135,18 +133,11 @@ export default function BuddyPage() {
     sendOpeningMessage,
   } = useChat(chatConversationId, userId)
 
-  const recentConversations = useMemo(() => {
-    return [...conversations]
-      .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
-      .slice(0, 5)
-  }, [conversations])
-
   useEffect(() => {
     if (!userId) {
       setQuoteLoading(false)
       return
     }
-    if (activeTab !== "chat" || isFullChatView) return
 
     let cancelled = false
     setQuoteLoading(true)
@@ -169,7 +160,7 @@ export default function BuddyPage() {
     return () => {
       cancelled = true
     }
-  }, [userId, activeTab, isFullChatView, personalQuoteRefreshNonce])
+  }, [userId])
 
   useEffect(() => {
     if (!openingAfterCreateId || openingAfterCreateId !== viewConversationId || !userId) return
@@ -258,7 +249,6 @@ export default function BuddyPage() {
       activeConversationIdRef.current = undefined
       setIsFullChatView(false)
       invalidateDailyBuddyCache()
-      setPersonalQuoteRefreshNonce((v) => v + 1)
       setShowEndPrompt(false)
       await refreshBuddyListsAndStats()
     } finally {
@@ -443,25 +433,6 @@ export default function BuddyPage() {
     })()
   }, [activeTab, conversations, refetchConversations, userId])
 
-  const openRecentConversation = async (c: (typeof conversations)[0]) => {
-    if (!userId) return
-    if (c.isActive && (c.messageCount || 0) > 0) {
-      activeConversationIdRef.current = c.id
-      setActiveConversationId(c.id)
-      setViewConversationId(c.id)
-      setIsFullChatView(true)
-      setActiveTab("chat")
-      setShowEndPrompt(false)
-      return
-    }
-    try {
-      const full = await getConversation(c.id, userId)
-      setSummaryPortal({ kind: "history", conversation: full })
-    } catch {
-      toast({ title: t("buddy.historyLoadFailed"), variant: "destructive" })
-    }
-  }
-
   return (
     <AppShell title={t("buddy.title")}>
       <div className="relative h-[calc(100vh-8rem)] flex flex-col">
@@ -516,84 +487,22 @@ export default function BuddyPage() {
         </div>
 
         {activeTab === "chat" && !isFullChatView && (
-          <div className="mx-auto w-full max-w-4xl flex-1 space-y-8 overflow-y-auto p-4 md:p-6 lg:px-8">
-            {quoteLoading ? (
-              <div className="h-40 animate-pulse rounded-xl bg-slate-200" />
-            ) : (
-              <MotivationQuote
-                titleKey="buddy.personalQuote"
-                quote={buddyPersonalQuote}
-                onRefresh={() => setPersonalQuoteRefreshNonce((n) => n + 1)}
-                loading={false}
-              />
-            )}
-
-            <div className="flex flex-col items-center gap-4">
-              <Button
-                type="button"
-                onClick={() => void startNewConversation()}
-                disabled={conversationsLoading || !userId}
-                className="h-auto min-h-[3.5rem] w-full max-w-md rounded-2xl bg-teal-500 px-8 py-5 text-base font-semibold shadow-md hover:bg-teal-600 md:text-lg"
-              >
-                <MessageCirclePlus className="mr-2 h-6 w-6 shrink-0" />
-                {t("buddy.newConversation")}
-              </Button>
-              <p className="max-w-xl text-center text-sm text-slate-600">{t("buddy.intro")}</p>
-            </div>
-
-            <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                {t("buddy.lastChats")}
-              </h3>
-              {conversationsLoading ? (
-                <div className="mt-4 space-y-2">
-                  <div className="h-12 animate-pulse rounded-lg bg-slate-100" />
-                  <div className="h-12 animate-pulse rounded-lg bg-slate-100" />
-                </div>
-              ) : recentConversations.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-600">{t("buddy.noConversations")}</p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {recentConversations.map((c) => (
-                    <li key={c.id}>
-                      <button
-                        type="button"
-                        onClick={() => void openRecentConversation(c)}
-                        className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/80 px-4 py-3 text-left text-sm transition hover:border-teal-200 hover:bg-teal-50/50"
-                      >
-                        <span className="line-clamp-2 font-medium text-slate-800">
-                          {c.title?.trim() || t("buddy.chat")}
-                        </span>
-                        <span className="shrink-0 text-xs text-slate-500">
-                          {c.isActive ? t("buddy.history.active") : new Date(c.startedAt).toLocaleDateString()}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <button
-                type="button"
-                onClick={() => setActiveTab("history")}
-                className="mt-4 text-sm font-medium text-teal-600 hover:text-teal-700 hover:underline"
-              >
-                {t("buddy.viewAllChats")}
-              </button>
-            </div>
-
-            <section className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-              <h3 className="text-lg font-semibold text-slate-800">{t("buddy.newConversation")}</h3>
-              <p className="mt-1 text-sm text-slate-500">{t("buddy.suggestion1")}</p>
-              <div className="mt-4">
-                <SuggestionChips onSelect={handleSuggestionSelect} />
-              </div>
-            </section>
+          <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-y-auto px-4 pb-6 md:px-6 lg:px-8">
+            <BuddyHomeHero
+              quote={buddyPersonalQuote}
+              quoteLoading={quoteLoading}
+              newChatLabel={t("buddy.newConversation")}
+              disclaimer={t("buddy.intro")}
+              robotImageAlt={t("buddy.robotAlt")}
+              onNewConversation={() => void startNewConversation()}
+              disabled={conversationsLoading || !userId}
+            />
           </div>
         )}
 
         {activeTab === "chat" && isFullChatView && (
           <div className="flex h-[calc(100vh-10rem)] min-h-0 flex-col">
-            <div className="mx-auto w-full max-w-4xl shrink-0 px-4 pb-2 md:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pb-2 md:px-6 lg:px-8">
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="button" variant="ghost" onClick={handleBackToBuddy} className="rounded-full text-slate-700">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -634,7 +543,7 @@ export default function BuddyPage() {
                 </div>
               )}
             </div>
-            <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-0 md:px-6 lg:px-8">
+            <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 md:px-6 lg:px-8">
               <ChatContainer
                 messages={messages}
                 onSuggestionSelect={handleSuggestionSelect}
@@ -687,7 +596,7 @@ export default function BuddyPage() {
         )}
 
         {activeTab === "history" && (
-          <div className="mx-auto w-full max-w-4xl p-4 md:p-6 lg:px-8">
+          <div className="mx-auto w-full max-w-6xl p-4 md:p-6 lg:px-8">
             <ConversationList
               userId={userId}
               conversations={conversations}
@@ -707,17 +616,6 @@ export default function BuddyPage() {
           </div>
         )}
 
-        {!isFullChatView && userId && (
-          <button
-            type="button"
-            onClick={() => void startNewConversation()}
-            disabled={conversationsLoading}
-            className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-teal-500 text-white shadow-lg transition hover:bg-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 md:bottom-28 md:right-10"
-            aria-label={t("buddy.fabNewChat")}
-          >
-            <Plus className="h-7 w-7" aria-hidden />
-          </button>
-        )}
       </div>
 
       {summaryPortal && (

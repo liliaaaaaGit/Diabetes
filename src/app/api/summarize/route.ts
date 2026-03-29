@@ -33,7 +33,7 @@ TITLE:
 
 SUMMARY:
 - One warm, empathetic, reflective paragraph: 6–12 sentences — like caring session notes with heart, not a cold clinical abstract.
-- For German: write grammatically correct German with correct capitalization and punctuation. Use complete sentences with proper sentence boundaries.
+- For German: Schreibe grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung. Verwende vollständige Sätze mit Satzzeichen.
 - For English: use normal capitalization, punctuation, and complete sentences.
 - Speak directly to the user as "you" (English) or "du" (German) — match the language they used most in the conversation.
 - Reflect what they went through, validate feelings, name strengths you genuinely hear, offer a gentle reframe where fitting.
