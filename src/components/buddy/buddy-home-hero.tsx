@@ -25,20 +25,20 @@ export function BuddyHomeHero({
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-center py-4 md:py-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-8 lg:flex-row lg:items-center lg:gap-10 lg:px-4">
-        <div className="flex shrink-0 justify-center lg:w-[45%] lg:justify-end lg:pr-2">
-          <div className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[320px] lg:max-w-[min(100%,420px)]">
+        <div className="flex shrink-0 justify-center lg:w-[48%] lg:justify-end lg:pr-2">
+          <div className="relative w-full max-w-[300px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[min(100%,540px)]">
             <Image
               src="/buddy-robot.png"
               alt={robotImageAlt}
-              width={840}
-              height={840}
+              width={600}
+              height={576}
               priority
-              className="h-auto w-full object-contain object-bottom"
+              className="h-auto w-full object-contain object-left-bottom"
             />
           </div>
         </div>
 
-        <div className="relative min-h-[140px] flex-1 rounded-2xl bg-teal-500/10 p-6 shadow-sm ring-1 ring-teal-500/15 md:p-8 lg:w-[55%] lg:min-h-[180px]">
+        <div className="relative min-h-[140px] flex-1 rounded-2xl bg-teal-500/10 p-6 shadow-sm ring-1 ring-teal-500/15 md:p-8 lg:w-[52%] lg:min-h-[180px]">
           <span
             className="pointer-events-none absolute left-3 top-0 font-serif text-[4.5rem] leading-none text-teal-500 md:left-5 md:text-[5.5rem]"
             aria-hidden
