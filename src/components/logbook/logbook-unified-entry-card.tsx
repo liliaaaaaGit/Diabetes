@@ -132,13 +132,8 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
           ))}
         </div>
 
-        {noteText ? (
-          <div
-            className={cn(
-              "mt-3 text-sm text-slate-600 overflow-hidden transition-all border-t border-slate-100 pt-2",
-              expanded ? "max-h-none" : "max-h-5 line-clamp-1"
-            )}
-          >
+        {noteText && expanded ? (
+          <div className="mt-3 border-t border-slate-100 pt-2 text-sm text-slate-600 whitespace-pre-wrap break-words">
             {noteText}
           </div>
         ) : null}

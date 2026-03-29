@@ -85,14 +85,12 @@ export function GlucoseChart({
   const chartData = filteredEntries.map((entry) => ({
     timestamp: entry.timestamp,
     value: Math.round(entry.value),
-    context: entry.context,
     time: format(parseISO(entry.timestamp), timeFmt, { locale: dateLocale }),
   }))
 
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: (typeof chartData)[0] }[] }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
-      const entry = filteredEntries.find((e) => e.timestamp === data.timestamp)
       return (
         <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-sm">
           <p className="font-semibold text-slate-900">{data.value} mg/dL</p>
@@ -103,15 +101,6 @@ export function GlucoseChart({
               { locale: dateLocale }
             )}
           </p>
-          {entry && (
-            <p className="text-xs text-slate-500 mt-1">
-              {entry.context === "fasting" && t("dashboard.fasting")}
-              {entry.context === "pre_meal" && t("dashboard.beforeMeal")}
-              {entry.context === "post_meal" && t("dashboard.afterMeal")}
-              {entry.context === "bedtime" && t("dashboard.bedtime")}
-              {entry.context === "other" && t("dashboard.other")}
-            </p>
-          )}
         </div>
       )
     }
