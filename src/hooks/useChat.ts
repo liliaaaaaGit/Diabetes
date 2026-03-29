@@ -91,14 +91,30 @@ function isOpeningRequest(
   )
 }
 
-export function useChat(conversationId: string | undefined, userId: string | null) {
+export type UseChatOptions = {
+  /** When this equals the active conversation id and the thread is empty after load, send the hidden opening turn. */
+  openingRequestId?: string | null
+  onOpeningConsumed?: () => void
+}
+
+export function useChat(
+  conversationId: string | undefined,
+  userId: string | null,
+  options?: UseChatOptions
+) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<ChatError>({ type: "none" })
-  const [suggestionChips, setSuggestionChips] = useState<string[]>([])
   const [conversationTitle, setConversationTitle] = useState<string>("")
+
+  const openingRequestIdRef = useRef(options?.openingRequestId ?? null)
+  openingRequestIdRef.current = options?.openingRequestId ?? null
+  const onOpeningConsumedRef = useRef(options?.onOpeningConsumed)
+  onOpeningConsumedRef.current = options?.onOpeningConsumed
+  /** Verhindert doppeltes Opening bei React Strict Mode (Effect läuft 2×). */
+  const openingLatchRef = useRef<string | null>(null)
 
   const messagesRef = useRef<Message[]>([])
   const abortRef = useRef<AbortController | null>(null)
@@ -186,13 +202,11 @@ export function useChat(conversationId: string | undefined, userId: string | nul
           setMessages((prev) =>
             prev.map((m) => (m.id === assistantId ? { ...m, content: parsed.text } : m))
           )
-          setSuggestionChips(parsed.chips)
         }
 
         const parsedFinal = parseAssistantPayload(rawText)
         if (parsedFinal.text.trim()) {
           await addMessage(cid, "assistant", parsedFinal.text, userId)
-          setSuggestionChips(parsedFinal.chips)
 
           if (isOpeningRequest(requestMessages)) {
             void (async () => {
@@ -245,13 +259,16 @@ export function useChat(conversationId: string | undefined, userId: string | nul
     [streamAssistantResponse]
   )
 
+  const sendOpeningMessageRef = useRef(sendOpeningMessage)
+  sendOpeningMessageRef.current = sendOpeningMessage
+
   useEffect(() => {
     if (!conversationId || !userId) {
+      openingLatchRef.current = null
       setMessages([])
       setConversationIsActive(true)
       setConversationTitle("")
       setHasCrisisFlag(false)
-      setSuggestionChips([])
       setError({ type: "none" })
       setIsStreaming(false)
       return
@@ -262,13 +279,24 @@ export function useChat(conversationId: string | undefined, userId: string | nul
       try {
         const conv = await getConversation(conversationId, userId)
         if (cancelled) return
-        setMessages(conv.messages || [])
+        const list = conv.messages || []
+        setMessages(list)
         setConversationIsActive(conv.isActive)
         setConversationTitle(conv.title || "")
-        const crisisInHistory = (conv.messages || []).some(
+        const crisisInHistory = list.some(
           (m) => m.role === "user" && detectCrisisKeywords(m.content || "")
         )
         setHasCrisisFlag(crisisInHistory)
+
+        const wantOpen = openingRequestIdRef.current
+        const shouldOpen = wantOpen === conversationId && list.length === 0
+        if (shouldOpen) {
+          if (openingLatchRef.current === conversationId) return
+          openingLatchRef.current = conversationId
+          if (cancelled) return
+          onOpeningConsumedRef.current?.()
+          await sendOpeningMessageRef.current(conversationId)
+        }
       } catch {
         if (cancelled) return
         setMessages([])
@@ -308,7 +336,6 @@ export function useChat(conversationId: string | undefined, userId: string | nul
       writeRateWindow([...arr, now])
 
       setError({ type: "none" })
-      setSuggestionChips([])
 
       const userMessage: Message = {
         id: `local-${Date.now()}`,
@@ -392,10 +419,6 @@ export function useChat(conversationId: string | undefined, userId: string | nul
     void streamAssistantResponse(conversationId, requestMessages)
   }, [canSend, conversationId, userId, streamAssistantResponse])
 
-  const clearSuggestionChips = useCallback(() => {
-    setSuggestionChips([])
-  }, [])
-
   return {
     messages,
     sendMessage,
@@ -403,8 +426,6 @@ export function useChat(conversationId: string | undefined, userId: string | nul
     error,
     canSend,
     retry,
-    suggestionChips,
-    clearSuggestionChips,
     conversationTitle,
     hasCrisisFlag,
     sendOpeningMessage,

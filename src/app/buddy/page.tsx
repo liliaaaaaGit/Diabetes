@@ -22,7 +22,7 @@ import {
 } from "@/lib/db"
 import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { Sparkles, ArrowLeft, PhoneOff } from "lucide-react"
+import { Sparkles, ArrowLeft } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 
@@ -77,7 +77,6 @@ export default function BuddyPage() {
   const [quoteLoading, setQuoteLoading] = useState(true)
   const [statsDailyNonce, setStatsDailyNonce] = useState(0)
   const [openingAfterCreateId, setOpeningAfterCreateId] = useState<string | null>(null)
-  const [showEndPrompt, setShowEndPrompt] = useState(false)
   const [isEndingConversation, setIsEndingConversation] = useState(false)
   const [summaryPortal, setSummaryPortal] = useState<SummaryPortalState>(null)
   const [backfillingIds, setBackfillingIds] = useState<Set<string>>(new Set())
@@ -119,6 +118,10 @@ export default function BuddyPage() {
 
   const chatConversationId = isFullChatView ? viewConversationId : undefined
 
+  const handleOpeningConsumed = useCallback(() => {
+    setOpeningAfterCreateId(null)
+  }, [])
+
   const {
     messages,
     sendMessage,
@@ -126,12 +129,12 @@ export default function BuddyPage() {
     error: chatError,
     canSend,
     retry,
-    suggestionChips,
-    clearSuggestionChips,
     conversationTitle,
     hasCrisisFlag,
-    sendOpeningMessage,
-  } = useChat(chatConversationId, userId)
+  } = useChat(chatConversationId, userId, {
+    openingRequestId: openingAfterCreateId,
+    onOpeningConsumed: handleOpeningConsumed,
+  })
 
   useEffect(() => {
     if (!userId) {
@@ -161,30 +164,6 @@ export default function BuddyPage() {
       cancelled = true
     }
   }, [userId])
-
-  useEffect(() => {
-    if (!openingAfterCreateId || openingAfterCreateId !== viewConversationId || !userId) return
-    if (!isFullChatView) return
-
-    const id = openingAfterCreateId
-    setOpeningAfterCreateId(null)
-
-    let cancelled = false
-    void (async () => {
-      try {
-        const conv = await getConversation(id, userId)
-        if (cancelled) return
-        if ((conv.messages || []).length > 0) return
-        await sendOpeningMessage(id)
-      } catch (e) {
-        console.error("[buddy/opening] Failed:", e)
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [openingAfterCreateId, viewConversationId, userId, isFullChatView, sendOpeningMessage])
 
   const endAndCreateNewActive = async () => {
     const endingId = activeConversationIdRef.current
@@ -249,7 +228,6 @@ export default function BuddyPage() {
       activeConversationIdRef.current = undefined
       setIsFullChatView(false)
       invalidateDailyBuddyCache()
-      setShowEndPrompt(false)
       await refreshBuddyListsAndStats()
     } finally {
       endingRef.current = false
@@ -297,7 +275,6 @@ export default function BuddyPage() {
   const handleSendWithExtraction = (text: string) => {
     setBuddyExtraction(null)
     setBuddyAiMessage("")
-    clearSuggestionChips()
     const conversationId = activeConversationIdRef.current
     if (!conversationId) {
       void (async () => {
@@ -308,7 +285,6 @@ export default function BuddyPage() {
           setActiveConversationId(created.id)
           setViewConversationId(created.id)
           setIsFullChatView(true)
-          setShowEndPrompt(false)
           await refetchConversations()
           setOpeningAfterCreateId(created.id)
           setPendingStarterMessage(text)
@@ -335,15 +311,7 @@ export default function BuddyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingStarterMessage, activeConversationId, canSend, isStreaming, messages.length])
 
-  const handleSuggestionSelect = (text: string) => {
-    clearSuggestionChips()
-    setShowEndPrompt(false)
-    setIsFullChatView(true)
-    handleSendWithExtraction(text)
-  }
-
   const startNewConversation = async () => {
-    setShowEndPrompt(false)
     if (!userId) return
     try {
       const created = await createConversation(userId)
@@ -362,18 +330,6 @@ export default function BuddyPage() {
   const openAiMissing = chatError.type === "openai_missing"
   const connectFailed = chatError.type === "failed"
 
-  const handleBackToBuddy = () => {
-    if (messages.length === 0) {
-      setIsFullChatView(false)
-      setActiveConversationId(undefined)
-      setViewConversationId(undefined)
-      activeConversationIdRef.current = undefined
-      setShowEndPrompt(false)
-      return
-    }
-    setShowEndPrompt(true)
-  }
-
   const handleConfirmEndConversation = async () => {
     if (isEndingConversation) return
     setIsEndingConversation(true)
@@ -382,6 +338,18 @@ export default function BuddyPage() {
     } finally {
       setIsEndingConversation(false)
     }
+  }
+
+  /** Leerer Chat: Buddy-Hauptseite ohne Beenden. Mit Nachrichten: Gespräch beenden inkl. Zusammenfassung. */
+  const handleLeaveChat = () => {
+    if (messages.length === 0) {
+      setIsFullChatView(false)
+      setActiveConversationId(undefined)
+      setViewConversationId(undefined)
+      activeConversationIdRef.current = undefined
+      return
+    }
+    void handleConfirmEndConversation()
   }
 
   useEffect(() => {
@@ -504,53 +472,25 @@ export default function BuddyPage() {
           <div className="flex h-[calc(100vh-10rem)] min-h-0 flex-col">
             <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pb-2 md:px-6 lg:px-8">
               <div className="flex flex-wrap items-center gap-2">
-                <Button type="button" variant="ghost" onClick={handleBackToBuddy} className="rounded-full text-slate-700">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => void handleLeaveChat()}
+                  disabled={isEndingConversation}
+                  className="rounded-full text-slate-700"
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t("buddy.backToBuddy")}
+                  {t("buddy.chatLeaveEndConversation")}
                 </Button>
                 {conversationTitle && (
                   <p className="line-clamp-1 min-w-0 flex-1 text-sm font-semibold text-slate-700 md:text-base">
                     {conversationTitle}
                   </p>
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="ml-auto shrink-0 border-red-200 text-red-700 hover:bg-red-50"
-                  onClick={() => void handleConfirmEndConversation()}
-                  disabled={isEndingConversation || isStreaming}
-                >
-                  <PhoneOff className="mr-2 h-4 w-4" />
-                  {t("buddy.endChatButton")}
-                </Button>
               </div>
-              {showEndPrompt && (
-                <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                  <p className="text-sm font-semibold text-slate-800">{t("buddy.endConversation")}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      onClick={() => void handleConfirmEndConversation()}
-                      disabled={isEndingConversation}
-                      className="bg-teal-500 hover:bg-teal-600"
-                    >
-                      {t("buddy.endConfirm")}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowEndPrompt(false)}>
-                      {t("buddy.continueChat")}
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 md:px-6 lg:px-8">
-              <ChatContainer
-                messages={messages}
-                onSuggestionSelect={handleSuggestionSelect}
-                showTyping={isStreaming}
-                contextualSuggestions={suggestionChips}
-                showCrisisBanner={hasCrisisFlag}
-              />
+              <ChatContainer messages={messages} showTyping={isStreaming} showCrisisBanner={hasCrisisFlag} />
               {buddyExtraction &&
                 viewConversationId === activeConversationIdRef.current &&
                 activeConversationIdNow && (
@@ -576,13 +516,7 @@ export default function BuddyPage() {
                     conversationId={activeConversationIdNow}
                   />
                 )}
-              <InputComposer
-                onSend={handleSendWithExtraction}
-                isDisabled={!canSend || isStreaming}
-                onTypingChange={(typing) => {
-                  if (typing) clearSuggestionChips()
-                }}
-              />
+              <InputComposer onSend={handleSendWithExtraction} isDisabled={!canSend || isStreaming} />
             </div>
           </div>
         )}
@@ -654,10 +588,6 @@ export default function BuddyPage() {
                       setIsFullChatView(true)
                       await refetchConversations()
                       setOpeningAfterCreateId(created.id)
-                      const prefill = c.summary
-                        ? `Ich moechte an folgendes Thema anknuepfen: ${c.summary}`
-                        : `Ich moechte unser Gespraech "${c.title || "Thema"}" fortsetzen.`
-                      setPendingStarterMessage(prefill)
                     } catch (e) {
                       console.error("[buddy] New chat from history failed:", e)
                     }
