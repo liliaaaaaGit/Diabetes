@@ -592,7 +592,8 @@ export async function getRecentEndedConversationSummaries(
   userId: string,
   options?: { excludeConversationId?: string; limit?: number }
 ): Promise<Array<{ title: string; summary: string; dateLabel: string }>> {
-  const limit = Math.min(Math.max(options?.limit ?? 5, 3), 5)
+  const raw = options?.limit ?? 5
+  const limit = Math.min(Math.max(raw, 1), 10)
   const excludeId = options?.excludeConversationId
 
   const { data: rows, error } = await supabase

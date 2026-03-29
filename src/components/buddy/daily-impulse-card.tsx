@@ -7,10 +7,17 @@ import { useTranslation } from "@/hooks/useTranslation"
 interface DailyImpulseCardProps {
   impulseText: string
   greeting: string
-  onStartChat: () => void
+  onStartChat?: () => void
+  /** When false, hides the chat CTA (e.g. on the stats tab). */
+  showChatButton?: boolean
 }
 
-export function DailyImpulseCard({ impulseText, greeting, onStartChat }: DailyImpulseCardProps) {
+export function DailyImpulseCard({
+  impulseText,
+  greeting,
+  onStartChat,
+  showChatButton = true,
+}: DailyImpulseCardProps) {
   const { t } = useTranslation()
 
   return (
@@ -18,14 +25,16 @@ export function DailyImpulseCard({ impulseText, greeting, onStartChat }: DailyIm
       <div className="mx-auto max-w-xl text-center">
         <p className="text-sm font-semibold text-teal-50">{greeting}</p>
         <p className="mt-3 text-base leading-relaxed md:text-lg">{impulseText}</p>
-        <Button
-          type="button"
-          onClick={onStartChat}
-          className="mt-5 rounded-full bg-white text-teal-700 hover:bg-teal-50"
-        >
-          <MessageCircleHeart className="mr-2 h-4 w-4" />
-          {t("buddy.letsChat")}
-        </Button>
+        {showChatButton && onStartChat && (
+          <Button
+            type="button"
+            onClick={onStartChat}
+            className="mt-5 rounded-full bg-white text-teal-700 hover:bg-teal-50"
+          >
+            <MessageCircleHeart className="mr-2 h-4 w-4" />
+            {t("buddy.letsChat")}
+          </Button>
+        )}
       </div>
     </div>
   )

@@ -38,7 +38,7 @@ export async function POST(req: Request) {
             {
               role: "system",
               content:
-                "Generiere einen kurzen Titel (max 5 Woerter) fuer dieses Diabetes-Gespraech basierend auf der ersten Nachricht. Nur der Titel, nichts anderes. Auf Deutsch.",
+                "Generiere einen kurzen Titel (max 5 Woerter) fuer dieses Diabetes-Gespraech basierend auf der ersten Nutzer-Nachricht oder der ersten Buddy-Antwort (Eroeffnung). Nur der Titel, nichts anderes. Normale deutsche Gross- und Kleinschreibung.",
             },
             { role: "user", content: firstMessage },
           ],

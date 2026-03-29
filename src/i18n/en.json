@@ -154,10 +154,16 @@
     "stats": {
       "tab": "Stats",
       "listTitle": "stats",
+      "dailySection": "Impulses & motivation",
       "convosCompleted": "convos completed",
       "messages": "messages",
       "signInHint": "Sign in to see your Buddy stats."
     },
+    "personalQuote": "For you today",
+    "lastChats": "Recent chats",
+    "viewAllChats": "All conversations",
+    "endChatButton": "End conversation",
+    "fabNewChat": "Start a new conversation",
     "mood": {
       "listTitle": "mood",
       "empty": "Start a conversation to track how your chats feel over time.",

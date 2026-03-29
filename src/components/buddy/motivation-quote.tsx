@@ -8,16 +8,23 @@ interface MotivationQuoteProps {
   quote: string
   onRefresh: () => void
   loading?: boolean
+  /** i18n key for the section heading (default: thought of the day). */
+  titleKey?: string
 }
 
-export function MotivationQuote({ quote, onRefresh, loading = false }: MotivationQuoteProps) {
+export function MotivationQuote({
+  quote,
+  onRefresh,
+  loading = false,
+  titleKey = "buddy.thoughtOfDay",
+}: MotivationQuoteProps) {
   const { t } = useTranslation()
 
   return (
     <section className="rounded-xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">{t("buddy.thoughtOfDay")}</h2>
+          <h2 className="text-lg font-semibold text-slate-800">{t(titleKey)}</h2>
         </div>
         <Button
           type="button"

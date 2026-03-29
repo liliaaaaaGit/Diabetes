@@ -51,7 +51,9 @@ export function ChatContainer({
         return <MessageBubble key={message.id} message={message} showAssistantAvatar={showAssistantAvatar} />
       })}
 
-      {showTyping && <TypingIndicator />}
+      {showTyping &&
+        messages.length > 0 &&
+        messages[messages.length - 1]?.role !== "assistant" && <TypingIndicator />}
 
       {showSuggestions && messages.length > 0 && messages[messages.length - 1]?.role === "assistant" && contextualSuggestions.length > 0 && (
         <SuggestionChips onSelect={onSuggestionSelect} suggestions={contextualSuggestions} />

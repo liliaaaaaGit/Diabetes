@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Message } from "@/lib/types"
 import { getConversation, addMessage, updateConversationTitle } from "@/lib/db"
+import { BUDDY_OPENING_USER_MESSAGE } from "@/lib/buddy-chat-constants"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/useTranslation"
 
@@ -80,6 +81,16 @@ function parseAssistantPayload(raw: string): { text: string; chips: string[] } {
   return { text, chips }
 }
 
+function isOpeningRequest(
+  requestMessages: Array<{ role: Message["role"]; content: string }>
+): boolean {
+  return (
+    requestMessages.length === 1 &&
+    requestMessages[0].role === "user" &&
+    requestMessages[0].content === BUDDY_OPENING_USER_MESSAGE
+  )
+}
+
 export function useChat(conversationId: string | undefined, userId: string | null) {
   const { t } = useTranslation()
   const { toast } = useToast()
@@ -101,51 +112,16 @@ export function useChat(conversationId: string | undefined, userId: string | nul
     messagesRef.current = messages
   }, [messages])
 
-  useEffect(() => {
-    if (!conversationId || !userId) return
-
-    let cancelled = false
-    ;(async () => {
-      try {
-        const conv = await getConversation(conversationId, userId)
-        if (cancelled) return
-        setMessages(conv.messages || [])
-        setConversationIsActive(conv.isActive)
-        setConversationTitle(conv.title || "")
-        const crisisInHistory = (conv.messages || []).some(
-          (m) => m.role === "user" && detectCrisisKeywords(m.content || "")
-        )
-        setHasCrisisFlag(crisisInHistory)
-      } catch {
-        if (cancelled) return
-        setMessages([])
-        setHasCrisisFlag(false)
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [conversationId, userId])
-
-  const resetRateWindowIfNeeded = () => {
-    const now = Date.now()
-    const windowStart = now - WINDOW_MS
-    const arr = readRateWindow().filter((t) => t >= windowStart)
-    writeRateWindow(arr)
-    return arr
-  }
-
   const streamAssistantResponse = useCallback(
-    async (requestMessages: Array<{ role: Message["role"]; content: string }>) => {
-      if (!conversationId || !userId) return
+    async (cid: string, requestMessages: Array<{ role: Message["role"]; content: string }>) => {
+      if (!userId) return
       setError({ type: "none" })
       setIsStreaming(true)
 
       const assistantId = `local-assistant-${Date.now()}`
       const assistantMessage: Message = {
         id: assistantId,
-        conversationId,
+        conversationId: cid,
         role: "assistant",
         content: "",
         timestamp: new Date().toISOString(),
@@ -163,7 +139,7 @@ export function useChat(conversationId: string | undefined, userId: string | nul
           credentials: "include",
           body: JSON.stringify({
             messages: requestMessages,
-            conversationId: conversationId ?? "",
+            conversationId: cid,
           }),
           signal: controller.signal,
         })
@@ -215,8 +191,38 @@ export function useChat(conversationId: string | undefined, userId: string | nul
 
         const parsedFinal = parseAssistantPayload(rawText)
         if (parsedFinal.text.trim()) {
-          await addMessage(conversationId, "assistant", parsedFinal.text, userId)
+          await addMessage(cid, "assistant", parsedFinal.text, userId)
           setSuggestionChips(parsedFinal.chips)
+
+          if (isOpeningRequest(requestMessages)) {
+            void (async () => {
+              try {
+                const res = await fetch("/api/buddy/title", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({
+                    conversationId: cid,
+                    firstMessage: parsedFinal.text.slice(0, 500),
+                  }),
+                })
+                if (!res.ok) {
+                  const fallback = `${parsedFinal.text.slice(0, 40).trim()}…`
+                  setConversationTitle(fallback)
+                  await updateConversationTitle(cid, fallback, userId)
+                  return
+                }
+                const json = (await res.json()) as { title?: string }
+                if (json.title) {
+                  setConversationTitle(json.title)
+                }
+              } catch {
+                const fallback = `${parsedFinal.text.slice(0, 40).trim()}…`
+                setConversationTitle(fallback)
+                void updateConversationTitle(cid, fallback, userId)
+              }
+            })()
+          }
         }
       } catch {
         toast({
@@ -229,8 +235,59 @@ export function useChat(conversationId: string | undefined, userId: string | nul
         setIsStreaming(false)
       }
     },
-    [conversationId, userId, t, toast]
+    [userId, t, toast]
   )
+
+  const sendOpeningMessage = useCallback(
+    async (cid: string) => {
+      await streamAssistantResponse(cid, [{ role: "user", content: BUDDY_OPENING_USER_MESSAGE }])
+    },
+    [streamAssistantResponse]
+  )
+
+  useEffect(() => {
+    if (!conversationId || !userId) {
+      setMessages([])
+      setConversationIsActive(true)
+      setConversationTitle("")
+      setHasCrisisFlag(false)
+      setSuggestionChips([])
+      setError({ type: "none" })
+      setIsStreaming(false)
+      return
+    }
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const conv = await getConversation(conversationId, userId)
+        if (cancelled) return
+        setMessages(conv.messages || [])
+        setConversationIsActive(conv.isActive)
+        setConversationTitle(conv.title || "")
+        const crisisInHistory = (conv.messages || []).some(
+          (m) => m.role === "user" && detectCrisisKeywords(m.content || "")
+        )
+        setHasCrisisFlag(crisisInHistory)
+      } catch {
+        if (cancelled) return
+        setMessages([])
+        setHasCrisisFlag(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [conversationId, userId])
+
+  const resetRateWindowIfNeeded = () => {
+    const now = Date.now()
+    const windowStart = now - WINDOW_MS
+    const arr = readRateWindow().filter((t) => t >= windowStart)
+    writeRateWindow(arr)
+    return arr
+  }
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -248,11 +305,9 @@ export function useChat(conversationId: string | undefined, userId: string | nul
         return
       }
 
-      // Persist rate window immediately to avoid race conditions.
       writeRateWindow([...arr, now])
 
       setError({ type: "none" })
-      setIsStreaming(true)
       setSuggestionChips([])
 
       const userMessage: Message = {
@@ -263,7 +318,6 @@ export function useChat(conversationId: string | undefined, userId: string | nul
         timestamp: new Date().toISOString(),
       }
 
-      // Optimistic UI: show user immediately, then stream assistant.
       setMessages((prev) => [...prev, userMessage])
       if (detectCrisisKeywords(text)) {
         setHasCrisisFlag(true)
@@ -273,7 +327,6 @@ export function useChat(conversationId: string | undefined, userId: string | nul
       abortRef.current = controller
 
       try {
-        // Persist user message in DB
         await addMessage(conversationId, "user", text, userId)
 
         const userMessagesCount =
@@ -288,7 +341,7 @@ export function useChat(conversationId: string | undefined, userId: string | nul
                 body: JSON.stringify({ conversationId, firstMessage: text }),
               })
               if (!res.ok) {
-                const fallback = `${text.slice(0, 40).trim()}...`
+                const fallback = `${text.slice(0, 40).trim()}…`
                 setConversationTitle(fallback)
                 await updateConversationTitle(conversationId, fallback, userId)
                 return
@@ -298,7 +351,7 @@ export function useChat(conversationId: string | undefined, userId: string | nul
                 setConversationTitle(json.title)
               }
             } catch {
-              const fallback = `${text.slice(0, 40).trim()}...`
+              const fallback = `${text.slice(0, 40).trim()}…`
               setConversationTitle(fallback)
               void updateConversationTitle(conversationId, fallback, userId)
             }
@@ -313,7 +366,7 @@ export function useChat(conversationId: string | undefined, userId: string | nul
         ]
 
         abortRef.current = controller
-        await streamAssistantResponse(requestMessages)
+        await streamAssistantResponse(conversationId, requestMessages)
       } catch {
         toast({
           title: t("buddy.connectionProblem"),
@@ -336,7 +389,7 @@ export function useChat(conversationId: string | undefined, userId: string | nul
         .map((m) => ({ role: m.role, content: m.content })),
     ]
 
-    void streamAssistantResponse(requestMessages)
+    void streamAssistantResponse(conversationId, requestMessages)
   }, [canSend, conversationId, userId, streamAssistantResponse])
 
   const clearSuggestionChips = useCallback(() => {
@@ -354,6 +407,6 @@ export function useChat(conversationId: string | undefined, userId: string | nul
     clearSuggestionChips,
     conversationTitle,
     hasCrisisFlag,
+    sendOpeningMessage,
   }
 }
-

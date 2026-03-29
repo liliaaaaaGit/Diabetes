@@ -27,15 +27,17 @@ Output a single JSON object with this exact shape:
 }
 
 TITLE:
-- 3–6 words, all lowercase, creative and evocative like a poem title (not clinical).
-- Examples: "creating while carrying weight", "when support feels out of reach", "heavy clouds, heavy tasks", "the quiet after the storm"
+- 3–6 words, creative and evocative (not clinical). For German titles: use normal German capitalization (nouns capitalized). For English: natural title or sentence case.
+- Examples (English style): "Creating While Carrying Weight", "When Support Feels Out of Reach"
+- Examples (German style): "Wenn der Alltag zu viel wird", "Kleiner Schritt, große Ehrlichkeit"
 
 SUMMARY:
-- One warm, empathetic, reflective paragraph: 6–12 sentences.
-- Write entirely in lowercase.
+- One warm, empathetic, reflective paragraph: 6–12 sentences — like caring session notes with heart, not a cold clinical abstract.
+- For German: write grammatically correct German with correct capitalization and punctuation. Use complete sentences with proper sentence boundaries.
+- For English: use normal capitalization, punctuation, and complete sentences.
 - Speak directly to the user as "you" (English) or "du" (German) — match the language they used most in the conversation.
 - Reflect what they went through, validate feelings, name strengths you genuinely hear, offer a gentle reframe where fitting.
-- Like caring session notes with heart — NOT clinical, NOT third person ("they/the user"), NOT bullet points.
+- NOT clinical, NOT third person ("they/the user"), NOT bullet points.
 
 TAGS:
 - 3–6 items. Each tag: { "emoji": "<single real Unicode emoji>", "label": "<short theme in same language as summary>" }
