@@ -26,8 +26,8 @@ export function BuddyHomeHero({
     <div className="flex h-full min-h-0 w-full flex-col justify-between">
       {/* flex-1 füllt die Höhe bis zum Button – Leerraum sitzt unter Roboter/Zitat, nicht als „Kloß“ in der Mitte */}
       <div className="flex min-h-0 w-full flex-1 flex-col gap-3 min-[480px]:gap-4 lg:flex-row lg:items-stretch lg:gap-6 xl:gap-8">
-        {/* Roboter: zentriert in der Zelle, max-h relativ zum Container → kein Abschneiden oben (kein items-end + overflow-hidden) */}
-        <div className="flex min-h-[160px] min-w-0 flex-col items-center justify-center lg:min-h-0 lg:flex-[1.45] lg:basis-0 lg:items-stretch">
+        {/* Roboter: gleiche max-Höhe wie zuvor; Spaltenbreite begrenzt, damit das Zitat den übrigen Platz nutzt (weniger Zeilen, niedrigeres Zitat-Feld) */}
+        <div className="flex min-h-[160px] min-w-0 flex-col items-center justify-center lg:min-h-0 lg:max-w-[min(100%,420px)] lg:shrink-0 lg:items-stretch">
           <div className="relative flex h-full min-h-0 w-full flex-1 items-center justify-center overflow-visible">
             <Image
               src="/TherapistRobot4.png"
@@ -40,8 +40,8 @@ export function BuddyHomeHero({
           </div>
         </div>
 
-        {/* Zitat: breiter (mehr Zeilenbreite, weniger Zeilen), nicht extra hoch durch Padding */}
-        <div className="relative flex min-h-[120px] min-w-0 flex-1 flex-col self-stretch lg:max-w-xl lg:flex-[1] lg:basis-0 xl:max-w-2xl">
+        {/* Zitat: nimmt die restliche Zeilenbreite ein (kein max-w mehr) */}
+        <div className="relative flex min-h-[120px] min-w-0 flex-1 flex-col self-stretch">
           <div className="flex h-full min-h-0 flex-col justify-center overflow-y-auto overscroll-contain rounded-lg bg-teal-500/10 px-3 py-4 shadow-sm ring-1 ring-teal-500/15 sm:px-4 sm:py-4 md:py-5 lg:px-5 lg:py-5">
             <span
               className="pointer-events-none absolute left-1.5 top-2 font-serif text-3xl leading-none text-teal-500 sm:left-2 sm:top-3 sm:text-4xl lg:text-4xl"
