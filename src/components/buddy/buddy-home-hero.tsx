@@ -2,7 +2,6 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
 
 interface BuddyHomeHeroProps {
   quote: string
@@ -39,15 +38,15 @@ export function BuddyHomeHero({
           </div>
         </div>
 
-        <div className="relative min-h-[140px] flex-1 rounded-2xl bg-[#fffbeb] p-6 shadow-sm ring-1 ring-amber-100/90 md:p-8 lg:w-[55%] lg:min-h-[180px]">
+        <div className="relative min-h-[140px] flex-1 rounded-2xl bg-teal-500/10 p-6 shadow-sm ring-1 ring-teal-500/15 md:p-8 lg:w-[55%] lg:min-h-[180px]">
           <span
-            className="pointer-events-none absolute left-3 top-0 font-serif text-[4.5rem] leading-none text-amber-300/95 md:left-5 md:text-[5.5rem]"
+            className="pointer-events-none absolute left-3 top-0 font-serif text-[4.5rem] leading-none text-teal-500 md:left-5 md:text-[5.5rem]"
             aria-hidden
           >
             &ldquo;
           </span>
           {quoteLoading ? (
-            <div className="ml-2 mt-10 min-h-[100px] animate-pulse rounded-lg bg-amber-100/70 md:mt-12 md:min-h-[120px]" />
+            <div className="ml-2 mt-10 min-h-[100px] animate-pulse rounded-lg bg-teal-500/15 md:mt-12 md:min-h-[120px]" />
           ) : (
             <p className="relative z-10 ml-1 mt-10 text-base leading-relaxed text-slate-800 md:ml-2 md:mt-12 md:text-lg md:leading-relaxed">
               {quote}
@@ -63,7 +62,6 @@ export function BuddyHomeHero({
           disabled={disabled}
           className="h-auto min-h-[3.25rem] w-full max-w-[400px] rounded-full bg-teal-500 px-8 py-4 text-base font-semibold text-white shadow-md hover:bg-teal-600 md:text-lg"
         >
-          <PlusCircle className="mr-2 h-6 w-6 shrink-0" strokeWidth={2} />
           {newChatLabel}
         </Button>
         <p className="mt-6 max-w-xl text-center text-sm leading-relaxed text-slate-500">{disclaimer}</p>
