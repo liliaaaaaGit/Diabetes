@@ -5,7 +5,7 @@ import { AppShell } from "@/components/shared/app-shell"
 import { InputComposer } from "@/components/buddy/input-composer"
 import { ChatContainer } from "@/components/buddy/chat-container"
 import { ConversationList } from "@/components/buddy/conversation-list"
-import { ConversationDetailView } from "@/components/buddy/conversation-detail-view"
+import { ConversationSummaryView } from "@/components/buddy/conversation-summary-view"
 import { SuggestionChips } from "@/components/buddy/suggestion-chips"
 import { DailyImpulseCard } from "@/components/buddy/daily-impulse-card"
 import { DailyGoals, type BuddyDailyGoal } from "@/components/buddy/daily-goals"
@@ -23,10 +23,11 @@ import {
   getConversation,
   cleanupEmptyConversations,
 } from "@/lib/db"
-import type { Conversation, ExtractedEntry, Message } from "@/lib/types"
+import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowLeft, MessageCirclePlus } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
+import { BuddyStats } from "@/components/buddy/buddy-stats"
 
 async function summarizeConversation(messages: Message[]) {
   const res = await fetch("/api/summarize", {
@@ -43,17 +44,30 @@ async function summarizeConversation(messages: Message[]) {
   return (await res.json()) as {
     title?: string
     summary: string
-    tags: string[]
+    tags: ConversationTag[]
     moodEmoji: string
+    emotions: ConversationEmotions
   }
 }
+
+type SummaryPortalState =
+  | null
+  | {
+      kind: "post-end"
+      title: string
+      summary: string
+      tags: ConversationTag[]
+      dateIso: string
+      messages: Message[]
+    }
+  | { kind: "history"; conversation: Conversation }
 
 export default function BuddyPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
 
-  const [activeTab, setActiveTab] = useState<"chat" | "history">("chat")
+  const [activeTab, setActiveTab] = useState<"chat" | "history" | "stats">("chat")
   const [isFullChatView, setIsFullChatView] = useState(false)
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined)
   const [viewConversationId, setViewConversationId] = useState<string | undefined>(undefined)
@@ -67,7 +81,7 @@ export default function BuddyPage() {
   const [overviewRefreshNonce, setOverviewRefreshNonce] = useState(0)
   const [showEndPrompt, setShowEndPrompt] = useState(false)
   const [isEndingConversation, setIsEndingConversation] = useState(false)
-  const [selectedHistoryConversation, setSelectedHistoryConversation] = useState<Conversation | null>(null)
+  const [summaryPortal, setSummaryPortal] = useState<SummaryPortalState>(null)
   const [backfillingIds, setBackfillingIds] = useState<Set<string>>(new Set())
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
   const [pendingStarterMessage, setPendingStarterMessage] = useState<string | null>(null)
@@ -93,6 +107,11 @@ export default function BuddyPage() {
     error: conversationsError,
     refetch: refetchConversations,
   } = useConversations(userId)
+
+  const refreshBuddyListsAndStats = useCallback(async () => {
+    await refetchConversations()
+    setHistoryRefreshKey((k) => k + 1)
+  }, [refetchConversations])
 
   const {
     messages,
@@ -217,34 +236,63 @@ export default function BuddyPage() {
       setBuddyExtraction(null)
       setBuddyAiMessage("")
 
-      // 1) Mark as ended first
       const uid = userId
       if (!uid) return
+
       await endConversation(endingId, uid)
       console.log("[buddy/end] Conversation marked as ended")
 
-      // 2) Fetch messages from DB and summarize (best effort)
+      let title = ""
+      let summary = ""
+      let tags: ConversationTag[] = []
+      let dateIso = new Date().toISOString()
+      let messages: Message[] = []
+
       try {
         const full = await getConversation(endingId, uid)
-        console.log("[buddy/end] Loaded messages for summarize:", full.messages.length)
+        messages = full.messages
+        dateIso = full.endedAt || full.startedAt || dateIso
+        title = (full.title || "").trim()
+
         if (full.messages.length > 0) {
-          const { title, summary, tags, moodEmoji } = await summarizeConversation(full.messages)
-          await updateConversationSummary(endingId, uid, summary, tags, moodEmoji, title)
-          console.log("[buddy/end] Summary saved")
+          try {
+            const r = await summarizeConversation(full.messages)
+            title = (r.title || "").trim() || title
+            summary = r.summary
+            tags = r.tags
+            await updateConversationSummary(endingId, uid, r.summary, r.tags, r.moodEmoji, r.title, r.emotions)
+            console.log("[buddy/end] Summary saved")
+          } catch (error) {
+            console.error("[buddy/end] Summarize or save failed:", error)
+            summary = t("buddy.summaryView.summaryUnavailable")
+            tags = []
+          }
+        } else {
+          summary = t("buddy.summaryView.summaryUnavailable")
         }
       } catch (error) {
-        console.error("[buddy/end] Summarize or save failed:", error)
+        console.error("[buddy/end] Load conversation failed:", error)
+        summary = t("buddy.summaryView.summaryUnavailable")
       }
 
-      // 3) Navigate back to overview
+      if (!title) title = t("buddy.chat")
+
+      setSummaryPortal({
+        kind: "post-end",
+        title,
+        summary,
+        tags,
+        dateIso,
+        messages,
+      })
+
       setActiveConversationId(undefined)
       setViewConversationId(undefined)
       setIsFullChatView(false)
       invalidateOverviewCache()
       setOverviewRefreshNonce((v) => v + 1)
-      void refetchConversations()
       setShowEndPrompt(false)
-      await refetchConversations()
+      await refreshBuddyListsAndStats()
     } finally {
       endingRef.current = false
     }
@@ -386,8 +434,8 @@ export default function BuddyPage() {
           if (!userId) break
           const full = await getConversation(conv.id, userId)
           if (!full.messages || full.messages.length === 0) continue
-          const { title, summary, tags, moodEmoji } = await summarizeConversation(full.messages)
-          await updateConversationSummary(conv.id, userId, summary, tags, moodEmoji, title)
+          const { title, summary, tags, moodEmoji, emotions } = await summarizeConversation(full.messages)
+          await updateConversationSummary(conv.id, userId, summary, tags, moodEmoji, title, emotions)
         } catch {
           // keep silent backfill behavior
         } finally {
@@ -464,7 +512,7 @@ export default function BuddyPage() {
           </div>
         )}
 
-        <div className="mb-4 flex items-center gap-2 rounded-xl bg-slate-100 p-1">
+        <div className="mb-4 flex flex-wrap items-center gap-1 rounded-xl bg-slate-100 p-1 sm:gap-2">
           <button
             type="button"
             onClick={() => setActiveTab("chat")}
@@ -478,6 +526,13 @@ export default function BuddyPage() {
             className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "history" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("buddy.history.tab")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("stats")}
+            className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "stats" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+          >
+            {t("buddy.stats.tab")}
           </button>
         </div>
 
@@ -604,41 +659,68 @@ export default function BuddyPage() {
           </div>
         )}
 
+        {activeTab === "stats" && (
+          <BuddyStats userId={userId} refreshKey={historyRefreshKey} />
+        )}
+
         {activeTab === "history" && (
           <div className="mx-auto w-full max-w-3xl p-4 md:p-6">
-            {selectedHistoryConversation ? (
-              <ConversationDetailView
-                conversation={selectedHistoryConversation}
-                onBack={() => setSelectedHistoryConversation(null)}
-                onStartFromTopic={() => {
-                  setSelectedHistoryConversation(null)
-                  handleStartConversation()
-                  const prefill = selectedHistoryConversation.summary
-                    ? `Ich moechte an folgendes Thema anknuepfen: ${selectedHistoryConversation.summary}`
-                    : `Ich moechte unser Gespraech "${selectedHistoryConversation.title || "Thema"}" fortsetzen.`
-                  setPendingStarterMessage(prefill)
-                }}
-              />
-            ) : (
-              <ConversationList
-                userId={userId}
-                conversations={conversations}
-                onSelect={async (conversation) => {
-                  if (!userId) return
-                  const full = await getConversation(conversation.id, userId)
-                  setSelectedHistoryConversation(full)
-                }}
-                onStartFirstConversation={() => {
-                  setActiveTab("chat")
-                  handleStartConversation()
-                }}
-                backfillingIds={backfillingIds}
-                statsRefreshKey={historyRefreshKey}
-              />
-            )}
+            <ConversationList
+              userId={userId}
+              conversations={conversations}
+              onSelect={async (conversation) => {
+                if (!userId) return
+                const full = await getConversation(conversation.id, userId)
+                setSummaryPortal({ kind: "history", conversation: full })
+              }}
+              onStartFirstConversation={() => {
+                setActiveTab("chat")
+                handleStartConversation()
+              }}
+              backfillingIds={backfillingIds}
+              statsRefreshKey={historyRefreshKey}
+              onConversationUpdated={refreshBuddyListsAndStats}
+            />
           </div>
         )}
       </div>
+
+      {summaryPortal && (
+        <ConversationSummaryView
+          title={
+            summaryPortal.kind === "history"
+              ? summaryPortal.conversation.title?.trim() || t("buddy.chat")
+              : summaryPortal.title
+          }
+          summary={
+            summaryPortal.kind === "history"
+              ? summaryPortal.conversation.summary?.trim() || t("buddy.summaryView.summaryUnavailable")
+              : summaryPortal.summary
+          }
+          tags={summaryPortal.kind === "history" ? summaryPortal.conversation.tags : summaryPortal.tags}
+          dateIso={
+            summaryPortal.kind === "history"
+              ? summaryPortal.conversation.endedAt || summaryPortal.conversation.startedAt
+              : summaryPortal.dateIso
+          }
+          messages={summaryPortal.kind === "history" ? summaryPortal.conversation.messages : summaryPortal.messages}
+          onBack={() => setSummaryPortal(null)}
+          onStartNewChat={
+            summaryPortal.kind === "history"
+              ? () => {
+                  const c = summaryPortal.conversation
+                  setSummaryPortal(null)
+                  setActiveTab("chat")
+                  handleStartConversation()
+                  const prefill = c.summary
+                    ? `Ich moechte an folgendes Thema anknuepfen: ${c.summary}`
+                    : `Ich moechte unser Gespraech "${c.title || "Thema"}" fortsetzen.`
+                  setPendingStarterMessage(prefill)
+                }
+              : undefined
+          }
+        />
+      )}
     </AppShell>
   )
 }

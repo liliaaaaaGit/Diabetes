@@ -161,7 +161,10 @@ export function useChat(conversationId: string | undefined, userId: string | nul
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ messages: requestMessages }),
+          body: JSON.stringify({
+            messages: requestMessages,
+            conversationId: conversationId ?? "",
+          }),
           signal: controller.signal,
         })
 

@@ -141,7 +141,39 @@
       "empty": "Noch keine Gespräche",
       "startFirst": "Erstes Gespräch starten",
       "ended": "Dieses Gespräch ist abgeschlossen.",
-      "active": "Laufend"
+      "active": "Laufend",
+      "summaryLabel": "Reflexion",
+      "listTitle": "verlauf",
+      "refreshSummary": "Zusammenfassung neu erstellen",
+      "noPreview": "Die Reflexion erscheint hier, sobald das Gespräch beendet ist.",
+      "refreshFailed": "Zusammenfassung konnte nicht aktualisiert werden. Bitte erneut versuchen."
+    },
+    "crisis": {
+      "safetyHeading": "Sicherheit — jetzt Hilfe holen"
+    },
+    "stats": {
+      "tab": "Statistik",
+      "listTitle": "stats",
+      "convosCompleted": "gespräche abgeschlossen",
+      "messages": "nachrichten",
+      "signInHint": "Melde dich an, um deine Buddy-Statistik zu sehen."
+    },
+    "mood": {
+      "listTitle": "mood",
+      "empty": "Starte ein Gespraech, um deine Stimmung zu tracken",
+      "axes": {
+        "happiness": "freude",
+        "surprise": "überraschung",
+        "sadness": "traurigkeit",
+        "anger": "ärger",
+        "fear": "angst",
+        "disgust": "abneigung"
+      }
+    },
+    "summaryView": {
+      "messageHistory": "Nachrichtenverlauf",
+      "backToBuddy": "Zurück zum Buddy",
+      "summaryUnavailable": "Für dieses Gespräch liegt noch keine Reflexion vor."
     },
     "title": "Diabetes-Buddy",
     "introTitle": "Dein Diabetes-Buddy",

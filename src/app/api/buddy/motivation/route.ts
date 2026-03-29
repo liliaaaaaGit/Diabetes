@@ -20,6 +20,7 @@ export async function GET() {
     const tags = conversations
       .filter((c) => !c.isActive && new Date(c.startedAt) >= from)
       .flatMap((c) => c.tags || [])
+      .map((t) => `${t.emoji} ${t.label}`.trim())
       .filter(Boolean)
 
     if (!openai || tags.length === 0) {

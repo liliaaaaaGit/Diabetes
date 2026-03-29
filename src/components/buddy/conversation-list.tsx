@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Conversation } from "@/lib/types"
-import { ConversationCard } from "./conversation-card"
+import type { Conversation, ConversationEmotions, ConversationTag } from "@/lib/types"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useToast } from "@/hooks/use-toast"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { getConversation, searchConversations } from "@/lib/db"
+import { getConversation, searchConversations, updateConversationSummary } from "@/lib/db"
 import { HistoryStats } from "./history-stats"
+import { HistoryConversationCard, HistoryListHeader } from "./history-conversation-card"
 
 interface ConversationListProps {
   userId: string | null
@@ -16,6 +17,8 @@ interface ConversationListProps {
   onStartFirstConversation: () => void
   backfillingIds?: Set<string>
   statsRefreshKey?: number
+  /** Called after a manual summary refresh so the parent can refetch the list */
+  onConversationUpdated?: () => void | Promise<void>
 }
 
 export function ConversationList({
@@ -25,12 +28,15 @@ export function ConversationList({
   onStartFirstConversation,
   backfillingIds = new Set<string>(),
   statsRefreshKey = 0,
+  onConversationUpdated,
 }: ConversationListProps) {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const [query, setQuery] = useState("")
   const [filtered, setFiltered] = useState<Conversation[]>(conversations)
   const [searching, setSearching] = useState(false)
   const [fallbackTitles, setFallbackTitles] = useState<Record<string, string>>({})
+  const [refreshingSummaryId, setRefreshingSummaryId] = useState<string | null>(null)
 
   useEffect(() => {
     setFiltered(conversations.filter((c) => (c.messageCount ?? c.messages.length ?? 0) > 0))
@@ -94,6 +100,45 @@ export function ConversationList({
     })()
   }, [fallbackTitles, sortedConversations, userId])
 
+  const handleRefreshSummary = async (conversationId: string) => {
+    if (!userId) return
+    setRefreshingSummaryId(conversationId)
+    try {
+      const full = await getConversation(conversationId, userId)
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ messages: full.messages }),
+      })
+      if (!res.ok) throw new Error("summarize_failed")
+      const data = (await res.json()) as {
+        title?: string
+        summary: string
+        tags: ConversationTag[]
+        moodEmoji: string
+        emotions: ConversationEmotions
+      }
+      await updateConversationSummary(
+        conversationId,
+        userId,
+        data.summary,
+        data.tags,
+        data.moodEmoji,
+        data.title,
+        data.emotions
+      )
+      await onConversationUpdated?.()
+    } catch {
+      toast({
+        title: t("buddy.history.refreshFailed"),
+        variant: "destructive",
+      })
+    } finally {
+      setRefreshingSummaryId(null)
+    }
+  }
+
   if (conversations.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -112,8 +157,10 @@ export function ConversationList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <HistoryStats userId={userId} refreshKey={statsRefreshKey} />
+
+      <HistoryListHeader />
 
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -131,15 +178,20 @@ export function ConversationList({
         <p className="text-sm text-slate-500">{t("buddy.history.noResults")}</p>
       )}
 
-      {sortedConversations.map((conversation) => (
-        <ConversationCard
-          key={conversation.id}
-          conversation={conversation}
-          onClick={() => onSelect(conversation)}
-          isBackfilling={backfillingIds.has(conversation.id)}
-          fallbackTitle={fallbackTitles[conversation.id]}
-        />
-      ))}
+      <div className="space-y-3">
+        {sortedConversations.map((conversation) => (
+          <HistoryConversationCard
+            key={conversation.id}
+            conversation={conversation}
+            displayTitle={(conversation.title || "").trim()}
+            fallbackTitle={fallbackTitles[conversation.id]}
+            onOpen={() => onSelect(conversation)}
+            onRefreshSummary={() => void handleRefreshSummary(conversation.id)}
+            isRefreshing={refreshingSummaryId === conversation.id}
+            isBackfilling={backfillingIds.has(conversation.id)}
+          />
+        ))}
+      </div>
     </div>
   )
 }

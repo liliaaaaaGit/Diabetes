@@ -38,7 +38,10 @@ export async function GET() {
     const context = conversations
       .filter((c) => !c.isActive && c.summary)
       .slice(0, 5)
-      .map((c) => `Summary: ${c.summary}; Tags: ${(c.tags || []).join(", ")}`)
+      .map((c) => {
+        const tagStr = (c.tags || []).map((t) => `${t.emoji} ${t.label}`).join(", ")
+        return `Summary: ${c.summary}; Tags: ${tagStr}`
+      })
       .join("\n")
 
     const generatedTexts = async () => {

@@ -70,7 +70,10 @@ export async function POST(req: NextRequest) {
     const endedConvs = conversations.filter((c) => !c.isActive && c.summary)
     const conversationSummaries = endedConvs
       .slice(0, 10) // Last 10 conversations
-      .map((c) => `- ${c.summary} (Tags: ${c.tags.join(", ")})`)
+      .map((c) => {
+        const tagStr = (c.tags || []).map((t) => `${t.emoji} ${t.label}`).join(", ")
+        return `- ${c.summary} (Tags: ${tagStr})`
+      })
       .join("\n")
 
     // Calculate stats

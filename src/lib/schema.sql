@@ -62,8 +62,9 @@ CREATE TABLE IF NOT EXISTS conversations (
   user_id UUID REFERENCES users(id),
   title TEXT,
   summary TEXT,
-  tags TEXT[] DEFAULT '{}',
+  tags JSONB DEFAULT '[]'::jsonb,
   mood_emoji TEXT,
+  emotions JSONB,
   started_at TIMESTAMPTZ DEFAULT NOW(),
   ended_at TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT true

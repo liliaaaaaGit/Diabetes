@@ -5,6 +5,8 @@ import { HeartHandshake } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { cn } from "@/lib/utils"
+import { splitBuddySafetyContent, stripChipMarkers } from "@/lib/buddy-message-display"
+import { useTranslation } from "@/hooks/useTranslation"
 
 interface MessageBubbleProps {
   message: Message
@@ -12,8 +14,11 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, showAssistantAvatar = true }: MessageBubbleProps) {
+  const { t } = useTranslation()
   const isUser = message.role === "user"
   const time = format(parseISO(message.timestamp), "HH:mm", { locale: de })
+  const { safety, rest } = isUser ? { safety: null as string | null, rest: message.content } : splitBuddySafetyContent(message.content)
+  const displayBody = isUser ? message.content : stripChipMarkers(rest)
 
   return (
     <div
@@ -44,9 +49,15 @@ export function MessageBubble({ message, showAssistantAvatar = true }: MessageBu
               : "bg-white border border-slate-200 text-slate-900 rounded-bl-sm"
           )}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message.content}
-          </p>
+          {!isUser && safety ? (
+            <div className="mb-3 rounded-lg border-2 border-amber-400/90 bg-amber-50 px-3 py-2.5 text-xs text-amber-950">
+              <p className="font-semibold uppercase tracking-wide text-amber-900">
+                {t("buddy.crisis.safetyHeading")}
+              </p>
+              <p className="mt-1.5 whitespace-pre-wrap leading-relaxed">{safety}</p>
+            </div>
+          ) : null}
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{displayBody}</p>
         </div>
         <span className="mt-1 px-1 text-xs text-slate-400">
           {time}

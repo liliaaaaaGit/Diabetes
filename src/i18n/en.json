@@ -141,7 +141,39 @@
       "empty": "No conversations yet",
       "startFirst": "Start your first conversation",
       "ended": "This conversation has ended.",
-      "active": "Active"
+      "active": "Active",
+      "summaryLabel": "Reflection",
+      "listTitle": "history",
+      "refreshSummary": "Refresh summary with new style",
+      "noPreview": "Reflection will appear here after the chat ends.",
+      "refreshFailed": "Could not refresh the summary. Try again."
+    },
+    "crisis": {
+      "safetyHeading": "Safety — reach out now"
+    },
+    "stats": {
+      "tab": "Stats",
+      "listTitle": "stats",
+      "convosCompleted": "convos completed",
+      "messages": "messages",
+      "signInHint": "Sign in to see your Buddy stats."
+    },
+    "mood": {
+      "listTitle": "mood",
+      "empty": "Start a conversation to track how your chats feel over time.",
+      "axes": {
+        "happiness": "happiness",
+        "surprise": "surprise",
+        "sadness": "sadness",
+        "anger": "anger",
+        "fear": "fear",
+        "disgust": "disgust"
+      }
+    },
+    "summaryView": {
+      "messageHistory": "Message history",
+      "backToBuddy": "Back to Buddy",
+      "summaryUnavailable": "No reflection is available for this conversation yet."
     },
     "title": "Diabetes Buddy",
     "introTitle": "Your Diabetes Buddy",

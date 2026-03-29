@@ -70,6 +70,22 @@ export interface ExtractedEntry {
   included: boolean
 }
 
+/** Theme tag stored with each summarized conversation (emoji + short label). */
+export interface ConversationTag {
+  emoji: string
+  label: string
+}
+
+/** Six basic emotion intensities (0–1) for mood / radar visualizations. */
+export interface ConversationEmotions {
+  happiness: number
+  surprise: number
+  sadness: number
+  anger: number
+  fear: number
+  disgust: number
+}
+
 export interface Conversation {
   id: string
   userId: string
@@ -77,7 +93,8 @@ export interface Conversation {
   summary?: string
   dominantEmoji?: string
   messageCount?: number
-  tags: string[]
+  tags: ConversationTag[]
+  emotions?: ConversationEmotions | null
   startedAt: string
   endedAt?: string
   isActive: boolean

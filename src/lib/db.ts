@@ -13,6 +13,8 @@ import type {
   MoodValue,
   DashboardStats,
   Conversation,
+  ConversationTag,
+  ConversationEmotions,
   Message,
   Insight,
   Goal,
@@ -23,6 +25,43 @@ const toNumber = (v: unknown): number => {
   if (typeof v === "number") return v
   if (typeof v === "string") return Number(v)
   return Number(v)
+}
+
+function normalizeConversationTagsFromDb(raw: unknown): ConversationTag[] {
+  if (raw == null) return []
+  if (!Array.isArray(raw)) return []
+  const out: ConversationTag[] = []
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const s = item.trim()
+      if (s) out.push({ emoji: "·", label: s })
+      continue
+    }
+    if (item && typeof item === "object" && "label" in item) {
+      const emoji = String((item as { emoji?: unknown }).emoji ?? "·").trim() || "·"
+      const label = String((item as { label?: unknown }).label ?? "").trim()
+      if (label) out.push({ emoji, label })
+    }
+  }
+  return out
+}
+
+function normalizeConversationEmotionsFromDb(raw: unknown): ConversationEmotions | null {
+  if (raw == null || typeof raw !== "object") return null
+  const o = raw as Record<string, unknown>
+  const clamp = (v: unknown) => {
+    const x = typeof v === "number" ? v : Number(v)
+    if (!Number.isFinite(x)) return 0
+    return Math.max(0, Math.min(1, x))
+  }
+  return {
+    happiness: clamp(o.happiness),
+    surprise: clamp(o.surprise),
+    sadness: clamp(o.sadness),
+    anger: clamp(o.anger),
+    fear: clamp(o.fear),
+    disgust: clamp(o.disgust),
+  }
 }
 
 const mmolToMgdl = (mmol: number) => mmol * 18.0182
@@ -459,7 +498,8 @@ export async function createConversation(userId: string): Promise<Conversation> 
     title: row.title || undefined,
     summary: row.summary || undefined,
     dominantEmoji: row.mood_emoji || undefined,
-    tags: row.tags || [],
+    tags: normalizeConversationTagsFromDb(row.tags),
+    emotions: normalizeConversationEmotionsFromDb(row.emotions),
     messageCount: 0,
     startedAt: new Date(row.started_at).toISOString(),
     endedAt: row.ended_at ? new Date(row.ended_at).toISOString() : undefined,
@@ -471,7 +511,7 @@ export async function createConversation(userId: string): Promise<Conversation> 
 export async function getConversation(conversationId: string, userId: string): Promise<Conversation> {
   const { data: convRow, error } = await supabase
     .from("conversations")
-    .select("id,user_id,title,summary,tags,mood_emoji,started_at,ended_at,is_active")
+    .select("id,user_id,title,summary,tags,mood_emoji,emotions,started_at,ended_at,is_active")
     .eq("id", conversationId)
     .eq("user_id", userId)
     .maybeSingle()
@@ -491,7 +531,8 @@ export async function getConversation(conversationId: string, userId: string): P
     title: (convRow as any).title || undefined,
     summary: (convRow as any).summary || undefined,
     dominantEmoji: (convRow as any).mood_emoji || undefined,
-    tags: (convRow as any).tags || [],
+    tags: normalizeConversationTagsFromDb((convRow as any).tags),
+    emotions: normalizeConversationEmotionsFromDb((convRow as any).emotions),
     messageCount: messageRows?.length ?? 0,
     startedAt: new Date((convRow as any).started_at).toISOString(),
     endedAt: (convRow as any).ended_at ? new Date((convRow as any).ended_at).toISOString() : undefined,
@@ -509,7 +550,7 @@ export async function getConversation(conversationId: string, userId: string): P
 export async function getConversations(userId: string): Promise<Conversation[]> {
   const { data: convRows, error } = await supabase
     .from("conversations")
-    .select("id,user_id,title,summary,tags,mood_emoji,started_at,ended_at,is_active")
+    .select("id,user_id,title,summary,tags,mood_emoji,emotions,started_at,ended_at,is_active")
     .eq("user_id", userId)
     .order("started_at", { ascending: false })
   if (error) throw error
@@ -535,7 +576,8 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
     title: c.title || undefined,
     summary: c.summary || undefined,
     dominantEmoji: c.mood_emoji || undefined,
-    tags: c.tags || [],
+    tags: normalizeConversationTagsFromDb(c.tags),
+    emotions: normalizeConversationEmotionsFromDb(c.emotions),
     startedAt: new Date(c.started_at).toISOString(),
     endedAt: c.ended_at ? new Date(c.ended_at).toISOString() : undefined,
     isActive: c.is_active,
@@ -543,6 +585,39 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
     // messages are loaded only when opening a conversation
     messages: [],
   }))
+}
+
+/** Latest ended chats with summaries — for Buddy “first message in new thread” context. */
+export async function getRecentEndedConversationSummaries(
+  userId: string,
+  options?: { excludeConversationId?: string; limit?: number }
+): Promise<Array<{ title: string; summary: string; dateLabel: string }>> {
+  const limit = Math.min(Math.max(options?.limit ?? 5, 3), 5)
+  const excludeId = options?.excludeConversationId
+
+  const { data: rows, error } = await supabase
+    .from("conversations")
+    .select("id,title,summary,started_at,ended_at")
+    .eq("user_id", userId)
+    .eq("is_active", false)
+
+  if (error) throw error
+
+  return (rows || [])
+    .filter((r: any) => (excludeId ? r.id !== excludeId : true))
+    .filter((r: any) => typeof r.summary === "string" && r.summary.trim().length > 0)
+    .map((r: any) => {
+      const when = r.ended_at || r.started_at
+      return {
+        title: typeof r.title === "string" && r.title.trim() ? r.title.trim() : "Ohne Titel",
+        summary: String(r.summary).trim(),
+        dateLabel: new Date(when).toISOString().slice(0, 10),
+        sortKey: new Date(when).getTime(),
+      }
+    })
+    .sort((a, b) => b.sortKey - a.sortKey)
+    .slice(0, limit)
+    .map(({ title, summary, dateLabel }) => ({ title, summary, dateLabel }))
 }
 
 export async function searchConversations(userId: string, query: string): Promise<Conversation[]> {
@@ -553,9 +628,58 @@ export async function searchConversations(userId: string, query: string): Promis
   return all.filter((c) => {
     const title = (c.title || "").toLowerCase()
     const summary = (c.summary || "").toLowerCase()
-    const tags = (c.tags || []).join(", ").toLowerCase()
+    const tags = (c.tags || [])
+      .map((t) => `${t.label} ${t.emoji}`.toLowerCase())
+      .join(" ")
     return title.includes(normalized) || summary.includes(normalized) || tags.includes(normalized)
   })
+}
+
+/** Ended conversations with messages + total messages across all convos (Buddy stats tab). */
+export async function getBuddyStatsTotals(userId: string): Promise<{
+  convosCompleted: number
+  totalMessages: number
+}> {
+  const conversations = await getConversations(userId)
+  const convosCompleted = conversations.filter(
+    (c) => !c.isActive && (c.messageCount ?? c.messages.length ?? 0) > 0
+  ).length
+  const totalMessages = conversations.reduce(
+    (acc, c) => acc + (c.messageCount ?? c.messages.length ?? 0),
+    0
+  )
+  return { convosCompleted, totalMessages }
+}
+
+/** Average each emotion dimension over conversations that have `emotions` jsonb set. */
+export async function getEmotionAverages(userId: string): Promise<ConversationEmotions | null> {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("emotions")
+    .eq("user_id", userId)
+    .not("emotions", "is", null)
+
+  if (error) throw error
+
+  const parsed = (data || [])
+    .map((row: { emotions?: unknown }) => normalizeConversationEmotionsFromDb(row.emotions))
+    .filter((e): e is ConversationEmotions => e != null)
+
+  if (parsed.length === 0) return null
+
+  const keys: (keyof ConversationEmotions)[] = [
+    "happiness",
+    "surprise",
+    "sadness",
+    "anger",
+    "fear",
+    "disgust",
+  ]
+  const out = {} as ConversationEmotions
+  for (const k of keys) {
+    out[k] = parsed.reduce((sum, row) => sum + row[k], 0) / parsed.length
+  }
+  return out
 }
 
 export async function getConversationStats(userId: string): Promise<{
@@ -758,9 +882,10 @@ export async function updateConversationSummary(
   conversationId: string,
   userId: string,
   summary: string,
-  tags: string[],
+  tags: ConversationTag[],
   moodEmoji: string,
-  title?: string
+  title?: string,
+  emotions?: ConversationEmotions | null
 ): Promise<void> {
   const { error } = await supabase
     .from("conversations")
@@ -769,6 +894,7 @@ export async function updateConversationSummary(
       tags,
       mood_emoji: moodEmoji,
       title: title || summaryToTitle(summary),
+      emotions: emotions ?? null,
     })
     .eq("id", conversationId)
     .eq("user_id", userId)

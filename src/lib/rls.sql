@@ -1,10 +1,17 @@
--- RLS (Row Level Security) setup
--- NOTE:
--- The app uses cookie-based sessions and filters by user_id in application code.
--- These example policies still use a fixed UUID; for production, align policies with your
--- auth model (e.g. Supabase Auth + auth.uid()) or service-role server access.
+-- DEPRECATED for this project (research prototype).
+--
+-- These policies used a fixed demo UUID and block real users. Do not run this file
+-- against a live database unless you intend that legacy behavior.
+--
+-- Instead: open disable_rls_research_prototype.sql and run it in the Supabase SQL Editor
+-- to turn off RLS on app tables (isolation remains in application code), OR replace
+-- policies with auth.uid()-based rules if you move to Supabase Auth.
+--
+-- ---------------------------------------------------------------------------
+-- Legacy content below (reference only)
+-- ---------------------------------------------------------------------------
 
--- Example fixed user id (legacy demo policies below — update for your deployment)
+-- RLS (Row Level Security) setup — fixed UUID demo policies
  
   -- USERS
   ALTER TABLE users ENABLE ROW LEVEL SECURITY;
