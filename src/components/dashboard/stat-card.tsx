@@ -19,7 +19,7 @@ export function StatCard({
   unit,
   icon: Icon,
   trend,
-  color = "blue",
+  color = "teal",
 }: StatCardProps) {
   return (
     <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
@@ -55,7 +55,7 @@ export function StatCard({
           <div
             className={cn(
               "flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center",
-              color === "blue" && "bg-teal-50 text-teal-600",
+              color === "teal" && "bg-teal-50 text-teal-600",
               color === "purple" && "bg-cyan-50 text-cyan-600",
               color === "green" && "bg-emerald-50 text-emerald-600",
               color === "pink" && "bg-rose-50 text-rose-500",

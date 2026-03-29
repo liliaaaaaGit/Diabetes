@@ -547,12 +547,12 @@ export function ExtractionConfirmation({
   }
 
   return (
-    <Card className="mt-4 rounded-xl border border-blue-100 bg-blue-50/90">
+    <Card className="mt-4 rounded-xl border border-teal-100 bg-teal-50/90">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 rounded-xl bg-teal-100 flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-teal-600" />
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-900">

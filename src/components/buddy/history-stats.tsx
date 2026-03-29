@@ -40,7 +40,7 @@ export function HistoryStats({ userId, refreshKey = 0 }: HistoryStatsProps) {
       </div>
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <p className="text-[11px] leading-tight text-slate-500 md:text-sm">{t("buddy.history.thisMonth")}</p>
-        <p className="mt-1 text-xl font-semibold text-blue-600">{stats.thisMonth}</p>
+        <p className="mt-1 text-xl font-semibold text-teal-600">{stats.thisMonth}</p>
       </div>
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <p className="text-[11px] leading-tight text-slate-500 md:text-sm">{t("buddy.history.avgLength")}</p>

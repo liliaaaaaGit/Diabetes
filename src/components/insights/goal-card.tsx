@@ -45,8 +45,8 @@ export function GoalCard({ goal, userId, onComplete }: GoalCardProps) {
     <Card className="rounded-xl border-slate-200 shadow-sm">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Target className="h-5 w-5 text-blue-600" />
+          <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+            <Target className="h-5 w-5 text-teal-600" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
@@ -66,7 +66,7 @@ export function GoalCard({ goal, userId, onComplete }: GoalCardProps) {
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 rounded-full transition-all"
+                  className="h-full bg-teal-500 rounded-full transition-all"
                   style={{ width: `${Math.min(progress, 100)}%` }}
                 />
               </div>

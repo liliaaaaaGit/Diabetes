@@ -48,9 +48,9 @@ export type InsulinType = (typeof INSULIN_TYPES)[number]
 export const MOOD_SCALE = [1, 2, 3, 4, 5] as const
 export type MoodScale = (typeof MOOD_SCALE)[number]
 
-// App colors as Tailwind-compatible constants
+// App colors as Tailwind-compatible constants (glucose = teal accent)
 export const COLORS = {
-  glucose: "#3B82F6",    // Blue
+  glucose: "#14B8A6", // teal-500
   insulin: "#8B5CF6",    // Purple
   meal: "#F59E0B",       // Amber
   activity: "#10B981",   // Green

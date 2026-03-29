@@ -74,7 +74,7 @@ export function MoodChart({ entries, days }: MoodChartProps) {
   const CustomYAxisTick = ({ x, y, payload }: any) => {
     return (
       <g transform={`translate(${x},${y})`}>
-        <text x={0} y={0} dy={4} textAnchor="end" fill="#64748B" fontSize={12}>
+        <text x={0} y={0} dy={4} textAnchor="end" fill="#78716C" fontSize={12}>
           {moodEmojis[payload.value]}
         </text>
       </g>
@@ -95,16 +95,16 @@ export function MoodChart({ entries, days }: MoodChartProps) {
                 <stop offset="95%" stopColor="#EC4899" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" />
             <XAxis
               dataKey="date"
-              stroke="#64748B"
+              stroke="#78716C"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#64748B"
+              stroke="#78716C"
               fontSize={12}
               tickLine={false}
               axisLine={false}

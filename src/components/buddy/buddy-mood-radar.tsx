@@ -23,7 +23,7 @@ export function BuddyMoodRadar({ data }: { data: BuddyMoodRadarDatum[] }) {
           <PolarRadiusAxis angle={90} domain={[0, 1]} tick={false} axisLine={false} />
           <PolarAngleAxis
             dataKey="subject"
-            tick={{ fill: "#64748b", fontSize: 11 }}
+            tick={{ fill: "#78716C", fontSize: 11 }}
             tickLine={false}
           />
           <Radar

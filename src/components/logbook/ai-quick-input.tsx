@@ -149,7 +149,7 @@ export function AiQuickInput({
             <button
               type="button"
               onClick={onManualFallback}
-              className="text-blue-600 font-medium hover:underline"
+              className="text-teal-600 font-medium hover:underline"
             >
               {t("logbook.manualFallback")}
             </button>

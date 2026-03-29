@@ -19,7 +19,7 @@ export function InsightCard({ insight, onDismiss }: InsightCardProps) {
   const getIcon = () => {
     switch (insight.type) {
       case "pattern":
-        return <TrendingUp className="h-5 w-5 text-blue-600" />
+        return <TrendingUp className="h-5 w-5 text-teal-600" />
       case "stat":
         return <BarChart3 className="h-5 w-5 text-green-600" />
       case "theme":
@@ -32,7 +32,7 @@ export function InsightCard({ insight, onDismiss }: InsightCardProps) {
       case "pattern":
         return "border-l-4 border-l-teal-500"
       case "stat":
-        return "border-l-4 border-l-sky-500"
+        return "border-l-4 border-l-teal-500"
       case "theme":
         return "border-l-4 border-l-amber-500"
     }

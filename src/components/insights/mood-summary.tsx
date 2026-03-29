@@ -127,7 +127,7 @@ export function MoodSummary({ entries, days }: MoodSummaryProps) {
               {lastWeekAvg > 0 ? lastWeekAvg.toFixed(1) : "-"}
             </span>
             <span className="text-xs text-slate-500">→</span>
-            <span className="text-lg font-semibold text-blue-600">
+            <span className="text-lg font-semibold text-teal-600">
               {thisWeekAvg > 0 ? thisWeekAvg.toFixed(1) : "-"}
             </span>
           </div>

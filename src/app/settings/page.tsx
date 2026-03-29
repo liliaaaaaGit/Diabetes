@@ -160,7 +160,7 @@ export default function SettingsPage() {
                 href="https://example.com/glucocompanion-thesis"
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm text-blue-600 underline mt-2 inline-block"
+                className="text-sm text-teal-600 underline mt-2 inline-block"
               >
                 {t("settings.thesisInfo")}
               </a>

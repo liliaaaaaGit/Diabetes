@@ -44,7 +44,7 @@ export function MoodForm({ value, onChange }: MoodFormProps) {
               className={cn(
                 "text-4xl transition-all duration-200 rounded-full p-2",
                 value.moodValue === moodValue
-                  ? "scale-125 ring-4 ring-blue-500 ring-offset-2"
+                  ? "scale-125 ring-4 ring-teal-500 ring-offset-2"
                   : "hover:scale-110"
               )}
             >

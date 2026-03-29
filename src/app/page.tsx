@@ -136,7 +136,7 @@ export default function DashboardPage() {
         <div className="md:hidden space-y-6">
           {/* Last Measurement */}
           {lastGlucoseEntry && (
-            <Card className="rounded-xl border-slate-200 shadow-sm bg-blue-50/50">
+            <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
               <CardContent className="p-6">
                 <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
                 <div className="flex items-baseline gap-2 mb-2">
@@ -158,7 +158,7 @@ export default function DashboardPage() {
                 value={statsSafe.avgGlucose.toFixed(1)}
                 unit={t("units.mgdl")}
                 icon={Droplet}
-                color="blue"
+                color="teal"
               />
             </div>
             <div className="flex-shrink-0 w-[160px]">
@@ -215,7 +215,7 @@ export default function DashboardPage() {
           <div className="md:col-span-2 space-y-6">
             {/* Last Measurement */}
             {lastGlucoseEntry && (
-              <Card className="rounded-xl border-slate-200 shadow-sm bg-blue-50/50">
+              <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
                 <CardContent className="p-6">
                   <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
                   <div className="flex items-baseline gap-2 mb-2">
@@ -246,7 +246,7 @@ export default function DashboardPage() {
                 value={statsSafe.avgGlucose.toFixed(1)}
                 unit={t("units.mgdl")}
                 icon={Droplet}
-                color="blue"
+                color="teal"
               />
               <StatCard
                 label={t("dashboard.entriesToday")}

@@ -47,9 +47,9 @@ export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedPro
         else contextText = t("dashboard.other")
 
         return {
-          icon: <Droplet className="h-5 w-5 text-blue-600" />,
+          icon: <Droplet className="h-5 w-5 text-teal-600" />,
           text: `${glucoseEntry.value} ${unit} – ${contextText}`,
-          color: "blue",
+          color: "teal",
         }
       }
       case "insulin": {

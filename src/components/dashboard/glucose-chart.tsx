@@ -107,16 +107,16 @@ export function GlucoseChart({ entries, timeRange: initialTimeRange = "24h" }: G
                 <stop offset="95%" stopColor="#14B8A6" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" />
             <XAxis
               dataKey="time"
-              stroke="#64748B"
+              stroke="#78716C"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#64748B"
+              stroke="#78716C"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -127,14 +127,14 @@ export function GlucoseChart({ entries, timeRange: initialTimeRange = "24h" }: G
             <ReferenceArea
               y1={70}
               y2={180}
-              fill="#22D3EE"
+              fill="#14B8A6"
               fillOpacity={0.14}
               stroke="none"
             />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#06B6D4"
+              stroke="#0D9488"
               strokeWidth={2}
               dot={{ fill: "#14B8A6", r: 4 }}
               activeDot={{ r: 6 }}

@@ -54,7 +54,7 @@ export default function ImportPage() {
         </div>
 
         {/* Info Card */}
-        <Card className="rounded-xl border-slate-200 shadow-sm bg-blue-50/50">
+        <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
           <CardContent className="p-4">
             <p className="text-sm text-slate-700 mb-2">{t("import.info")}</p>
             <p className="text-xs text-slate-600 italic">

@@ -15,7 +15,6 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { cn } from "@/lib/utils"
-import { COLORS } from "@/lib/constants"
 
 const moodEmojis: Record<number, string> = {
   1: "😞",
@@ -38,7 +37,7 @@ export function EntryCard({ entry }: EntryCardProps) {
   const getIcon = () => {
     switch (entry.type) {
       case "glucose":
-        return <Droplet className="h-5 w-5 text-blue-600" />
+        return <Droplet className="h-5 w-5 text-teal-600" />
       case "insulin":
         return <Syringe className="h-5 w-5 text-purple-600" />
       case "meal":

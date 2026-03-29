@@ -265,7 +265,7 @@ export default function InsightsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="rounded-xl border-slate-200 shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">{insights.filter((i) => !i.dismissed).length}</div>
+              <div className="text-2xl font-bold text-teal-600">{insights.filter((i) => !i.dismissed).length}</div>
               <div className="text-xs text-slate-600 mt-1">{t("insights.totalInsights")}</div>
             </CardContent>
           </Card>
@@ -294,7 +294,7 @@ export default function InsightsPage() {
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-4">
-          <StatCard label={t("insights.avgGlucose")} value={avgGlucose.toFixed(1)} unit={t("units.mgdl")} icon={Droplet} color="blue" />
+          <StatCard label={t("insights.avgGlucose")} value={avgGlucose.toFixed(1)} unit={t("units.mgdl")} icon={Droplet} color="teal" />
           <StatCard label={t("insights.timeInRange")} value={`${timeInRange}%`} icon={TrendingUp} color="purple" />
           <StatCard label={t("insights.entries")} value={entries.length} icon={Activity} color="green" />
           <StatCard label={t("insights.avgMood")} value={moodEmojis[Math.round(avgMood)] || "😐"} icon={Heart} color="pink" />
@@ -314,7 +314,7 @@ export default function InsightsPage() {
                     <span className="font-semibold text-slate-900">{glucoseDistribution.under}%</span>
                   </div>
                   <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-300 rounded-full" style={{ width: `${glucoseDistribution.under}%` }} />
+                    <div className="h-full bg-teal-300 rounded-full" style={{ width: `${glucoseDistribution.under}%` }} />
                   </div>
                 </div>
 
@@ -324,7 +324,7 @@ export default function InsightsPage() {
                     <span className="font-semibold text-slate-900">{glucoseDistribution.in}%</span>
                   </div>
                   <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${glucoseDistribution.in}%` }} />
+                    <div className="h-full bg-teal-500 rounded-full" style={{ width: `${glucoseDistribution.in}%` }} />
                   </div>
                 </div>
 
@@ -334,7 +334,7 @@ export default function InsightsPage() {
                     <span className="font-semibold text-slate-900">{glucoseDistribution.over}%</span>
                   </div>
                   <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-800 rounded-full" style={{ width: `${glucoseDistribution.over}%` }} />
+                    <div className="h-full bg-teal-700 rounded-full" style={{ width: `${glucoseDistribution.over}%` }} />
                   </div>
                 </div>
               </div>

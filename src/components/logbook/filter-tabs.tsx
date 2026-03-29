@@ -35,7 +35,7 @@ export function FilterTabs({ activeFilter, counts, onChange }: FilterTabsProps) 
                 value={filter.value}
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap min-h-[44px]",
-                  "data-[state=active]:bg-blue-600 data-[state=active]:text-white",
+                  "data-[state=active]:bg-teal-500 data-[state=active]:text-white",
                   "data-[state=inactive]:bg-slate-100 data-[state=inactive]:text-slate-700"
                 )}
               >

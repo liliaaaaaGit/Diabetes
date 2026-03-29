@@ -54,7 +54,7 @@ export function UploadDropzone({
       className={cn(
         "rounded-xl border-2 border-dashed transition-colors cursor-pointer",
         isDragging
-          ? "border-blue-500 bg-blue-50"
+          ? "border-teal-500 bg-teal-50"
           : "border-slate-300 hover:border-slate-400"
       )}
       onDrop={handleDrop}
