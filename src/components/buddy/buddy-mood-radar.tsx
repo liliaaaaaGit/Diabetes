@@ -19,7 +19,7 @@ export function BuddyMoodRadar({ data }: { data: BuddyMoodRadarDatum[] }) {
     <div className="h-[300px] w-full min-h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart cx="50%" cy="50%" outerRadius="72%" data={data}>
-          <PolarGrid stroke="#e2e8f0" />
+          <PolarGrid stroke="#99f6e4" strokeOpacity={0.65} />
           <PolarRadiusAxis angle={90} domain={[0, 1]} tick={false} axisLine={false} />
           <PolarAngleAxis
             dataKey="subject"
@@ -29,11 +29,11 @@ export function BuddyMoodRadar({ data }: { data: BuddyMoodRadarDatum[] }) {
           <Radar
             name="mood"
             dataKey="value"
-            stroke="#d97706"
-            fill="#fbbf24"
-            fillOpacity={0.5}
+            stroke="#14b8a6"
+            fill="rgb(20, 184, 166)"
+            fillOpacity={0.3}
             strokeWidth={2}
-            dot={{ r: 3, fill: "#d97706", strokeWidth: 0 }}
+            dot={{ r: 3, fill: "#14b8a6", strokeWidth: 0 }}
           />
         </RadarChart>
       </ResponsiveContainer>

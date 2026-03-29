@@ -2,11 +2,10 @@
 
 import dynamic from "next/dynamic"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Clock, Smile } from "lucide-react"
-import { getBuddyStatsTotals, getEmotionAverages } from "@/lib/db"
+import { Smile } from "lucide-react"
+import { getEmotionAverages } from "@/lib/db"
 import type { ConversationEmotions } from "@/lib/types"
 import { useTranslation } from "@/hooks/useTranslation"
-import { DailyImpulseCard } from "@/components/buddy/daily-impulse-card"
 import { DailyGoals, type BuddyDailyGoal } from "@/components/buddy/daily-goals"
 import { MotivationQuote } from "@/components/buddy/motivation-quote"
 
@@ -14,7 +13,7 @@ const BuddyMoodRadar = dynamic(
   () => import("./buddy-mood-radar").then((m) => m.BuddyMoodRadar),
   {
     ssr: false,
-    loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-amber-50/40" />,
+    loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-teal-50/50" />,
   }
 )
 
@@ -34,18 +33,13 @@ export function BuddyStats({
 }: {
   userId: string | null
   refreshKey?: number
-  /** Bumps when Buddy overview daily cache (impulse/motivation) should reload. */
+  /** Bumps when Buddy overview daily cache (motivation/goals) should reload. */
   dailyRefreshNonce?: number
 }) {
   const { t } = useTranslation()
-  const [loading, setLoading] = useState(true)
-  const [convosCompleted, setConvosCompleted] = useState(0)
-  const [totalMessages, setTotalMessages] = useState(0)
+  const [moodLoading, setMoodLoading] = useState(true)
   const [averages, setAverages] = useState<ConversationEmotions | null>(null)
 
-  const [impulseText, setImpulseText] = useState(
-    "Wie geht es dir heute mit deinem Diabetes? Lass uns darueber sprechen."
-  )
   const [motivationQuote, setMotivationQuote] = useState(
     "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
   )
@@ -59,13 +53,6 @@ export function BuddyStats({
     [userId, todayKey]
   )
 
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 11) return t("buddy.goodMorning")
-    if (hour < 18) return t("buddy.goodAfternoon")
-    return t("buddy.goodEvening")
-  }
-
   useEffect(() => {
     if (!userId) {
       setDailyLoading(false)
@@ -74,17 +61,6 @@ export function BuddyStats({
     const loadDaily = async () => {
       setDailyLoading(true)
       try {
-        const loadImpulse = async () => {
-          const cached = localStorage.getItem(cacheKey("impulse"))
-          if (cached) return cached
-          const res = await fetch("/api/buddy/impulse", { credentials: "include" })
-          if (!res.ok) return "Wie geht es dir heute mit deinem Diabetes? Lass uns darueber sprechen."
-          const json = (await res.json()) as { impulse?: string }
-          const value = json.impulse || "Wie geht es dir heute mit deinem Diabetes? Lass uns darueber sprechen."
-          localStorage.setItem(cacheKey("impulse"), value)
-          return value
-        }
-
         const loadMotivation = async () => {
           const cached = localStorage.getItem(cacheKey("motivation"))
           if (cached) return cached
@@ -119,8 +95,7 @@ export function BuddyStats({
           return value
         }
 
-        const [impulse, quote, goals] = await Promise.all([loadImpulse(), loadMotivation(), loadGoals()])
-        setImpulseText(impulse)
+        const [quote, goals] = await Promise.all([loadMotivation(), loadGoals()])
         setMotivationQuote(quote)
         setDailyGoals(goals)
       } finally {
@@ -165,33 +140,22 @@ export function BuddyStats({
 
   useEffect(() => {
     if (!userId) {
-      setLoading(false)
-      setConvosCompleted(0)
-      setTotalMessages(0)
+      setMoodLoading(false)
       setAverages(null)
       return
     }
 
     let cancelled = false
-    setLoading(true)
+    setMoodLoading(true)
     void (async () => {
       try {
-        const [totals, emotionAvg] = await Promise.all([
-          getBuddyStatsTotals(userId),
-          getEmotionAverages(userId),
-        ])
+        const emotionAvg = await getEmotionAverages(userId)
         if (cancelled) return
-        setConvosCompleted(totals.convosCompleted)
-        setTotalMessages(totals.totalMessages)
         setAverages(emotionAvg)
       } catch {
-        if (!cancelled) {
-          setConvosCompleted(0)
-          setTotalMessages(0)
-          setAverages(null)
-        }
+        if (!cancelled) setAverages(null)
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setMoodLoading(false)
       }
     })()
 
@@ -215,58 +179,37 @@ export function BuddyStats({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8 p-4 md:p-6 lg:px-8">
-      <section>
-        <h2 className="mb-4 text-base font-semibold text-slate-800">{t("buddy.stats.dailySection")}</h2>
-        {dailyLoading ? (
-          <div className="space-y-4">
-            <div className="h-36 animate-pulse rounded-2xl bg-slate-200" />
-            <div className="h-32 animate-pulse rounded-xl bg-slate-200" />
-            <div className="space-y-2">
-              <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
-              <div className="h-16 animate-pulse rounded-xl bg-slate-200" />
-            </div>
+    <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6 lg:px-8">
+      {dailyLoading ? (
+        <div className="space-y-4">
+          <div className="h-36 animate-pulse rounded-xl bg-teal-500/10" />
+          <div className="space-y-2">
+            <div className="h-16 animate-pulse rounded-xl bg-teal-50/80" />
+            <div className="h-16 animate-pulse rounded-xl bg-teal-50/80" />
           </div>
-        ) : (
-          <div className="space-y-6">
-            <DailyImpulseCard impulseText={impulseText} greeting={getGreeting()} showChatButton={false} />
-            <MotivationQuote quote={motivationQuote} onRefresh={handleRefreshMotivation} loading={refreshingQuote} />
-            <DailyGoals goals={dailyGoals} onToggle={handleToggleGoal} />
-          </div>
-        )}
-      </section>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <MotivationQuote
+            variant="teal"
+            quote={motivationQuote}
+            onRefresh={handleRefreshMotivation}
+            loading={refreshingQuote}
+          />
+          <DailyGoals goals={dailyGoals} onToggle={handleToggleGoal} />
+        </div>
+      )}
 
       <section>
-        <div className="mb-4 flex items-center gap-2">
-          <Clock className="h-5 w-5 text-slate-600" aria-hidden />
-          <h2 className="text-lg font-bold lowercase tracking-tight text-slate-900">{t("buddy.stats.listTitle")}</h2>
+        <div className="mb-3 flex items-center gap-2">
+          <Smile className="h-5 w-5 text-teal-600" aria-hidden />
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">{t("buddy.mood.listTitle")}</h2>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:gap-4">
-          <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium lowercase text-slate-500">{t("buddy.stats.convosCompleted")}</p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums text-slate-900">
-              {loading ? "—" : convosCompleted}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm">
-            <p className="text-xs font-medium lowercase text-slate-500">{t("buddy.stats.messages")}</p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums text-slate-900">
-              {loading ? "—" : totalMessages}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div className="mb-4 flex items-center gap-2">
-          <Smile className="h-5 w-5 text-slate-600" aria-hidden />
-          <h2 className="text-lg font-bold lowercase tracking-tight text-slate-900">{t("buddy.mood.listTitle")}</h2>
-        </div>
-        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm">
-          {!loading && averages == null ? (
+        <div className="rounded-xl border border-teal-500/15 bg-white p-4 shadow-sm ring-1 ring-teal-500/10">
+          {!moodLoading && averages == null ? (
             <p className="py-12 text-center text-sm leading-relaxed text-slate-600">{t("buddy.mood.empty")}</p>
-          ) : loading ? (
-            <div className="h-[300px] animate-pulse rounded-lg bg-amber-50/30" />
+          ) : moodLoading ? (
+            <div className="h-[300px] animate-pulse rounded-lg bg-teal-50/50" />
           ) : (
             <BuddyMoodRadar data={radarData} />
           )}

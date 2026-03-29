@@ -36,7 +36,7 @@ export function DailyGoals({ goals, onToggle }: DailyGoalsProps) {
             key={goal.id}
             type="button"
             onClick={() => onToggle(goal)}
-            className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-slate-100 bg-white p-4 text-left shadow-sm"
+            className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-teal-100/80 bg-teal-50/30 p-4 text-left shadow-sm"
           >
             <span className={cn("text-sm text-slate-700", goal.completed && "text-slate-500 line-through")}>
               {goal.text}
