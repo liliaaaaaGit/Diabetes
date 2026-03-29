@@ -435,7 +435,7 @@ export default function BuddyPage() {
 
   return (
     <AppShell title={t("buddy.title")}>
-      <div className="relative h-[calc(100vh-8rem)] flex flex-col">
+      <div className="relative flex h-[calc(100dvh-7rem)] min-h-0 flex-col md:h-[calc(100dvh-7.5rem)]">
         {conversationsError && (
           <p className="text-sm text-red-600">{t("buddy.historyLoadFailed")}</p>
         )}
@@ -462,32 +462,32 @@ export default function BuddyPage() {
           </div>
         )}
 
-        <div className="mb-4 flex flex-wrap items-center gap-1 rounded-xl bg-slate-100 p-1 sm:gap-2">
+        <div className="mb-2 flex flex-wrap items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 sm:mb-2 sm:gap-1">
           <button
             type="button"
             onClick={() => setActiveTab("chat")}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "chat" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:px-3 sm:py-2 sm:text-sm ${activeTab === "chat" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("pages.buddy")}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "history" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:px-3 sm:py-2 sm:text-sm ${activeTab === "history" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("buddy.history.tab")}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("stats")}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${activeTab === "stats" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+            className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:px-3 sm:py-2 sm:text-sm ${activeTab === "stats" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("buddy.stats.tab")}
           </button>
         </div>
 
         {activeTab === "chat" && !isFullChatView && (
-          <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-y-auto px-4 pb-6 md:px-6 lg:px-8">
+          <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-y-auto overflow-x-hidden px-2 pb-3 md:px-4 md:pb-4 lg:px-6">
             <BuddyHomeHero
               quote={buddyPersonalQuote}
               quoteLoading={quoteLoading}
