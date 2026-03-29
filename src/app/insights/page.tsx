@@ -1,421 +1,103 @@
 "use client"
 
-import { useMemo, useState, useEffect, useCallback, useRef } from "react"
+import { useMemo, useState } from "react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
-import { StatCard } from "@/components/dashboard/stat-card"
-import { InsightCard } from "@/components/insights/insight-card"
-import { GoalCard } from "@/components/insights/goal-card"
-import { MotivationCard } from "@/components/insights/motivation-card"
-import { MoodChart } from "@/components/insights/mood-chart"
-import { MoodSummary } from "@/components/insights/mood-summary"
-import { EmptyState } from "@/components/shared/empty-state"
-import { Droplet, TrendingUp, Activity, Heart, MessageCircle } from "lucide-react"
+import { InsightsTirHero } from "@/components/insights/insights-tir-hero"
+import { InsightsSummaryStrip } from "@/components/insights/insights-summary-strip"
+import { InsightsMoodGlucoseChart } from "@/components/insights/insights-mood-glucose-chart"
 import { useTranslation } from "@/hooks/useTranslation"
-import { useToast } from "@/hooks/use-toast"
 import { useEntries } from "@/hooks/useEntries"
-import { useInsights } from "@/hooks/useInsights"
-import { useGoals } from "@/hooks/useGoals"
 import { useConversations } from "@/hooks/useConversations"
-import { dismissInsight, createInsight, createGoal } from "@/lib/db"
 import { useUser } from "@/hooks/useUser"
-import { subDays, differenceInHours } from "date-fns"
-import { getTimeInRange } from "@/lib/stats"
-import type { GlucoseEntry, MoodEntry, Goal, Insight } from "@/lib/types"
-
-const moodEmojis: Record<number, string> = {
-  1: "😞",
-  2: "😕",
-  3: "😐",
-  4: "🙂",
-  5: "😊",
-}
-
-function isWithinLastDays(iso: string, days: number) {
-  const d = new Date(iso)
-  const now = new Date()
-  return d >= subDays(now, days)
-}
+import type { GlucoseEntry } from "@/lib/types"
+import {
+  buildDailyMoodGlucosePoints,
+  computeInsightsRange,
+  glucoseTirPercents,
+  averageGlucoseMgDl,
+  sumInsulinUnits,
+  sumCarbsGrams,
+  type InsightsTimeRangeKey,
+} from "@/lib/insights-aggregate"
+import { cn } from "@/lib/utils"
 
 export default function InsightsPage() {
-  const { t } = useTranslation()
-  const { toast } = useToast()
+  const { t, locale } = useTranslation()
   const { userId } = useUser()
-  const autoInsightsOnceRef = useRef(false)
+  const [timeRange, setTimeRange] = useState<InsightsTimeRangeKey>("7d")
 
-  const [timeRange, setTimeRange] = useState<"week" | "7d" | "30d">("7d")
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [motivationQuote, setMotivationQuote] = useState<{ quote: string; context: string } | null>(null)
-  const days = timeRange === "week" ? 7 : timeRange === "7d" ? 7 : 30
+  const range = useMemo(() => computeInsightsRange(timeRange), [timeRange])
+  const fromIso = range.from.toISOString()
+  const toIso = range.to.toISOString()
 
-  const toIso = useMemo(() => new Date().toISOString(), [])
-  const fromIso = useMemo(() => subDays(new Date(), days).toISOString(), [days])
-
-  const { entries, loading: entriesLoading, refetch: refetchEntries } = useEntries(
-    { from: fromIso, to: toIso },
-    userId
-  )
-  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights(userId)
-  const { goals, loading: goalsLoading, refetch: refetchGoals } = useGoals(userId)
+  const { entries, loading, error } = useEntries({ from: fromIso, to: toIso }, userId)
   const { conversations } = useConversations(userId)
 
-  const glucoseEntries = useMemo(() => entries.filter((e) => e.type === "glucose") as GlucoseEntry[], [entries])
-  const moodEntries = useMemo(() => entries.filter((e) => e.type === "mood") as MoodEntry[], [entries])
+  const loc = locale === "de" ? "de" : "en"
 
-  const avgGlucose = useMemo(() => {
-    if (glucoseEntries.length === 0) return 0
-    return Math.round((glucoseEntries.reduce((sum, e) => sum + e.value, 0) / glucoseEntries.length) * 10) / 10
-  }, [glucoseEntries])
+  const glucoseEntries = useMemo(
+    () => entries.filter((e) => e.type === "glucose") as GlucoseEntry[],
+    [entries]
+  )
 
-  const timeInRange = useMemo(() => {
-    return getTimeInRange(glucoseEntries)
-  }, [glucoseEntries])
+  const chartPoints = useMemo(
+    () => buildDailyMoodGlucosePoints(range, entries, conversations, loc),
+    [range, entries, conversations, loc]
+  )
 
-  const avgMood = useMemo(() => {
-    if (moodEntries.length === 0) return 3
-    const sum = moodEntries.reduce((acc, e) => acc + e.moodValue, 0)
-    return Math.round((sum / moodEntries.length) * 10) / 10
-  }, [moodEntries])
-
-  const glucoseDistribution = useMemo(() => {
-    if (glucoseEntries.length === 0) return { under: 0, in: 0, over: 0 }
-    const under = glucoseEntries.filter((e) => e.value < 70).length
-    const inRange = glucoseEntries.filter((e) => e.value >= 70 && e.value <= 180).length
-    const over = glucoseEntries.filter((e) => e.value > 180).length
-    const total = glucoseEntries.length
-    return {
-      under: Math.round((under / total) * 100),
-      in: Math.round((inRange / total) * 100),
-      over: Math.round((over / total) * 100),
-    }
-  }, [glucoseEntries])
-
-  // Check if insights are stale (older than 24 hours)
-  const insightsAreStale = useMemo(() => {
-    if (insights.length === 0) return true
-    const newest = insights[0]
-    const hoursSinceNewest = differenceInHours(new Date(), new Date(newest.createdAt))
-    return hoursSinceNewest > 24
-  }, [insights])
-
-  const generateInsights = useCallback(async () => {
-    if (!userId) return
-    setIsGenerating(true)
-    try {
-      const res = await fetch("/api/insights", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({}),
-      })
-
-      if (!res.ok) {
-        throw new Error("Failed to generate insights")
-      }
-
-      const data = (await res.json()) as {
-        patterns: Array<{ title: string; description: string; category: string; confidence?: number }>
-        goals: Array<{ title: string; description: string; targetDays?: number }>
-        motivation: { quote: string; context: string }
-      }
-
-      for (const pattern of data.patterns) {
-        await createInsight({
-          userId,
-          type: "pattern",
-          title: pattern.title,
-          description: pattern.description,
-          category: pattern.category,
-        })
-      }
-
-      for (const goal of data.goals) {
-        await createGoal({
-          userId,
-          title: goal.title,
-          description: goal.description,
-          targetDays: goal.targetDays ?? 7,
-          active: true,
-        })
-      }
-
-      if (data.motivation.quote) {
-        await createInsight({
-          userId,
-          type: "motivation",
-          title: data.motivation.quote,
-          description: data.motivation.context,
-          category: "general",
-        })
-        setMotivationQuote(data.motivation)
-      }
-
-      await refetchInsights()
-      await refetchGoals()
-    } catch (e) {
-      console.error("Failed to generate insights:", e)
-      toast({
-        title: t("insights.generateFailed"),
-        variant: "destructive",
-      })
-    } finally {
-      setIsGenerating(false)
-    }
-  }, [userId, refetchInsights, refetchGoals, t, toast])
-
-  useEffect(() => {
-    autoInsightsOnceRef.current = false
-  }, [userId])
-
-  // Generate insights once after initial load if stale (avoids infinite retry on failure)
-  useEffect(() => {
-    if (!userId || insightsLoading || isGenerating || autoInsightsOnceRef.current) return
-    if (!insightsAreStale) return
-    autoInsightsOnceRef.current = true
-    void generateInsights()
-  }, [userId, insightsAreStale, isGenerating, insightsLoading, generateInsights])
-
-  // Load motivation from most recent insight
-  useEffect(() => {
-    const motivationInsight = insights.find((i) => i.type === "motivation" && !i.dismissed)
-    if (motivationInsight) {
-      setMotivationQuote({ quote: motivationInsight.title, context: motivationInsight.description })
-    }
-  }, [insights])
-
-  const handleRefreshMotivation = async () => {
-    if (!userId) return
-    setIsGenerating(true)
-    try {
-      const res = await fetch("/api/insights", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({}),
-      })
-
-      if (!res.ok) throw new Error("Failed to refresh motivation")
-
-      const data = (await res.json()) as { motivation: { quote: string; context: string } }
-      if (data.motivation.quote) {
-        await createInsight({
-          userId,
-          type: "motivation",
-          title: data.motivation.quote,
-          description: data.motivation.context,
-          category: "general",
-        })
-        setMotivationQuote(data.motivation)
-        await refetchInsights()
-      }
-    } catch (e) {
-      toast({
-        title: t("insights.refreshFailed"),
-        variant: "destructive",
-      })
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const activeInsights = useMemo(() => {
-    return insights
-      .filter((i) => !i.dismissed)
-      .filter((i) => i.type === "pattern")
-      .filter((i) => isWithinLastDays(i.createdAt, days))
-  }, [insights, days])
-
-  const activeGoals = useMemo(() => {
-    return goals.filter((g) => g.active).slice(0, 2)
-  }, [goals])
-
-  const handleDismissInsight = async (id: string) => {
-    if (!userId) return
-    try {
-      await dismissInsight(id, userId)
-      await refetchInsights()
-    } catch (e) {
-      toast({
-        title: t("insights.dismiss"),
-        description: e instanceof Error ? e.message : undefined,
-        variant: "destructive",
-      })
-    }
-  }
-
-  const handleGoalComplete = async () => {
-    await refetchGoals()
-  }
-
-  // Check if we have enough data
-  const endedConvs = conversations.filter((c) => !c.isActive)
-  const hasEnoughData = endedConvs.length >= 3 && entries.length >= 10
+  const avgMgDl = useMemo(() => averageGlucoseMgDl(glucoseEntries), [glucoseEntries])
+  const tir = useMemo(() => glucoseTirPercents(glucoseEntries), [glucoseEntries])
 
   return (
-    <AppShell title={t("pages.insights")}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">{t("insights.title")}</h1>
-          <p className="text-sm text-slate-600">{t("insights.subtitle")}</p>
-        </div>
+    <AppShell title={t("pages.insights")} mainClassName="max-w-none w-full px-4 md:px-6 py-4 md:py-6">
+      <div className="space-y-6 w-full max-w-[1400px] mx-auto">
+        <p className="text-sm text-slate-600">{t("insights.subtitle")}</p>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-teal-600">{insights.filter((i) => !i.dismissed).length}</div>
-              <div className="text-xs text-slate-600 mt-1">{t("insights.totalInsights")}</div>
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-purple-600">{conversations.filter((c) => !c.isActive).length}</div>
-              <div className="text-xs text-slate-600 mt-1">{t("insights.totalConversations")}</div>
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">{activeGoals.length}</div>
-              <div className="text-xs text-slate-600 mt-1">{t("insights.activeGoals")}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Time Range Selector */}
-        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as "week" | "7d" | "30d")}>
-          <TabsList>
-            <TabsTrigger value="week">{t("insights.thisWeek")}</TabsTrigger>
-            <TabsTrigger value="7d">{t("insights.last7Days")}</TabsTrigger>
-            <TabsTrigger value="30d">{t("insights.last30Days")}</TabsTrigger>
+        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as InsightsTimeRangeKey)}>
+          <TabsList className="bg-slate-100/80 p-1 h-auto">
+            <TabsTrigger
+              value="week"
+              className={cn(
+                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+              )}
+            >
+              {t("insights.thisWeek")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="7d"
+              className={cn(
+                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+              )}
+            >
+              {t("insights.last7Days")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="30d"
+              className={cn(
+                "rounded-lg px-4 py-2 text-sm data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+              )}
+            >
+              {t("insights.last30Days")}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Overview Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-4">
-          <StatCard label={t("insights.avgGlucose")} value={avgGlucose.toFixed(1)} unit={t("units.mgdl")} icon={Droplet} color="teal" />
-          <StatCard label={t("insights.timeInRange")} value={`${timeInRange}%`} icon={TrendingUp} color="purple" />
-          <StatCard label={t("insights.entries")} value={entries.length} icon={Activity} color="green" />
-          <StatCard label={t("insights.avgMood")} value={moodEmojis[Math.round(avgMood)] || "😐"} icon={Heart} color="pink" />
-        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {loading && <p className="text-sm text-slate-500">{t("common.loading")}</p>}
 
-        {/* Glucose Distribution */}
-        <Card className="rounded-xl border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.glucoseDistribution")}</h2>
-            {glucoseEntries.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">{t("empty.glucoseChartEmpty")}</p>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-700">{t("insights.underTarget")}</span>
-                    <span className="font-semibold text-slate-900">{glucoseDistribution.under}%</span>
-                  </div>
-                  <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-300 rounded-full" style={{ width: `${glucoseDistribution.under}%` }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-700">{t("insights.inTarget")}</span>
-                    <span className="font-semibold text-slate-900">{glucoseDistribution.in}%</span>
-                  </div>
-                  <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-500 rounded-full" style={{ width: `${glucoseDistribution.in}%` }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-700">{t("insights.overTarget")}</span>
-                    <span className="font-semibold text-slate-900">{glucoseDistribution.over}%</span>
-                  </div>
-                  <div className="h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-700 rounded-full" style={{ width: `${glucoseDistribution.over}%` }} />
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Mood */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.mood")}</h2>
-              <MoodChart entries={moodEntries} days={days} />
-            </CardContent>
-          </Card>
-          <Card className="rounded-xl border-slate-200 shadow-sm">
-            <CardContent className="p-6">
-              <MoodSummary entries={moodEntries} days={days} />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Patterns Section */}
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.patterns")}</h2>
-          {!hasEnoughData ? (
-            <Card className="rounded-xl border-slate-200 shadow-sm">
-              <CardContent className="p-6 text-center">
-                <p className="text-sm text-slate-600">{t("insights.insufficientData")}</p>
-              </CardContent>
-            </Card>
-          ) : activeInsights.length === 0 ? (
-            <EmptyState icon={Droplet} title={t("empty.noInsights")} description={t("empty.noInsightsDesc")} />
-          ) : (
-            <div className="space-y-3">
-              {activeInsights.map((insight) => (
-                <InsightCard key={insight.id} insight={insight} onDismiss={handleDismissInsight} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Goals Section */}
-        {hasEnoughData && (
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.goals")}</h2>
-            {goalsLoading ? (
-              <Card className="rounded-xl border-slate-200 shadow-sm">
-                <CardContent className="p-4">{t("common.loading")}</CardContent>
-              </Card>
-            ) : activeGoals.length === 0 ? (
-              <Card className="rounded-xl border-slate-200 shadow-sm">
-                <CardContent className="p-4 text-center text-sm text-slate-600">{t("insights.noGoals")}</CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                {activeGoals.map((goal) => (
-                  <GoalCard key={goal.id} goal={goal} userId={userId} onComplete={handleGoalComplete} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Motivation Section */}
-        {hasEnoughData && (
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">{t("insights.motivation")}</h2>
-            {motivationQuote ? (
-              <MotivationCard quote={motivationQuote.quote} context={motivationQuote.context} onRefresh={handleRefreshMotivation} />
-            ) : (
-              <Card className="rounded-xl border-slate-200 shadow-sm bg-amber-50/70">
-                <CardContent className="p-4 text-center text-sm text-slate-600">{t("insights.noMotivation")}</CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        {/* Loading guard */}
-        {(entriesLoading || insightsLoading || isGenerating) && (
-          <div className="text-sm text-slate-500 text-center">{t("common.loading")}</div>
+        {!loading && (
+          <>
+            <InsightsTirHero avgMgDl={avgMgDl} tir={tir} />
+            <InsightsSummaryStrip
+              chartPoints={chartPoints}
+              overallAvgGlucose={avgMgDl}
+              sumInsulin={sumInsulinUnits(entries)}
+              sumCarbs={sumCarbsGrams(entries)}
+              entryCount={entries.length}
+            />
+            <InsightsMoodGlucoseChart data={chartPoints} timeRange={timeRange} />
+          </>
         )}
       </div>
     </AppShell>
