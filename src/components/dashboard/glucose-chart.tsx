@@ -108,7 +108,7 @@ export function GlucoseChart({
   }
 
   const tabTriggerClass =
-    "text-[11px] px-2 py-1.5 sm:text-xs sm:px-2.5 whitespace-nowrap data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+    "text-[11px] px-2 py-1.5 sm:text-xs sm:px-2.5 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
 
   return (
     <Card className="rounded-xl border-slate-200 shadow-sm">

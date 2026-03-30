@@ -23,11 +23,9 @@ export function BuddyHomeHero({
   disabled = false,
 }: BuddyHomeHeroProps) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col justify-between">
-      {/* flex-1 füllt die Höhe bis zum Button – Leerraum sitzt unter Roboter/Zitat, nicht als „Kloß“ in der Mitte */}
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-3 min-[480px]:gap-4 lg:flex-row lg:items-stretch lg:gap-6 xl:gap-8">
-        {/* Roboter: gleiche max-Höhe wie zuvor; Spaltenbreite begrenzt, damit das Zitat den übrigen Platz nutzt (weniger Zeilen, niedrigeres Zitat-Feld) */}
-        <div className="flex min-h-[160px] min-w-0 flex-col items-center justify-center lg:min-h-0 lg:max-w-[min(100%,420px)] lg:shrink-0 lg:items-stretch">
+    <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-x-hidden">
+      <div className="flex min-h-0 w-full flex-1 flex-row items-center gap-3 md:gap-4 lg:items-stretch lg:gap-6 xl:gap-8">
+        <div className="flex min-h-[130px] w-2/5 min-w-0 flex-col items-center justify-center lg:min-h-0 lg:w-auto lg:max-w-[min(100%,420px)] lg:shrink-0 lg:items-stretch">
           <div className="relative flex h-full min-h-0 w-full flex-1 items-center justify-center overflow-visible">
             <Image
               src="/TherapistRobot4.png"
@@ -35,24 +33,23 @@ export function BuddyHomeHero({
               width={3691}
               height={3691}
               priority
-              className="h-auto w-auto max-w-full object-contain object-center max-h-[min(52vh,340px)] min-[480px]:max-h-[min(50vh,380px)] lg:max-h-[min(400px,100%)]"
+              className="h-auto w-auto max-h-[150px] max-w-full object-contain object-center min-[480px]:max-h-[170px] md:max-h-[220px] lg:max-h-[min(400px,100%)]"
             />
           </div>
         </div>
 
-        {/* Zitat: nimmt die restliche Zeilenbreite ein (kein max-w mehr) */}
-        <div className="relative flex min-h-[120px] min-w-0 flex-1 flex-col self-stretch">
-          <div className="flex h-full min-h-0 flex-col justify-center overflow-y-auto overscroll-contain rounded-lg bg-teal-500/10 px-3 py-4 shadow-sm ring-1 ring-teal-500/15 sm:px-4 sm:py-4 md:py-5 lg:px-5 lg:py-5">
+        <div className="relative flex min-h-[120px] w-3/5 min-w-0 flex-1 flex-col self-stretch lg:w-auto">
+          <div className="flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-lg bg-teal-500/10 p-3 shadow-sm ring-1 ring-teal-500/15 md:px-4 md:py-4 lg:px-5 lg:py-5">
             <span
-              className="pointer-events-none absolute left-1.5 top-2 font-serif text-3xl leading-none text-teal-500 sm:left-2 sm:top-3 sm:text-4xl lg:text-4xl"
+              className="pointer-events-none absolute left-1.5 top-2 font-serif text-2xl leading-none text-teal-500 md:left-2 md:top-3 md:text-4xl lg:text-4xl"
               aria-hidden
             >
               &ldquo;
             </span>
             {quoteLoading ? (
-              <div className="mt-8 min-h-[3rem] shrink-0 animate-pulse rounded-md bg-teal-500/15 sm:mt-9" />
+              <div className="mt-6 min-h-[2.5rem] shrink-0 animate-pulse rounded-md bg-teal-500/15 md:mt-9" />
             ) : (
-              <p className="relative z-10 mt-8 shrink-0 text-pretty text-base leading-relaxed text-slate-800 sm:mt-9">
+              <p className="relative z-10 mt-6 shrink-0 text-sm leading-relaxed text-slate-800 md:mt-9 md:text-base">
                 {quote}
               </p>
             )}
@@ -66,7 +63,7 @@ export function BuddyHomeHero({
           type="button"
           onClick={onNewConversation}
           disabled={disabled}
-          className="h-auto w-full max-w-sm rounded-full bg-teal-500 px-8 py-3 text-lg font-semibold text-white shadow-md hover:bg-teal-600"
+          className="h-auto w-full rounded-full bg-teal-500 px-8 py-3 text-lg font-semibold text-white shadow-md hover:bg-teal-600 md:max-w-sm"
         >
           {newChatLabel}
         </Button>

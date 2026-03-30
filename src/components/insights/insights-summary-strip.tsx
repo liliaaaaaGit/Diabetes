@@ -29,8 +29,8 @@ export function InsightsSummaryStrip({
   const sparkData = chartPoints.map((p) => ({ name: p.label, bg: p.avgGlucose }))
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 w-full">
-      <Card className="rounded-xl border-teal-100 bg-teal-50/40 shadow-sm col-span-2 xl:col-span-1">
+    <div className="w-full space-y-3 overflow-hidden">
+      <Card className="rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
         <CardContent className="p-4 flex flex-col gap-2 min-h-[120px]">
           <p className="text-xs font-medium text-slate-600 uppercase tracking-wide">
             {t("insights.summaryDailyBg")}
@@ -71,31 +71,33 @@ export function InsightsSummaryStrip({
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
-        <CardContent className="p-4 flex flex-col justify-center min-h-[120px]">
-          <p className="text-xs font-medium text-slate-600 uppercase tracking-wide">{t("insights.stripInsulin")}</p>
-          <p className="text-2xl font-bold text-teal-800 tabular-nums mt-1">
-            {sumInsulin % 1 === 0 ? sumInsulin : sumInsulin.toFixed(1)}
-          </p>
-          <p className="text-xs text-slate-500 mt-0.5">{t("units.units")}</p>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-3 gap-2 overflow-hidden">
+        <Card className="min-w-0 rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
+          <CardContent className="p-3 flex flex-col justify-center min-h-[110px]">
+            <p className="text-[11px] font-medium text-slate-600 uppercase tracking-wide break-words">{t("insights.stripInsulin")}</p>
+            <p className="text-lg sm:text-2xl font-bold text-teal-800 tabular-nums mt-1 break-words">
+              {sumInsulin % 1 === 0 ? sumInsulin : sumInsulin.toFixed(1)}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">{t("units.units")}</p>
+          </CardContent>
+        </Card>
 
-      <Card className="rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
-        <CardContent className="p-4 flex flex-col justify-center min-h-[120px]">
-          <p className="text-xs font-medium text-slate-600 uppercase tracking-wide">{t("insights.stripCarbs")}</p>
-          <p className="text-2xl font-bold text-teal-800 tabular-nums mt-1">{sumCarbs}g</p>
-          <p className="text-xs text-slate-500 mt-0.5">{t("dashboard.carbs")}</p>
-        </CardContent>
-      </Card>
+        <Card className="min-w-0 rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
+          <CardContent className="p-3 flex flex-col justify-center min-h-[110px]">
+            <p className="text-[11px] font-medium text-slate-600 uppercase tracking-wide break-words">{t("insights.stripCarbs")}</p>
+            <p className="text-lg sm:text-2xl font-bold text-teal-800 tabular-nums mt-1 break-words">{sumCarbs}g</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t("dashboard.carbs")}</p>
+          </CardContent>
+        </Card>
 
-      <Card className="rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
-        <CardContent className="p-4 flex flex-col justify-center min-h-[120px]">
-          <p className="text-xs font-medium text-slate-600 uppercase tracking-wide">{t("insights.stripEntries")}</p>
-          <p className="text-2xl font-bold text-teal-800 tabular-nums mt-1">{entryCount}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{t("insights.entryCountHint")}</p>
-        </CardContent>
-      </Card>
+        <Card className="min-w-0 rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
+          <CardContent className="p-3 flex flex-col justify-center min-h-[110px]">
+            <p className="text-[11px] font-medium text-slate-600 uppercase tracking-wide break-words">{t("insights.stripEntries")}</p>
+            <p className="text-lg sm:text-2xl font-bold text-teal-800 tabular-nums mt-1 break-words">{entryCount}</p>
+            <p className="text-xs text-slate-500 mt-0.5 break-words">{t("insights.entryCountHint")}</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -32,8 +32,8 @@ export function SuggestionChips({ onSelect, suggestions }: SuggestionChipsProps)
   const chips = (suggestions && suggestions.length > 0 ? suggestions : defaultSuggestions).slice(0, 3)
 
   return (
-    <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2">
-      <div className="flex gap-2">
+    <div className="overflow-hidden pb-2">
+      <div className="flex flex-wrap gap-2">
         {chips.map((suggestion, index) => (
           <Button
             key={index}
@@ -41,7 +41,7 @@ export function SuggestionChips({ onSelect, suggestions }: SuggestionChipsProps)
             size="sm"
             onClick={() => onSelect(suggestion)}
             className={cn(
-              "rounded-full whitespace-nowrap text-sm min-h-[44px]",
+              "min-h-[40px] rounded-full px-3 text-xs sm:text-sm",
               chipToneClass(suggestion)
             )}
           >

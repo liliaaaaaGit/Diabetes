@@ -123,9 +123,9 @@ export default function DashboardPage() {
             </Card>
           )}
 
-          {/* Stat Cards - Horizontal Scroll */}
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            <div className="flex-shrink-0 w-[160px]">
+          {/* Mobile stat cards: fixed grid, no horizontal scroll */}
+          <div className="grid grid-cols-3 gap-2 overflow-hidden">
+            <div className="min-w-0">
               <StatCard
                 label={t("dashboard.avgGlucose")}
                 value={statsSafe.avgGlucose.toFixed(1)}
@@ -134,7 +134,7 @@ export default function DashboardPage() {
                 color="teal"
               />
             </div>
-            <div className="flex-shrink-0 w-[160px]">
+            <div className="min-w-0">
               <StatCard
                 label={t("dashboard.entriesToday")}
                 value={statsSafe.entriesToday}
@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 color="green"
               />
             </div>
-            <div className="flex-shrink-0 w-[160px]">
+            <div className="min-w-0">
               <StatCard
                 label={t("dashboard.timeInRange")}
                 value={`${statsSafe.timeInRange}%`}
@@ -150,14 +150,15 @@ export default function DashboardPage() {
                 color="purple"
               />
             </div>
-            <div className="flex-shrink-0 w-[160px]">
-              <StatCard
-                label={t("dashboard.moodToday")}
-                value={lastMoodEntry ? moodEmojis[lastMoodEntry.moodValue] : "😐"}
-                icon={Heart}
-                color="pink"
-              />
-            </div>
+          </div>
+
+          <div className="min-w-0">
+            <StatCard
+              label={t("dashboard.moodToday")}
+              value={lastMoodEntry ? moodEmojis[lastMoodEntry.moodValue] : "😐"}
+              icon={Heart}
+              color="pink"
+            />
           </div>
 
           {!glucoseLoading && glucoseTyped.length === 0 ? (

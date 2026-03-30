@@ -23,18 +23,18 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-slate-600">
+          <div className="min-w-0 space-y-1">
+            <p className="text-[11px] font-medium text-slate-600 sm:text-xs break-words">
               {label}
             </p>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-slate-900">
+              <span className="text-lg font-semibold text-slate-900 sm:text-2xl">
                 {value}
               </span>
               {unit && (
-                <span className="text-xs text-slate-500">{unit}</span>
+                <span className="text-[11px] text-slate-500 sm:text-xs">{unit}</span>
               )}
             </div>
             {trend && (
@@ -54,7 +54,7 @@ export function StatCard({
           </div>
           <div
             className={cn(
-              "flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center",
+              "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center sm:h-10 sm:w-10",
               color === "teal" && "bg-teal-50 text-teal-600",
               color === "purple" && "bg-cyan-50 text-cyan-600",
               color === "green" && "bg-emerald-50 text-emerald-600",
@@ -62,7 +62,7 @@ export function StatCard({
               color === "orange" && "bg-amber-50 text-amber-600"
             )}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </CardContent>

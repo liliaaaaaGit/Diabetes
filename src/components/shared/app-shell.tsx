@@ -20,7 +20,7 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
   const { t } = useTranslation()
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
@@ -51,17 +51,17 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
         {/* Content */}
         <main
           className={cn(
-            "max-w-7xl mx-auto p-4 md:p-6",
+            "mx-auto max-w-7xl p-4 pb-16 md:p-6 md:pb-14",
             mainClassName
           )}
         >
           {children}
         </main>
+      </div>
 
-        {/* Safety notice for mobile (sidebar is hidden) */}
-        <div className="md:hidden px-4 pb-6">
-          <p className="text-xs text-slate-500">{t("safety.notice")}</p>
-        </div>
+      {/* Global fixed safety notice (all pages) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 py-1 backdrop-blur">
+        <p className="px-3 text-center text-xs text-slate-500">{t("safety.notice")}</p>
       </div>
     </div>
   )
