@@ -98,6 +98,9 @@ export function AiQuickInput({
   return (
     <div className="sticky top-16 z-20 bg-slate-50/90 backdrop-blur pt-3 pb-2 px-0">
       <div className="mx-auto max-w-3xl md:max-w-7xl px-0">
+        <p className="mb-2 px-1 text-xs leading-snug text-slate-600 sm:px-0">
+          {t("logbook.aiExtractionTransparency")}
+        </p>
         <div
           className={cn(
             "bg-white rounded-2xl border border-teal-100 shadow-sm",

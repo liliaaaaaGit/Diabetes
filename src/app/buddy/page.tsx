@@ -509,6 +509,9 @@ export default function BuddyPage() {
             </div>
             <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 md:px-6 lg:px-8">
               <ChatContainer messages={messages} showTyping={isStreaming} showCrisisBanner={hasCrisisFlag} />
+              <p className="shrink-0 border-t border-slate-200/80 bg-slate-50/95 px-3 py-2 text-xs leading-snug text-slate-600 md:px-4">
+                {t("buddy.aiTransparencyNotice")}
+              </p>
               {buddyExtraction &&
                 viewConversationId === activeConversationIdRef.current &&
                 activeConversationIdNow && (

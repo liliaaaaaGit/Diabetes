@@ -1,22 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useTranslation } from "@/hooks/useTranslation"
 import { Droplet } from "lucide-react"
 
 export default function ConsentPage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const [accepted, setAccepted] = useState(false)
 
   const handleContinue = () => {
-    if (accepted) {
-      router.push("/register")
-    }
+    router.push("/register")
   }
 
   return (
@@ -36,21 +32,20 @@ export default function ConsentPage() {
                 {t("auth.consentText")}
               </div>
 
-              <div className="flex items-start gap-3 pt-4 border-t border-slate-200">
-                <Checkbox
-                  id="consent"
-                  checked={accepted}
-                  onCheckedChange={(checked) => setAccepted(checked === true)}
-                  className="mt-0.5"
-                />
-                <label htmlFor="consent" className="text-sm text-slate-700 cursor-pointer flex-1">
-                  {t("auth.consentCheckbox")}
-                </label>
-              </div>
+              <p className="pt-2 text-center">
+                <Link
+                  href="/privacy"
+                  className="text-sm font-medium text-teal-600 hover:text-teal-700 underline underline-offset-2"
+                >
+                  {t("auth.consentPrivacyLink")}
+                </Link>
+              </p>
 
-              <Button onClick={handleContinue} disabled={!accepted} className="w-full">
-                {t("auth.continue")}
-              </Button>
+              <div className="pt-4 border-t border-slate-200">
+                <Button onClick={handleContinue} className="w-full whitespace-normal py-3 h-auto text-sm leading-snug">
+                  {t("auth.consentCheckbox")}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

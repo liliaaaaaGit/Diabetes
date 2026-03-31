@@ -18,7 +18,12 @@ export function middleware(request: NextRequest) {
   const hasAccess = request.cookies.has("gc_access")
 
   // Consent, register, and login pages require access cookie
-  if (pathname === "/consent" || pathname === "/register" || pathname === "/login") {
+  if (
+    pathname === "/consent" ||
+    pathname === "/privacy" ||
+    pathname === "/register" ||
+    pathname === "/login"
+  ) {
     if (!hasAccess) {
       return NextResponse.redirect(new URL("/access", request.url))
     }
