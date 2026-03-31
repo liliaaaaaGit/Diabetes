@@ -56,7 +56,7 @@ export function ConversationSummaryView({
       aria-labelledby="conversation-summary-title"
     >
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-6 pb-4 sm:px-8">
-        <div className="mx-auto w-full max-w-xl">
+        <div className="mx-auto w-full max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl">
           <h1
             id="conversation-summary-title"
             className="text-3xl font-bold lowercase leading-tight tracking-tight text-slate-900 sm:text-4xl"
@@ -150,7 +150,7 @@ export function ConversationSummaryView({
       </div>
 
       <div className="border-t border-slate-200 bg-white px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] sm:px-8">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-2">
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-2 md:max-w-3xl lg:max-w-5xl xl:max-w-6xl">
           <Button type="button" className="w-full bg-teal-600 hover:bg-teal-700" onClick={onBack}>
             {t("buddy.summaryView.backToBuddy")}
           </Button>

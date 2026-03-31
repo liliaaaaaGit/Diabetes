@@ -1,7 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { Activity, Heart } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import {
+  Activity,
+  Annoyed,
+  Droplet,
+  Frown,
+  Laugh,
+  Meh,
+  Smile,
+  Syringe,
+  UtensilsCrossed,
+} from "lucide-react"
 import type {
   Entry,
   GlucoseEntry,
@@ -22,20 +33,25 @@ function glucoseMgDl(g: GlucoseEntry): number {
   return g.unit === "mmol_l" ? g.value * 18.0182 : g.value
 }
 
-const moodEmojis: Record<number, string> = {
-  1: "😞",
-  2: "😕",
-  3: "😐",
-  4: "🙂",
-  5: "😊",
+/** Nur Umriss-Gesichter, alles in Grau – kein Emoji-Look. */
+const moodIcons: Record<number, LucideIcon> = {
+  1: Annoyed,
+  2: Frown,
+  3: Meh,
+  4: Smile,
+  5: Laugh,
 }
+
+const rowIconClass = "h-4 w-4 shrink-0 text-slate-400"
+/** Etwas feinerer Strich = klarer „Outline“-Charakter für Stimmung */
+const moodIconClass = "h-[18px] w-[18px] shrink-0 text-slate-400"
 
 interface LogbookUnifiedEntryCardProps {
   entries: Entry[]
 }
 
 /**
- * Einheitliche Tagesbuch-Karte: Uhrzeit oben links, darunter 🩸 BZ → 💉 Insulin → 🍽 KH (nur wenn vorhanden).
+ * Einheitliche Tagesbuch-Karte: Uhrzeit oben links, darunter BZ → Insulin → KH (graue Icons, nur wenn vorhanden).
  */
 export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProps) {
   const { t, locale } = useTranslation()
@@ -74,9 +90,7 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
             const display = Math.round(mg)
             return (
               <div key={g.id} className="flex items-center gap-2 text-base">
-                <span className="select-none shrink-0" aria-hidden>
-                  🩸
-                </span>
+                <Droplet className={rowIconClass} aria-hidden strokeWidth={2} />
                 <span
                   className={cn("font-semibold tabular-nums", glucoseValueTextClassMgDl(mg))}
                 >
@@ -88,9 +102,7 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
 
           {insulinList.map((ins) => (
             <div key={ins.id} className="flex items-center gap-2 text-base flex-wrap">
-              <span className="select-none shrink-0" aria-hidden>
-                💉
-              </span>
+              <Syringe className={rowIconClass} aria-hidden strokeWidth={2} />
               <span className="font-semibold text-slate-900 tabular-nums">
                 {ins.dose % 1 === 0 ? ins.dose : ins.dose.toFixed(1)} {t("units.units")}
               </span>
@@ -105,9 +117,7 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
             if (grams == null || grams <= 0) return null
             return (
               <div key={m.id} className="flex items-center gap-2 text-base">
-                <span className="select-none shrink-0" aria-hidden>
-                  🍽
-                </span>
+                <UtensilsCrossed className={rowIconClass} aria-hidden strokeWidth={2} />
                 <span className="font-semibold text-slate-900 tabular-nums">
                   {grams % 1 === 0 ? grams : grams.toFixed(1)} g
                 </span>
@@ -117,19 +127,27 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
 
           {activityList.map((a) => (
             <div key={a.id} className="flex items-center gap-2 text-base">
-              <Activity className="h-4 w-4 shrink-0 text-teal-700" aria-hidden />
+              <Activity className={rowIconClass} aria-hidden strokeWidth={2} />
               <span className="font-medium text-slate-900">
                 {a.activityType} · {a.durationMinutes} {t("units.minutes")}
               </span>
             </div>
           ))}
 
-          {moodList.map((m) => (
-            <div key={m.id} className="flex items-center gap-2 text-base">
-              <Heart className="h-4 w-4 shrink-0 text-teal-600" aria-hidden />
-              <span className="text-2xl leading-none">{moodEmojis[m.moodValue]}</span>
-            </div>
-          ))}
+          {moodList.map((m) => {
+            const MoodIcon = moodIcons[m.moodValue] ?? Meh
+            return (
+              <div key={m.id} className="flex items-center gap-2 text-base">
+                <MoodIcon
+                  className={moodIconClass}
+                  aria-hidden
+                  strokeWidth={1.5}
+                  fill="none"
+                  stroke="currentColor"
+                />
+              </div>
+            )
+          })}
         </div>
 
         {noteText && expanded ? (
