@@ -140,13 +140,6 @@ export function Sidebar() {
               <LanguageSwitcher />
             </div>
           )}
-
-          {/* Safety Notice */}
-          {!collapsed && (
-            <p className="text-xs text-slate-500 mt-4 px-3">
-              {t("safety.notice")}
-            </p>
-          )}
         </div>
       </div>
     </aside>

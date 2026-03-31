@@ -118,11 +118,6 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
             <div className="pt-2">
               <LanguageSwitcher />
             </div>
-
-            {/* Safety Notice */}
-            <p className="text-xs text-slate-500 mt-4 px-3">
-              {t("safety.notice")}
-            </p>
           </div>
         </div>
       </SheetContent>
