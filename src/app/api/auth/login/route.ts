@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     // Find user
     const { data: user, error: findError } = await supabase
       .from("users")
-      .select("id, pseudonym, pin_hash, failed_login_attempts, locked_until")
+      .select("id, pseudonym, pin_hash, failed_login_attempts, locked_until, consent_given")
       .eq("pseudonym", pseudonym.trim())
       .maybeSingle()
 
@@ -98,6 +98,18 @@ export async function POST(req: NextRequest) {
       maxAge: 30 * 24 * 60 * 60,
       path: "/",
     })
+
+    if (user.consent_given) {
+      cookieStore.set("gc_consent", "1", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 30 * 24 * 60 * 60,
+        path: "/",
+      })
+    } else {
+      cookieStore.delete("gc_consent")
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

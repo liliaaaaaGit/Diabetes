@@ -60,7 +60,7 @@ export default function RegisterPage() {
       const data = (await res.json()) as { success: boolean; error?: string; userId?: string }
 
       if (data.success) {
-        router.push("/")
+        router.push("/consent")
         router.refresh()
       } else {
         if (data.error?.includes("bereits vergeben") || data.error?.includes("already taken")) {

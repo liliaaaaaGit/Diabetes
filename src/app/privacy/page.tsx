@@ -23,8 +23,8 @@ function PrivacyContent() {
   const backLabel = returnTo === "/settings" ? t("pages.settings") : t("auth.privacyBack")
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 pb-16">
-      <div className="mx-auto w-full max-w-2xl">
+    <div className="min-h-screen bg-slate-50 px-4 py-8 pb-16 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-3xl md:max-w-5xl xl:max-w-7xl">
         <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-slate-600" asChild>
           <Link href={backHref}>
             <ArrowLeft className="mr-2 h-4 w-4" />

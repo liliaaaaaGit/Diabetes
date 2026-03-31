@@ -60,8 +60,7 @@ export async function POST(req: NextRequest) {
       .insert({
         pseudonym: pseudonym.trim(),
         pin_hash: pinHash,
-        consent_given: true,
-        consent_date: new Date().toISOString(),
+        consent_given: false,
         preferred_unit: "mg_dl",
       })
       .select("id, pseudonym")
