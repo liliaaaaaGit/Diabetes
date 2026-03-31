@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/shared/app-shell"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -164,6 +165,12 @@ export default function SettingsPage() {
               >
                 {t("settings.thesisInfo")}
               </a>
+              <Link
+                href="/privacy?returnTo=/settings"
+                className="text-sm text-teal-600 underline mt-3 block"
+              >
+                {t("settings.openPrivacyPolicy")}
+              </Link>
             </div>
           </CardContent>
         </Card>

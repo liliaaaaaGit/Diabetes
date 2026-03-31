@@ -41,10 +41,18 @@ export default function ConsentPage() {
                 </Link>
               </p>
 
-              <div className="pt-4 border-t border-slate-200">
+              <div className="pt-4 border-t border-slate-200 space-y-3">
                 <Button onClick={handleContinue} className="w-full whitespace-normal py-3 h-auto text-sm leading-snug">
                   {t("auth.consentCheckbox")}
                 </Button>
+                <p className="text-center">
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium text-slate-600 hover:text-teal-700 underline underline-offset-2"
+                  >
+                    {t("auth.consentThenLogin")}
+                  </Link>
+                </p>
               </div>
             </div>
           </CardContent>

@@ -17,7 +17,12 @@ export function middleware(request: NextRequest) {
   // Check access cookie
   const hasAccess = request.cookies.has("gc_access")
 
-  // Consent, register, and login pages require access cookie
+  // Signed-in users can open the privacy policy anytime (e.g. from settings)
+  if (pathname === "/privacy" && request.cookies.has("gc_user_id")) {
+    return NextResponse.next()
+  }
+
+  // Consent, register, login, and privacy (before login) require access cookie
   if (
     pathname === "/consent" ||
     pathname === "/privacy" ||

@@ -31,7 +31,7 @@ export default function AccessPage() {
       const data = (await res.json()) as { success: boolean; error?: string }
 
       if (data.success) {
-        router.push("/login")
+        router.push("/consent")
         router.refresh()
       } else {
         setError(data.error || t("auth.invalidCode"))
