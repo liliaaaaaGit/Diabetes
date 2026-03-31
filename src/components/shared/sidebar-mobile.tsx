@@ -49,8 +49,8 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-[280px] p-0">
-        <div className="flex flex-col h-full">
+      <SheetContent side="left" className="flex w-[280px] max-w-[85vw] flex-col p-0">
+        <div className="flex h-full min-h-0 flex-col">
           {/* Header */}
           <SheetHeader className="h-16 flex flex-row items-center justify-between px-4 border-b border-slate-200">
             <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
           </SheetHeader>
 
           {/* Main Navigation */}
-          <nav className="flex-1 py-4 px-3 space-y-1">
+          <nav className="min-h-0 flex-1 overflow-y-auto py-4 px-3 space-y-1">
             {mainNavItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -95,7 +95,7 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
           </nav>
 
           {/* Footer Navigation */}
-          <div className="border-t border-slate-200 py-4 px-3 space-y-1">
+          <div className="shrink-0 border-t border-slate-200 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 space-y-1">
             {footerNavItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
