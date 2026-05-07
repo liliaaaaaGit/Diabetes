@@ -93,10 +93,13 @@ export async function POST(req: NextRequest) {
       path: "/",
     })
 
-    // Seed in background so registration stays fast.
-    void seedMockDataForUser(newUser.id).catch((seedError) => {
+    // Seed immediately so new accounts always have data.
+    // If this fails, account creation still succeeds, but we log the issue.
+    try {
+      await seedMockDataForUser(newUser.id)
+    } catch (seedError) {
       console.error("[auth/register] mock seed failed:", seedError)
-    })
+    }
 
     return NextResponse.json({ success: true, userId: newUser.id })
   } catch (error) {
