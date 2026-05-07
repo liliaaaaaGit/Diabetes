@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { Entry, EntryType } from "@/lib/types"
 import { AppShell } from "@/components/shared/app-shell"
 import { FilterTabs } from "@/components/logbook/filter-tabs"
@@ -24,7 +24,21 @@ export default function LogbookPage() {
   const [activeFilter, setActiveFilter] = useState<EntryType | "all">("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
+  const [didAutoSelectDate, setDidAutoSelectDate] = useState(false)
   const { entries, loading, error, refetch } = useEntries(undefined, userId)
+
+  useEffect(() => {
+    if (didAutoSelectDate || loading || entries.length === 0) return
+
+    const latestEntry = [...entries].sort(
+      (a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime()
+    )[0]
+
+    if (latestEntry) {
+      setSelectedDate(startOfDay(parseISO(latestEntry.timestamp)))
+    }
+    setDidAutoSelectDate(true)
+  }, [didAutoSelectDate, entries, loading])
 
   const dayEntries = useMemo(() => {
     return entries.filter((e) => isSameDay(parseISO(e.timestamp), selectedDate))
@@ -42,6 +56,7 @@ export default function LogbookPage() {
 
   const handleShiftWeek = useCallback(
     (direction: -1 | 1) => {
+      setDidAutoSelectDate(true)
       setSelectedDate((d) => addDays(d, direction * 7))
     },
     []
@@ -87,9 +102,15 @@ export default function LogbookPage() {
         <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 space-y-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">
           <LogbookWeekCalendar
             selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
+            onSelectDate={(date) => {
+              setDidAutoSelectDate(true)
+              setSelectedDate(date)
+            }}
             onShiftWeek={handleShiftWeek}
-            onGoToday={() => setSelectedDate(startOfDay(new Date()))}
+            onGoToday={() => {
+              setDidAutoSelectDate(true)
+              setSelectedDate(startOfDay(new Date()))
+            }}
             entries={entries}
           />
           <FilterTabs

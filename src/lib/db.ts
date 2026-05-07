@@ -490,6 +490,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   const glucoseEntries = await getEntries(userId, {
     type: "glucose",
     from: start7d.toISOString(),
+    to: now.toISOString(),
   })
 
   const glucose = glucoseEntries as GlucoseEntry[]

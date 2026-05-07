@@ -73,7 +73,7 @@ export function GlucoseChart({
   const filteredEntries = entries
     .filter((entry) => {
       const entryDate = parseISO(entry.timestamp)
-      return entryDate >= cutoffDate
+      return entryDate >= cutoffDate && entryDate <= now
     })
     .map((entry) => ({
       ...entry,

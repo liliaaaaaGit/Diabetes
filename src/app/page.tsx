@@ -39,10 +39,11 @@ export default function DashboardPage() {
     d.setFullYear(d.getFullYear() - 1)
     return d.toISOString()
   }, [])
+  const nowIso = useMemo(() => new Date().toISOString(), [])
 
   const { stats, refetch: refetchStats } = useDashboardStats(userId)
   const { entries: glucoseEntries, loading: glucoseLoading, refetch: refetchGlucose } = useEntries(
-    { type: "glucose", from: glucoseFetchFrom },
+    { type: "glucose", from: glucoseFetchFrom, to: nowIso },
     userId
   )
   const { entries: moodEntries, refetch: refetchMood } = useEntries(
