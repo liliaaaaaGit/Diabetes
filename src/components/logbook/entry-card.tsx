@@ -84,6 +84,8 @@ export function MomentCard({ entries }: MomentCardProps) {
     !glucose && !!basalInsulin && meals.length === 0 && activities.length === 0 && moods.length === 0
   const isMoodCard = !glucose && moods.length > 0
   const isActivityOnly = !glucose && activities.length > 0
+  const hasNonBasalInsulin = bolusInsulin.length > 0
+  const hasMeals = meals.length > 0
 
   return (
     <article
@@ -139,8 +141,33 @@ export function MomentCard({ entries }: MomentCardProps) {
                 />
               ))}
             </div>
+          ) : hasMeals || hasNonBasalInsulin ? (
+            <div className="flex flex-wrap gap-2">
+              {meals.map((meal) => (
+                <Chip
+                  key={meal.id}
+                  text={`${meal.description || "Mahlzeit"} · ${formatCarbs(meal)}`}
+                />
+              ))}
+              {bolusInsulin.map((entry) => (
+                <Chip
+                  key={entry.id}
+                  text={`${formatDose(entry.dose)} IE ${entry.insulinName || "Insulin"}`}
+                />
+              ))}
+            </div>
           ) : (
-            <p className="text-[15px] font-medium text-slate-800">Eintrag</p>
+            <p className="text-[15px] font-medium text-slate-800">
+              {sorted[0].type === "meal"
+                ? "Mahlzeit"
+                : sorted[0].type === "insulin"
+                  ? "Insulin"
+                  : sorted[0].type === "mood"
+                    ? "Stimmung"
+                    : sorted[0].type === "activity"
+                      ? "Aktivitaet"
+                      : "Eintrag"}
+            </p>
           )}
           <span className="text-xs text-gray-400">{timeText}</span>
         </div>
