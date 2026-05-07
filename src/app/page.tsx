@@ -21,8 +21,20 @@ import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 
 function MoodSummaryCard({ label, moodEntry }: { label: string; moodEntry?: MoodEntry }) {
-  const note = moodEntry?.note?.trim() || (moodEntry ? defaultMoodLabel(moodEntry.moodValue) : "Geht so")
   const moodValue = moodEntry?.moodValue ?? 3
+  const fallbackLabel = defaultMoodLabel(moodValue)
+  const rawNote = moodEntry?.note?.trim() || ""
+  const normalizedGenericLabels = new Set([
+    "sehr schlecht",
+    "schlecht",
+    "geht so",
+    "gut",
+    "sehr gut",
+  ])
+  const note =
+    rawNote.length > 0 && !normalizedGenericLabels.has(rawNote.toLowerCase())
+      ? rawNote
+      : fallbackLabel
 
   return (
     <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
