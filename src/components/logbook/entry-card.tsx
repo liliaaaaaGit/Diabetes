@@ -33,6 +33,25 @@ function isBasalLantus(entry: InsulinEntry): boolean {
   return entry.insulinType === "long_acting" || name.includes("lantus")
 }
 
+function pickHeroGlucose(
+  glucoseEntries: GlucoseEntry[],
+  mealEntries: MealEntry[]
+): GlucoseEntry | undefined {
+  if (glucoseEntries.length === 0) return undefined
+  if (glucoseEntries.length === 1) return glucoseEntries[0]
+  if (mealEntries.length === 0) return glucoseEntries[0]
+
+  const mealTimes = mealEntries.map((meal) => parseISO(meal.timestamp).getTime())
+  const byDistance = [...glucoseEntries].sort((a, b) => {
+    const aTime = parseISO(a.timestamp).getTime()
+    const bTime = parseISO(b.timestamp).getTime()
+    const aDistance = Math.min(...mealTimes.map((mealTime) => Math.abs(mealTime - aTime)))
+    const bDistance = Math.min(...mealTimes.map((mealTime) => Math.abs(mealTime - bTime)))
+    return aDistance - bDistance
+  })
+  return byDistance[0]
+}
+
 function formatDose(dose: number): string {
   return dose % 1 === 0 ? String(dose) : dose.toFixed(1)
 }
@@ -66,8 +85,9 @@ export function MomentCard({ entries }: MomentCardProps) {
     (a, b) => parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
   )
 
-  const glucose = sorted.find((entry) => entry.type === "glucose") as GlucoseEntry | undefined
   const meals = sorted.filter((entry) => entry.type === "meal") as MealEntry[]
+  const glucoseEntries = sorted.filter((entry) => entry.type === "glucose") as GlucoseEntry[]
+  const glucose = pickHeroGlucose(glucoseEntries, meals)
   const insulin = sorted.filter((entry) => entry.type === "insulin") as InsulinEntry[]
   const activities = sorted.filter((entry) => entry.type === "activity") as ActivityEntry[]
   const moods = sorted.filter((entry) => entry.type === "mood") as MoodEntry[]
@@ -75,10 +95,20 @@ export function MomentCard({ entries }: MomentCardProps) {
   const bolusInsulin = insulin.filter((entry) => !isBasalLantus(entry))
 
   const anchor = sorted[0]
-  const timeText = format(parseISO(anchor.timestamp), "HH:mm", { locale: dateLocale })
 
   const mood = moods[0]
   const moodText = (mood?.note || "").trim() || (mood ? moodLabel(mood.moodValue) : "")
+  const groupStartTime = parseISO(sorted[0].timestamp).getTime()
+  const groupEndTime = parseISO(sorted[sorted.length - 1].timestamp).getTime()
+  const groupSpanMinutes = (groupEndTime - groupStartTime) / (1000 * 60)
+  const timeText =
+    groupSpanMinutes > 30
+      ? `${format(parseISO(sorted[0].timestamp), "HH:mm", { locale: dateLocale })} – ${format(
+          parseISO(sorted[sorted.length - 1].timestamp),
+          "HH:mm",
+          { locale: dateLocale }
+        )}`
+      : format(parseISO(anchor.timestamp), "HH:mm", { locale: dateLocale })
 
   const isBasalCard =
     !glucose && !!basalInsulin && meals.length === 0 && activities.length === 0 && moods.length === 0
@@ -111,7 +141,7 @@ export function MomentCard({ entries }: MomentCardProps) {
               <p className="text-xs text-gray-400">Stimmung</p>
               <div className="mt-1 flex items-center gap-2">
                 <p className="text-[15px] font-medium text-slate-800">{moodText}</p>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-[3px]">
                   {Array.from({ length: 5 }).map((_, idx) => {
                     const filled = mood && idx < mood.moodValue
                     return (
@@ -119,7 +149,9 @@ export function MomentCard({ entries }: MomentCardProps) {
                         key={idx}
                         className={cn(
                           "h-2 w-2 rounded-full border",
-                          filled ? "border-teal-500 bg-teal-500" : "border-gray-200 bg-transparent"
+                          filled
+                            ? "border-[#1D9E75] bg-[#1D9E75]"
+                            : "border-gray-200 bg-transparent"
                         )}
                       />
                     )
@@ -141,21 +173,12 @@ export function MomentCard({ entries }: MomentCardProps) {
                 />
               ))}
             </div>
-          ) : hasMeals || hasNonBasalInsulin ? (
-            <div className="flex flex-wrap gap-2">
-              {meals.map((meal) => (
-                <Chip
-                  key={meal.id}
-                  text={`${meal.description || "Mahlzeit"} · ${formatCarbs(meal)}`}
-                />
-              ))}
-              {bolusInsulin.map((entry) => (
-                <Chip
-                  key={entry.id}
-                  text={`${formatDose(entry.dose)} IE ${entry.insulinName || "Insulin"}`}
-                />
-              ))}
-            </div>
+          ) : hasMeals ? (
+            <p className="text-[15px] font-medium text-slate-800">
+              {(meals[0].description || "Mahlzeit").trim()} · {formatCarbs(meals[0])}
+            </p>
+          ) : hasNonBasalInsulin ? (
+            <p className="text-[15px] font-medium text-slate-800">Insulin</p>
           ) : (
             <p className="text-[15px] font-medium text-slate-800">
               {sorted[0].type === "meal"
@@ -193,6 +216,31 @@ export function MomentCard({ entries }: MomentCardProps) {
               text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
             />
           ))}
+        </div>
+      ) : hasMeals || hasNonBasalInsulin || isActivityOnly ? (
+        <div className="flex flex-wrap gap-2">
+          {hasMeals
+            ? meals.slice(1).map((meal) => (
+                <Chip
+                  key={meal.id}
+                  text={`${meal.description || "Mahlzeit"} · ${formatCarbs(meal)}`}
+                />
+              ))
+            : null}
+          {bolusInsulin.map((entry) => (
+            <Chip
+              key={entry.id}
+              text={`${formatDose(entry.dose)} IE ${entry.insulinName || "Insulin"}`}
+            />
+          ))}
+          {!glucose
+            ? activities.map((activity) => (
+                <Chip
+                  key={activity.id}
+                  text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
+                />
+              ))
+            : null}
         </div>
       ) : null}
     </article>

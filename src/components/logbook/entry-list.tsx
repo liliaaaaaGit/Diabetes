@@ -5,7 +5,7 @@ import type { Entry, EntryType } from "@/lib/types"
 import { parseISO } from "date-fns"
 import { MomentCard } from "./entry-card"
 
-const GROUP_WINDOW_MINUTES = 45
+const GROUP_WINDOW_MINUTES = 90
 
 function groupEntriesByMoment(entries: Entry[]): Entry[][] {
   if (entries.length === 0) return []
@@ -15,11 +15,28 @@ function groupEntriesByMoment(entries: Entry[]): Entry[][] {
   )
 
   const groups: Entry[][] = []
-  let currentGroup: Entry[] = [sorted[0]]
-  let groupStartTime = parseISO(sorted[0].timestamp).getTime()
+  let currentGroup: Entry[] = []
+  let groupStartTime = 0
 
-  for (let idx = 1; idx < sorted.length; idx += 1) {
+  for (let idx = 0; idx < sorted.length; idx += 1) {
     const entry = sorted[idx]
+
+    // Mood entries are always standalone cards.
+    if (entry.type === "mood") {
+      if (currentGroup.length > 0) {
+        groups.push(currentGroup)
+        currentGroup = []
+      }
+      groups.push([entry])
+      continue
+    }
+
+    if (currentGroup.length === 0) {
+      currentGroup = [entry]
+      groupStartTime = parseISO(entry.timestamp).getTime()
+      continue
+    }
+
     const entryTime = parseISO(entry.timestamp).getTime()
     const diffMinutes = (entryTime - groupStartTime) / (1000 * 60)
 
@@ -33,7 +50,7 @@ function groupEntriesByMoment(entries: Entry[]): Entry[][] {
     groupStartTime = entryTime
   }
 
-  groups.push(currentGroup)
+  if (currentGroup.length > 0) groups.push(currentGroup)
   return groups
 }
 
@@ -43,7 +60,10 @@ interface EntryListProps {
 }
 
 export function EntryList({ entries, filter }: EntryListProps) {
-  const groupedEntries = useMemo(() => groupEntriesByMoment(entries), [entries])
+  const groupedEntries = useMemo(
+    () => groupEntriesByMoment(entries).reverse(),
+    [entries]
+  )
 
   const visibleGroups = useMemo(() => {
     if (filter === "all") return groupedEntries
