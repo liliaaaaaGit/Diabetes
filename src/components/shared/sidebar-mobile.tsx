@@ -6,7 +6,6 @@ import {
   BookOpen,
   Circle,
   Lightbulb,
-  Upload,
   Settings,
   X,
 } from "lucide-react"
@@ -28,7 +27,6 @@ const mainNavItems = [
 ]
 
 const footerNavItems = [
-  { href: "/import", icon: Upload, key: "import" },
   { href: "/settings", icon: Settings, key: "settings" },
 ]
 

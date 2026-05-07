@@ -8,7 +8,6 @@ import {
   BookOpen,
   Circle,
   Lightbulb,
-  Upload,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -26,7 +25,6 @@ const mainNavItems = [
 ]
 
 const footerNavItems = [
-  { href: "/import", icon: Upload, key: "import" },
   { href: "/settings", icon: Settings, key: "settings" },
 ]
 
