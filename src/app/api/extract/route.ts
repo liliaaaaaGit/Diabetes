@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { EntryType, ExtractedEntry } from "@/lib/types"
 import { isValidDateYmd } from "@/lib/entry-timestamp"
+import { scoreMoodText } from "@/lib/mood-score"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -159,9 +160,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const entries: ExtractedEntry[] = (parsed.entries ?? [])
-      .filter((e) => typeof e?.confidence === "number" && e.confidence >= 0.6)
-      .map((e) => {
+    const entries: ExtractedEntry[] = await Promise.all(
+      (parsed.entries ?? [])
+        .filter((e) => typeof e?.confidence === "number" && e.confidence >= 0.6)
+        .map(async (e) => {
         const type = normalizeExtractedType(e.type)
         const data = { ...(e.data ?? {}) }
 
@@ -169,6 +171,11 @@ export async function POST(req: NextRequest) {
           if (data.estimated === undefined && typeof data.carbsGrams === "number") {
             data.estimated = true
           }
+        }
+
+        if (type === "mood") {
+          const sourceText = String(e.sourceText ?? "").trim()
+          data.moodValue = await scoreMoodText(sourceText)
         }
 
         const rawDate = e.entryDate
@@ -183,7 +190,8 @@ export async function POST(req: NextRequest) {
           included: true,
           ...(entryDate ? { entryDate } : {}),
         }
-      })
+        })
+    )
 
     return new Response(
       JSON.stringify({ entries, message: parsed.message ?? "" }),

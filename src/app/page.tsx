@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Plus, Droplet, Activity, TrendingUp, Heart } from "lucide-react"
+import { Plus, Droplet, Activity, TrendingUp } from "lucide-react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,16 +14,32 @@ import { useEntries } from "@/hooks/useEntries"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db"
+import { scoreMoodTextClient } from "@/lib/mood-client"
+import { defaultMoodLabel } from "@/lib/mood"
 import type { Entry, GlucoseEntry, MoodEntry } from "@/lib/types"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 
-const moodEmojis: Record<number, string> = {
-  1: "😞",
-  2: "😕",
-  3: "😐",
-  4: "🙂",
-  5: "😊",
+function MoodSummaryCard({ label, moodEntry }: { label: string; moodEntry?: MoodEntry }) {
+  const note = moodEntry?.note?.trim() || (moodEntry ? defaultMoodLabel(moodEntry.moodValue) : "Geht so")
+  const moodValue = moodEntry?.moodValue ?? 3
+
+  return (
+    <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
+      <CardContent className="p-3 sm:p-4">
+        <p className="text-[11px] font-medium text-slate-600 sm:text-xs">{label}</p>
+        <p className="mt-1 text-[15px] font-medium text-slate-900">{note}</p>
+        <div className="mt-2 flex items-center gap-[3px]">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <span
+              key={idx}
+              className={`h-2 w-2 rounded-full border ${idx < moodValue ? "border-[#1D9E75] bg-[#1D9E75]" : "border-gray-200 bg-transparent"}`}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function DashboardPage() {
@@ -88,7 +104,17 @@ export default function DashboardPage() {
   const handleSaveEntry = async (entry: Entry) => {
     try {
       if (!userId) return
-      await createEntry(userId, entry)
+      let entryToSave: Entry = entry
+      if (entry.type === "mood") {
+        const note = (entry.note || "").trim()
+        if (note) {
+          const scoredMood = await scoreMoodTextClient(note)
+          entryToSave = { ...entry, moodValue: scoredMood, note }
+        } else {
+          entryToSave = { ...entry, note: defaultMoodLabel(entry.moodValue) }
+        }
+      }
+      await createEntry(userId, entryToSave)
       toast({
         title: t("logbook.entrySaved"),
         description: t("logbook.entrySavedSuccess"),
@@ -154,12 +180,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="min-w-0">
-            <StatCard
-              label={t("dashboard.moodToday")}
-              value={lastMoodEntry ? moodEmojis[lastMoodEntry.moodValue] : "😐"}
-              icon={Heart}
-              color="pink"
-            />
+            <MoodSummaryCard label={t("dashboard.moodToday")} moodEntry={lastMoodEntry} />
           </div>
 
           {!glucoseLoading && glucoseTyped.length === 0 ? (
@@ -221,12 +242,7 @@ export default function DashboardPage() {
                 icon={TrendingUp}
                 color="purple"
               />
-              <StatCard
-                label={t("dashboard.moodToday")}
-                value={lastMoodEntry ? moodEmojis[lastMoodEntry.moodValue] : "😐"}
-                icon={Heart}
-                color="pink"
-              />
+              <MoodSummaryCard label={t("dashboard.moodToday")} moodEntry={lastMoodEntry} />
             </div>
 
           </div>

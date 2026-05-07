@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button"
 import { useEntries } from "@/hooks/useEntries"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db"
+import { scoreMoodTextClient } from "@/lib/mood-client"
+import { defaultMoodLabel } from "@/lib/mood"
 import { addDays, isSameDay, parseISO, startOfDay } from "date-fns"
 
 export default function LogbookPage() {
@@ -66,7 +68,19 @@ export default function LogbookPage() {
     void (async () => {
       if (!userId) return
       try {
-        await createEntry(userId, newEntry)
+        let entryToSave: Entry = newEntry
+        if (newEntry.type === "mood") {
+          const note = (newEntry.note || "").trim()
+          if (note) {
+            const scoredMood = await scoreMoodTextClient(note)
+            entryToSave = { ...newEntry, moodValue: scoredMood, note }
+          } else {
+            const fallbackNote = defaultMoodLabel(newEntry.moodValue)
+            entryToSave = { ...newEntry, note: fallbackNote }
+          }
+        }
+
+        await createEntry(userId, entryToSave)
         await refetch()
         toast({
           title: t("logbook.entrySaved"),

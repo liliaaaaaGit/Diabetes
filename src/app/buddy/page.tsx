@@ -28,6 +28,8 @@ import { Sparkles, ArrowLeft } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 import { format } from "date-fns"
+import { scoreMoodTextClient } from "@/lib/mood-client"
+import { defaultMoodLabel } from "@/lib/mood"
 
 const FALLBACK_PERSONAL_QUOTE_DE =
   "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt."
@@ -193,6 +195,25 @@ export default function BuddyPage() {
         messagesSnapshot = full.messages
         dateIso = full.endedAt || full.startedAt || dateIso
         title = (full.title || "").trim()
+
+        const userMessages = full.messages
+          .filter((m) => m.role === "user")
+          .map((m) => m.content.trim())
+          .filter(Boolean)
+
+        if (userMessages.length > 0) {
+          const combinedMoodText = userMessages.join("\n").slice(0, 1200)
+          const moodValue = await scoreMoodTextClient(combinedMoodText)
+          const latestUserText = userMessages[userMessages.length - 1]?.slice(0, 500)
+          await createEntry(uid, {
+            type: "mood",
+            source: "conversation",
+            conversationId: endingId,
+            timestamp: full.endedAt || new Date().toISOString(),
+            moodValue,
+            note: latestUserText || defaultMoodLabel(moodValue),
+          })
+        }
 
         if (full.messages.length > 0) {
           try {
