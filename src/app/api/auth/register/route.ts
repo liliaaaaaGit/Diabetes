@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { supabase } from "@/lib/supabase"
 import bcrypt from "bcryptjs"
+import { seedMockDataForUser } from "@/lib/seed-mock-data"
 
 export const runtime = "nodejs"
 
@@ -90,6 +91,11 @@ export async function POST(req: NextRequest) {
       sameSite: "strict",
       maxAge: 30 * 24 * 60 * 60,
       path: "/",
+    })
+
+    // Seed in background so registration stays fast.
+    void seedMockDataForUser(newUser.id).catch((seedError) => {
+      console.error("[auth/register] mock seed failed:", seedError)
     })
 
     return NextResponse.json({ success: true, userId: newUser.id })
