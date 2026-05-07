@@ -89,7 +89,7 @@ async function selectByEntryIds<T extends Record<string, unknown>>(
       .in("entry_id", chunk)
 
     if (error) throw error
-    if (data?.length) rows.push(...(data as T[]))
+    if (data?.length) rows.push(...(data as unknown as T[]))
   }
 
   return rows
