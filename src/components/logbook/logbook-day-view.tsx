@@ -2,8 +2,7 @@
 
 import { useMemo } from "react"
 import type { Entry, EntryType, GlucoseEntry, InsulinEntry, MealEntry } from "@/lib/types"
-import { clusterEntriesByTime } from "@/lib/logbook-cluster"
-import { LogbookUnifiedEntryCard } from "./logbook-unified-entry-card"
+import { EntryList } from "./entry-list"
 import { EmptyState } from "@/components/shared/empty-state"
 import { BookOpen } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
@@ -25,22 +24,15 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
   const { t, locale } = useTranslation()
   const dateLocale = locale === "de" ? de : enUS
 
-  const filteredEntries = useMemo(() => {
-    if (filter === "all") return entriesForDay
-    return entriesForDay.filter((e) => e.type === filter)
-  }, [entriesForDay, filter])
-
-  const clusters = useMemo(
-    () => clusterEntriesByTime(filteredEntries),
-    [filteredEntries]
+  const filteredEntries = useMemo(
+    () => (filter === "all" ? entriesForDay : entriesForDay.filter((entry) => entry.type === filter)),
+    [entriesForDay, filter]
   )
 
-  const displayClusters = useMemo(() => [...clusters].reverse(), [clusters])
-
   const summary = useMemo(() => {
-    const g = filteredEntries.filter((e) => e.type === "glucose") as GlucoseEntry[]
-    const ins = filteredEntries.filter((e) => e.type === "insulin") as InsulinEntry[]
-    const meals = filteredEntries.filter((e) => e.type === "meal") as MealEntry[]
+    const g = entriesForDay.filter((e) => e.type === "glucose") as GlucoseEntry[]
+    const ins = entriesForDay.filter((e) => e.type === "insulin") as InsulinEntry[]
+    const meals = entriesForDay.filter((e) => e.type === "meal") as MealEntry[]
 
     const avgGlucose =
       g.length > 0
@@ -55,12 +47,11 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
       avgGlucose,
       sumCarbs,
       sumInsulin,
-      showAvg:
-        (filter === "all" || filter === "glucose") && g.length > 0 && avgGlucose != null,
-      showCarbs: (filter === "all" || filter === "meal") && meals.length > 0,
-      showInsulin: (filter === "all" || filter === "insulin") && ins.length > 0,
+      showAvg: g.length > 0 && avgGlucose != null,
+      showCarbs: meals.length > 0,
+      showInsulin: ins.length > 0,
     }
-  }, [filteredEntries, filter])
+  }, [entriesForDay, filteredEntries.length])
 
   const dateTitle = format(selectedDate, "EEEE, d. MMMM yyyy", { locale: dateLocale })
 
@@ -76,44 +67,19 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
   }
 
   return (
-    <div className="space-y-4 w-full">
-      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-base font-semibold text-slate-900">{dateTitle}</p>
-            <p className="text-sm text-slate-600 mt-0.5">
-              {summary.count}{" "}
-              {summary.count === 1 ? t("logbook.entrySingular") : t("logbook.entryPlural")}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-700">
-            {summary.showAvg ? (
-              <span>
-                {t("logbook.summaryAvgGlucose")}: {summary.avgGlucose} {t("units.mgdl")}
-              </span>
-            ) : null}
-            {summary.showCarbs ? (
-              <span>
-                {t("logbook.summaryCarbs")}: {summary.sumCarbs}g
-              </span>
-            ) : null}
-            {summary.showInsulin ? (
-              <span>
-                {t("logbook.summaryInsulin")}: {summary.sumInsulin} {t("units.units")}
-              </span>
-            ) : null}
+    <div className="space-y-3 w-full">
+      <div className="border-b-[0.5px] border-slate-200 pb-[10px] mb-[14px]">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <p className="text-[15px] font-medium text-slate-900">{dateTitle}</p>
+          <div className="flex flex-wrap items-center gap-[14px] text-xs text-gray-500">
+            {summary.showAvg ? <span>Ø {summary.avgGlucose} mg/dL</span> : null}
+            {summary.showCarbs ? <span>{summary.sumCarbs}g KH</span> : null}
+            {summary.showInsulin ? <span>{summary.sumInsulin} IE</span> : null}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 w-full">
-        {displayClusters.map((cluster) => (
-          <LogbookUnifiedEntryCard
-            key={cluster.length === 1 ? cluster[0].id : cluster.map((e) => e.id).join("-")}
-            entries={cluster}
-          />
-        ))}
-      </div>
+      <EntryList entries={entriesForDay} filter={filter} />
     </div>
   )
 }

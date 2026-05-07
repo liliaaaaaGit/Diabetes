@@ -1,13 +1,182 @@
 "use client"
 
-import type { Entry } from "@/lib/types"
-import { LogbookUnifiedEntryCard } from "./logbook-unified-entry-card"
+import type {
+  ActivityEntry,
+  Entry,
+  GlucoseEntry,
+  InsulinEntry,
+  MealEntry,
+  MoodEntry,
+} from "@/lib/types"
+import { parseISO, format } from "date-fns"
+import { de } from "date-fns/locale/de"
+import { enUS } from "date-fns/locale/en-US"
+import { useTranslation } from "@/hooks/useTranslation"
+import { cn } from "@/lib/utils"
+
+interface MomentCardProps {
+  entries: Entry[]
+}
+
+function toMgDl(glucose: GlucoseEntry): number {
+  return glucose.unit === "mmol_l" ? glucose.value * 18.0182 : glucose.value
+}
+
+function bgValueClass(mgDl: number): string {
+  if (mgDl > 180) return "text-[#E24B4A]"
+  if (mgDl < 70 || mgDl >= 140) return "text-[#BA7517]"
+  return "text-[#1D9E75]"
+}
+
+function isBasalLantus(entry: InsulinEntry): boolean {
+  const name = (entry.insulinName || "").toLowerCase()
+  return entry.insulinType === "long_acting" || name.includes("lantus")
+}
+
+function formatDose(dose: number): string {
+  return dose % 1 === 0 ? String(dose) : dose.toFixed(1)
+}
+
+function formatCarbs(meal: MealEntry): string {
+  const carbs = meal.carbsGrams ?? 0
+  const carbsText = carbs % 1 === 0 ? String(carbs) : carbs.toFixed(1)
+  return `${carbsText}g`
+}
+
+function moodLabel(value: number): string {
+  if (value <= 1) return "Sehr schlecht"
+  if (value === 2) return "Eher schlecht"
+  if (value === 3) return "Ganz okay"
+  if (value === 4) return "Gut"
+  return "Sehr gut"
+}
+
+function Chip({ text }: { text: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
+      {text}
+    </span>
+  )
+}
+
+export function MomentCard({ entries }: MomentCardProps) {
+  const { locale } = useTranslation()
+  const dateLocale = locale === "en" ? enUS : de
+  const sorted = [...entries].sort(
+    (a, b) => parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
+  )
+
+  const glucose = sorted.find((entry) => entry.type === "glucose") as GlucoseEntry | undefined
+  const meals = sorted.filter((entry) => entry.type === "meal") as MealEntry[]
+  const insulin = sorted.filter((entry) => entry.type === "insulin") as InsulinEntry[]
+  const activities = sorted.filter((entry) => entry.type === "activity") as ActivityEntry[]
+  const moods = sorted.filter((entry) => entry.type === "mood") as MoodEntry[]
+  const basalInsulin = insulin.find(isBasalLantus)
+  const bolusInsulin = insulin.filter((entry) => !isBasalLantus(entry))
+
+  const anchor = sorted[0]
+  const timeText = format(parseISO(anchor.timestamp), "HH:mm", { locale: dateLocale })
+
+  const mood = moods[0]
+  const moodText = (mood?.note || "").trim() || (mood ? moodLabel(mood.moodValue) : "")
+
+  const isBasalCard =
+    !glucose && !!basalInsulin && meals.length === 0 && activities.length === 0 && moods.length === 0
+  const isMoodCard = !glucose && moods.length > 0
+  const isActivityOnly = !glucose && activities.length > 0
+
+  return (
+    <article
+      className={cn(
+        "rounded-xl bg-white px-[18px] py-[14px] mb-2 border-[0.5px] border-gray-200",
+        isBasalCard && "border-dashed"
+      )}
+    >
+      {glucose ? (
+        <div className="mb-2 flex items-start justify-between">
+          <div className="flex items-end gap-1.5">
+            <span className={cn("text-2xl font-medium leading-none", bgValueClass(toMgDl(glucose)))}>
+              {Math.round(toMgDl(glucose))}
+            </span>
+            <span className="text-[13px] text-gray-400">mg/dL</span>
+          </div>
+          <span className="text-xs text-gray-400">{timeText}</span>
+        </div>
+      ) : (
+        <div className="mb-2 flex items-start justify-between">
+          {isMoodCard ? (
+            <div>
+              <p className="text-xs text-gray-400">Stimmung</p>
+              <div className="mt-1 flex items-center gap-2">
+                <p className="text-[15px] font-medium text-slate-800">{moodText}</p>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, idx) => {
+                    const filled = mood && idx < mood.moodValue
+                    return (
+                      <span
+                        key={idx}
+                        className={cn(
+                          "h-2 w-2 rounded-full border",
+                          filled ? "border-teal-500 bg-teal-500" : "border-gray-200 bg-transparent"
+                        )}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : isBasalCard ? (
+            <div className="flex items-center gap-2">
+              <Chip text={`${formatDose(basalInsulin.dose)} IE ${basalInsulin.insulinName || "Lantus"}`} />
+              <span className="text-[11px] italic text-gray-400">Basal</span>
+            </div>
+          ) : isActivityOnly ? (
+            <div className="flex flex-wrap gap-2">
+              {activities.map((activity) => (
+                <Chip
+                  key={activity.id}
+                  text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-[15px] font-medium text-slate-800">Eintrag</p>
+          )}
+          <span className="text-xs text-gray-400">{timeText}</span>
+        </div>
+      )}
+
+      {glucose ? (
+        <div className="flex flex-wrap gap-2">
+          {meals.map((meal) => (
+            <Chip
+              key={meal.id}
+              text={`${meal.description || "Mahlzeit"} · ${formatCarbs(meal)}`}
+            />
+          ))}
+          {bolusInsulin.map((entry) => (
+            <Chip
+              key={entry.id}
+              text={`${formatDose(entry.dose)} IE ${entry.insulinName || "Insulin"}`}
+            />
+          ))}
+          {activities.map((activity) => (
+            <Chip
+              key={activity.id}
+              text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </article>
+  )
+}
 
 interface EntryCardProps {
   entry: Entry
 }
 
-/** @deprecated Prefer LogbookUnifiedEntryCard with a one-element array */
+/** Backward-compatible wrapper for old usages. */
 export function EntryCard({ entry }: EntryCardProps) {
-  return <LogbookUnifiedEntryCard entries={[entry]} />
+  return <MomentCard entries={[entry]} />
 }
