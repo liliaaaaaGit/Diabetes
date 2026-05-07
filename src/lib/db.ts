@@ -65,6 +65,35 @@ function normalizeConversationEmotionsFromDb(raw: unknown): ConversationEmotions
 }
 
 const mmolToMgdl = (mmol: number) => mmol * 18.0182
+const ENTRY_ID_CHUNK_SIZE = 200
+
+async function selectByEntryIds<T extends Record<string, unknown>>(
+  table:
+    | "entry_glucose"
+    | "entry_insulin"
+    | "entry_meal"
+    | "entry_activity"
+    | "entry_mood",
+  selectClause: string,
+  entryIds: string[]
+): Promise<T[]> {
+  if (entryIds.length === 0) return []
+
+  const rows: T[] = []
+
+  for (let i = 0; i < entryIds.length; i += ENTRY_ID_CHUNK_SIZE) {
+    const chunk = entryIds.slice(i, i + ENTRY_ID_CHUNK_SIZE)
+    const { data, error } = await supabase
+      .from(table)
+      .select(selectClause)
+      .in("entry_id", chunk)
+
+    if (error) throw error
+    if (data?.length) rows.push(...(data as T[]))
+  }
+
+  return rows
+}
 
 export async function deleteEntry(entryId: string, userId: string): Promise<void> {
   const { error } = await supabase.from("entries").delete().eq("id", entryId).eq("user_id", userId)
@@ -336,21 +365,35 @@ export async function getEntries(
   const moodIds = byType.mood
 
   const [glucoseRows, insulinRows, mealRows, activityRows, moodRows] = await Promise.all([
-    glucoseIds.length
-      ? supabase.from("entry_glucose").select("entry_id,value,context").in("entry_id", glucoseIds)
-      : Promise.resolve({ data: [], error: null }),
-    insulinIds.length
-      ? supabase.from("entry_insulin").select("entry_id,dose,insulin_type,insulin_name").in("entry_id", insulinIds)
-      : Promise.resolve({ data: [], error: null }),
-    mealIds.length
-      ? supabase.from("entry_meal").select("entry_id,description,carbs_grams,meal_type,linked_insulin_id").in("entry_id", mealIds)
-      : Promise.resolve({ data: [], error: null }),
-    activityIds.length
-      ? supabase.from("entry_activity").select("entry_id,activity_type,duration_minutes,intensity").in("entry_id", activityIds)
-      : Promise.resolve({ data: [], error: null }),
-    moodIds.length
-      ? supabase.from("entry_mood").select("entry_id,mood_value").in("entry_id", moodIds)
-      : Promise.resolve({ data: [], error: null }),
+    selectByEntryIds<{ entry_id: string; value: number; context: string | null }>(
+      "entry_glucose",
+      "entry_id,value,context",
+      glucoseIds
+    ),
+    selectByEntryIds<{
+      entry_id: string
+      dose: number
+      insulin_type: string
+      insulin_name: string | null
+    }>("entry_insulin", "entry_id,dose,insulin_type,insulin_name", insulinIds),
+    selectByEntryIds<{
+      entry_id: string
+      description: string
+      carbs_grams: number | null
+      meal_type: string
+      linked_insulin_id: string | null
+    }>("entry_meal", "entry_id,description,carbs_grams,meal_type,linked_insulin_id", mealIds),
+    selectByEntryIds<{
+      entry_id: string
+      activity_type: string
+      duration_minutes: number | null
+      intensity: string
+    }>("entry_activity", "entry_id,activity_type,duration_minutes,intensity", activityIds),
+    selectByEntryIds<{ entry_id: string; mood_value: number }>(
+      "entry_mood",
+      "entry_id,mood_value",
+      moodIds
+    ),
   ])
 
   const indexById = <T extends Record<string, any>>(arr: T[]) =>
@@ -359,11 +402,11 @@ export async function getEntries(
       return acc
     }, {} as Record<string, T>)
 
-  const glucoseMap = indexById(glucoseRows.data as any[])
-  const insulinMap = indexById(insulinRows.data as any[])
-  const mealMap = indexById(mealRows.data as any[])
-  const activityMap = indexById(activityRows.data as any[])
-  const moodMap = indexById(moodRows.data as any[])
+  const glucoseMap = indexById(glucoseRows as any[])
+  const insulinMap = indexById(insulinRows as any[])
+  const mealMap = indexById(mealRows as any[])
+  const activityMap = indexById(activityRows as any[])
+  const moodMap = indexById(moodRows as any[])
 
   const result: Entry[] = base.map((row) => {
     const common = {
