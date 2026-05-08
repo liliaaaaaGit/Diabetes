@@ -62,6 +62,7 @@ export function buildDailyMoodGlucosePoints(
 
   const glucose = entries.filter((e) => e.type === "glucose") as GlucoseEntry[]
   const moods = entries.filter((e) => e.type === "mood") as MoodEntry[]
+  let lastKnownMood: number | null = null
 
   return days.map((day) => {
     const key = format(day, "yyyy-MM-dd")
@@ -87,12 +88,20 @@ export function buildDailyMoodGlucosePoints(
       if (c.emotions) moodVals.push(emotionsToMood1to5(c.emotions))
     }
 
-    // For correlation, only show mood on days where glucose exists.
-    // No synthetic neutral fallback, keep missing mood as null.
-    const mood =
-      dayGlucose.length > 0 && moodVals.length > 0
+    const moodFromDay =
+      moodVals.length > 0
         ? Math.round((moodVals.reduce((a, b) => a + b, 0) / moodVals.length) * 10) / 10
         : null
+
+    if (moodFromDay != null) {
+      lastKnownMood = moodFromDay
+    }
+
+    // Correlation view:
+    // - mood only on days that have glucose
+    // - no hardcoded neutral fallback
+    // - if mood is missing on a glucose day, carry forward last known mood
+    const mood = dayGlucose.length > 0 ? (moodFromDay ?? lastKnownMood) : null
 
     return { dateKey: key, label, avgGlucose, mood }
   })
