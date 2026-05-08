@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
 import { createEntry } from "@/lib/db"
 import type { CsvImportRowPayload } from "@/lib/csv-import"
+import { getSessionUserId } from "@/lib/auth-session"
 import {
   GLUCOSE_RANGE,
   INSULIN_RANGE,
@@ -34,7 +34,7 @@ function validateCarbs(v: number): boolean {
 }
 
 export async function POST(req: Request) {
-  const userId = cookies().get("gc_user_id")?.value
+  const userId = await getSessionUserId()
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }

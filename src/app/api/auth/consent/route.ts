@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
 import { supabaseServer as supabase } from "@/lib/supabase-server"
+import { cookies } from "next/headers"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
 
@@ -13,7 +14,7 @@ const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 export async function POST() {
   try {
     const cookieStore = await cookies()
-    const userId = cookieStore.get("gc_user_id")?.value
+    const userId = await getSessionUserId()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Nicht angemeldet" }, { status: 401 })

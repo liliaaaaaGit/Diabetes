@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
-import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { ConversationEmotions, ConversationTag, Message } from "@/lib/types"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -101,8 +101,7 @@ function normalizeEmotions(raw: unknown): ConversationEmotions {
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const userId = cookieStore.get("gc_user_id")?.value
+    const userId = await getSessionUserId()
     if (!userId) {
       return new Response(JSON.stringify({ code: "unauthorized" }), {
         status: 401,

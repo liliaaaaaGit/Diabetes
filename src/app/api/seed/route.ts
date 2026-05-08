@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
 import { reseedMockDataForUser } from "@/lib/seed-mock-data"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
 
@@ -10,8 +10,7 @@ export async function POST() {
   }
 
   try {
-    const store = await cookies()
-    const userId = store.get("gc_user_id")?.value
+    const userId = await getSessionUserId()
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "Nicht angemeldet" }, { status: 401 })

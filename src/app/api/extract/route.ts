@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server"
-import { cookies } from "next/headers"
 import { openai } from "@/lib/openai-server"
 import type { EntryType, ExtractedEntry } from "@/lib/types"
 import { isValidDateYmd } from "@/lib/entry-timestamp"
 import { scoreMoodText } from "@/lib/mood-score"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -81,8 +81,7 @@ function normalizeExtractedType(raw: unknown): EntryType | undefined {
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const userId = cookieStore.get("gc_user_id")?.value
+    const userId = await getSessionUserId()
     if (!userId) {
       return new Response(JSON.stringify({ code: "unauthorized" }), {
         status: 401,

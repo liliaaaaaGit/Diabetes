@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { getSessionUserId } from "@/lib/auth-session"
 
 export const dynamic = "force-dynamic"
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic"
  */
 export async function GET() {
   const store = await cookies()
-  const userId = store.get("gc_user_id")?.value ?? null
+  const userId = await getSessionUserId()
   const pseudonym = store.get("gc_pseudonym")?.value ?? null
   return NextResponse.json({
     userId,
