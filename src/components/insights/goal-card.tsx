@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useTranslation } from "@/hooks/useTranslation"
-import { updateGoalProgress } from "@/lib/db"
+import { updateGoalProgress } from "@/lib/db-client"
 import type { Goal } from "@/lib/types"
 import { useState } from "react"
 

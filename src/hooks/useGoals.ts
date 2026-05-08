@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { getGoals } from "@/lib/db"
+import { getGoals } from "@/lib/db-client"
 import type { Goal } from "@/lib/types"
 
 export function useGoals(userId: string | null) {

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/useUser"
 import type { ExtractedEntry } from "@/lib/types"
-import { createEntry } from "@/lib/db"
+import { createEntry } from "@/lib/db-client"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 import { format } from "date-fns"
 

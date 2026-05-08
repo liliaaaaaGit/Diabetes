@@ -6,7 +6,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { getConversation, searchConversations, updateConversationSummary } from "@/lib/db"
+import { getConversation, searchConversations, updateConversationSummary } from "@/lib/db-client"
 import { HistoryStats } from "./history-stats"
 import { HistoryConversationCard, HistoryListHeader } from "./history-conversation-card"
 

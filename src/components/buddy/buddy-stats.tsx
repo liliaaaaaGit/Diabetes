@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Smile } from "lucide-react"
-import { getEmotionAverages } from "@/lib/db"
+import { getEmotionAverages } from "@/lib/db-client"
 import type { ConversationEmotions } from "@/lib/types"
 import { useTranslation } from "@/hooks/useTranslation"
 import { DailyGoals, type BuddyDailyGoal } from "@/components/buddy/daily-goals"

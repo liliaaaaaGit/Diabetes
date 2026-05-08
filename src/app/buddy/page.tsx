@@ -21,7 +21,7 @@ import {
   cleanupEmptyConversations,
   deleteConversation,
   deleteConversationsWithoutUserMessages,
-} from "@/lib/db"
+} from "@/lib/db-client"
 import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowLeft } from "lucide-react"

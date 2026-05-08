@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { getConversation } from "@/lib/db"
+import { getConversation } from "@/lib/db-client"
 import type { Conversation } from "@/lib/types"
 
 export function useConversation(conversationId: string | undefined, userId: string | null) {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getConversationStats } from "@/lib/db"
+import { getConversationStats } from "@/lib/db-client"
 import { useTranslation } from "@/hooks/useTranslation"
 
 interface HistoryStatsProps {

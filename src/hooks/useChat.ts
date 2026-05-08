@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Message } from "@/lib/types"
-import { getConversation, addMessage, updateConversationTitle } from "@/lib/db"
+import { getConversation, addMessage, updateConversationTitle } from "@/lib/db-client"
 import { BUDDY_OPENING_USER_MESSAGE } from "@/lib/buddy-chat-constants"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/useTranslation"

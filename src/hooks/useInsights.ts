@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { getInsights } from "@/lib/db"
+import { getInsights } from "@/lib/db-client"
 import type { Insight } from "@/lib/types"
 
 export function useInsights(userId: string | null) {
