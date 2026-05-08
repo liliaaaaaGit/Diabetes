@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { getEntries } from "@/lib/db"
 import type { Entry, EntryType } from "@/lib/types"
 
 export type EntriesFilters = {
@@ -29,14 +28,21 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
     setError(null)
     try {
       const parsed = JSON.parse(filtersKey) as EntriesFilters
-      const hasKeys = Object.keys(parsed).length > 0
-      const filterArg = !hasKeys
-        ? undefined
-        : parsed.type
-          ? { type: parsed.type, from: parsed.from, to: parsed.to, limit: parsed.limit }
-          : parsed
-      const data = await getEntries(userId, filterArg)
-      setEntries(data)
+      const params = new URLSearchParams()
+      if (parsed.type) params.set("type", parsed.type)
+      if (parsed.from) params.set("from", parsed.from)
+      if (parsed.to) params.set("to", parsed.to)
+      if (parsed.limit != null) params.set("limit", String(parsed.limit))
+      const query = params.toString()
+
+      const res = await fetch(`/api/entries${query ? `?${query}` : ""}`, {
+        credentials: "include",
+      })
+      if (!res.ok) {
+        throw new Error("Failed to load entries")
+      }
+      const json = (await res.json()) as { entries?: Entry[] }
+      setEntries(Array.isArray(json.entries) ? json.entries : [])
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load entries")
     } finally {

@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { getDashboardStats } from "@/lib/db"
 import type { DashboardStats } from "@/lib/types"
 
 export function useDashboardStats(userId: string | null) {
@@ -19,8 +18,12 @@ export function useDashboardStats(userId: string | null) {
     setLoading(true)
     setError(null)
     try {
-      const data = await getDashboardStats(userId)
-      setStats(data)
+      const res = await fetch("/api/dashboard/stats", { credentials: "include" })
+      if (!res.ok) {
+        throw new Error("Failed to load dashboard stats")
+      }
+      const json = (await res.json()) as { stats?: DashboardStats }
+      setStats(json.stats ?? null)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load dashboard stats")
     } finally {
