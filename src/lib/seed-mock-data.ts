@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase"
+import { supabaseServer as supabase } from "@/lib/supabase-server"
 import type { GlucoseContext, InsulinType, MealType, MoodValue } from "@/lib/types"
 
 type DayType = "good_day" | "normal_day" | "spike_day" | "hypo_day" | "sick_day" | "stress_day"

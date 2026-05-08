@@ -1,11 +1,10 @@
--- Run this in Supabase: SQL Editor → New query → paste → Run.
+-- DEPRECATED / INSECURE fallback.
 --
--- Research prototype only: turns off Row Level Security on app tables so the
--- browser Supabase client (anon key) is no longer blocked by policies that
--- were tied to a fixed demo user UUID. The app still filters by user_id in code.
+-- Prefer enable-rls-research-prototype.sql instead.
+-- That file enables RLS across all tables and blocks direct anon usage.
 --
--- Security: Anyone with your anon key and project URL could read/write all rows
--- if they bypass your app. Do not use this pattern for production with real PHI.
+-- This file disables RLS and is only kept for emergency local debugging.
+-- Do NOT run this on any environment with real participant data.
 
 ALTER TABLE IF EXISTS public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.entries DISABLE ROW LEVEL SECURITY;

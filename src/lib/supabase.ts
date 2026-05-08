@@ -15,3 +15,7 @@ export const supabase = createClient(
   supabaseAnonKey as string
 )
 
+// IMPORTANT:
+// This client is for browser-safe usage only (anon key).
+// Server/API routes must use "@/lib/supabase-server" with SERVICE_ROLE_KEY.
+
