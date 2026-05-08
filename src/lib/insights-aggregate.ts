@@ -87,12 +87,12 @@ export function buildDailyMoodGlucosePoints(
       if (c.emotions) moodVals.push(emotionsToMood1to5(c.emotions))
     }
 
-    // Always provide one mood point per calendar day for the chart.
-    // If no mood signal exists for that day, fall back to neutral (3).
+    // For correlation, only show mood on days where glucose exists.
+    // No synthetic neutral fallback, keep missing mood as null.
     const mood =
-      moodVals.length > 0
+      dayGlucose.length > 0 && moodVals.length > 0
         ? Math.round((moodVals.reduce((a, b) => a + b, 0) / moodVals.length) * 10) / 10
-        : 3
+        : null
 
     return { dateKey: key, label, avgGlucose, mood }
   })
