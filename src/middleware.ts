@@ -15,6 +15,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  /** Legal / study info — fully public, no access or auth cookies required */
+  if (pathname === "/datenschutz" || pathname === "/thesis-info") {
+    return NextResponse.next()
+  }
+
   const redirectAccess = () => NextResponse.redirect(new URL("/access", request.url))
   const redirectLogin = () => NextResponse.redirect(new URL("/login", request.url))
   const redirectConsent = () => NextResponse.redirect(new URL("/consent", request.url))
@@ -26,7 +31,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (pathname === "/privacy") {
+  if (pathname === "/privacy" || pathname === "/thesis") {
     if (!hasAccess) {
       return redirectAccess()
     }

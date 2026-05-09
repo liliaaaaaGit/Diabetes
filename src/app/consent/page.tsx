@@ -76,42 +76,74 @@ export default function ConsentPage() {
 
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="max-h-96 overflow-y-auto pr-2 text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                {t("auth.consentText")}
-              </div>
-
-              <p className="pt-2 text-center">
-                <Link
-                  href="/privacy"
-                  className="text-sm font-medium text-teal-600 hover:text-teal-700 underline underline-offset-2"
-                >
-                  {t("auth.consentPrivacyLink")}
-                </Link>
+            <div className="max-h-96 overflow-y-auto pr-2 space-y-4 text-sm text-slate-700 leading-relaxed">
+              <p>{t("auth.consentIntro")}</p>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelDemo")}:</strong>{" "}
+                {t("auth.consentBodyDemo")}
               </p>
-
-              <div className="pt-4 border-t border-slate-200 space-y-3">
-                <Button
-                  onClick={() => void handleAgree()}
-                  disabled={submitting || loggingOut}
-                  className="w-full whitespace-normal py-3 h-auto text-sm leading-snug"
-                >
-                  {submitting ? t("common.loading") : t("auth.consentCheckbox")}
-                </Button>
-                <p className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => void handleLogout()}
-                    disabled={submitting || loggingOut}
-                    className="text-sm font-medium text-slate-600 hover:text-teal-700 underline underline-offset-2 disabled:opacity-50"
-                  >
-                    {loggingOut ? t("common.loading") : t("auth.logout")}
-                  </button>
-                </p>
-              </div>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelYourData")}:</strong>{" "}
+                {t("auth.consentBodyYourData")}
+              </p>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelAI")}:</strong>{" "}
+                {t("auth.consentBodyAI")}
+              </p>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelNotMedical")}:</strong>{" "}
+                {t("auth.consentBodyNotMedical")}
+              </p>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelVoluntary")}:</strong>{" "}
+                {t("auth.consentBodyVoluntary")}
+              </p>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelDeletion")}:</strong>{" "}
+                {t("auth.consentBodyDeletion")}
+              </p>
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-4 space-y-2 text-center">
+          <p>
+            <Link
+              href="/datenschutz?returnTo=/consent"
+              className="text-sm font-medium text-teal-600 hover:text-teal-700 underline underline-offset-2"
+            >
+              {t("auth.consentPrivacyLink")}
+            </Link>
+          </p>
+          <p>
+            <Link
+              href="/thesis-info?returnTo=/consent"
+              className="text-sm font-medium text-teal-600 hover:text-teal-700 underline underline-offset-2"
+            >
+              {t("settings.thesisInfo")}
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <Button
+            onClick={() => void handleAgree()}
+            disabled={submitting || loggingOut}
+            className="w-full whitespace-normal py-3 h-auto text-sm leading-snug"
+          >
+            {submitting ? t("common.loading") : t("auth.consentCheckbox")}
+          </Button>
+          <p className="text-center">
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              disabled={submitting || loggingOut}
+              className="text-sm font-medium text-slate-600 hover:text-teal-700 underline underline-offset-2 disabled:opacity-50"
+            >
+              {loggingOut ? t("common.loading") : t("auth.logout")}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   )

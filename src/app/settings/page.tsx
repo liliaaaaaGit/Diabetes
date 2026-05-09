@@ -157,16 +157,14 @@ export default function SettingsPage() {
               <p className="text-sm text-slate-700">
                 {t("safety.disclaimer")}
               </p>
-              <a
-                href="https://example.com/glucocompanion-thesis"
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href="/thesis-info?returnTo=/settings"
                 className="text-sm text-teal-600 underline mt-2 inline-block"
               >
                 {t("settings.thesisInfo")}
-              </a>
+              </Link>
               <Link
-                href="/privacy?returnTo=/settings"
+                href="/datenschutz?returnTo=/settings"
                 className="text-sm text-teal-600 underline mt-3 block"
               >
                 {t("settings.openPrivacyPolicy")}
