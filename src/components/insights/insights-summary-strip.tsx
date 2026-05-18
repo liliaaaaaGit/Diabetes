@@ -51,15 +51,22 @@ export function InsightsSummaryStrip({
             <ResponsiveContainer width="100%" height={52}>
               <LineChart data={sparkData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
                 <Tooltip
-                  formatter={(v, _n, item) => {
-                    const row = (item as { payload?: { bgMgDl?: number | null } })?.payload
-                    const mg = row?.bgMgDl
-                    return mg != null
-                      ? [`${formatGlucose(mg, displayUnit)} ${unitSuffix}`, t("insights.avgGlucose")]
-                      : ["—", ""]
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null
+                    const mg = (
+                      payload[0]?.payload as { bgMgDl?: number | null } | undefined
+                    )?.bgMgDl
+                    return (
+                      <div className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs shadow-sm">
+                        <p className="font-medium text-slate-700">{label}</p>
+                        <p className="text-slate-900 tabular-nums">
+                          {mg != null
+                            ? `${formatGlucose(mg, displayUnit)} ${unitSuffix}`
+                            : "—"}
+                        </p>
+                      </div>
+                    )
                   }}
-                  labelFormatter={(l) => l}
-                  contentStyle={{ fontSize: 12 }}
                 />
                 <Line
                   type="monotone"
