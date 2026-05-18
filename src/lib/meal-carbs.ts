@@ -67,11 +67,17 @@ export function confidenceLabelKey(confidence?: CarbConfidence): string {
 
 export function hasAiMealEstimate(meal: MealEntry): boolean {
   return (
+    meal.mealSource === "freetext_ai" ||
+    meal.mealSource === "photo_ai" ||
     meal.carbsConfidence != null ||
     meal.carbsMinGrams != null ||
     meal.components != null ||
     meal.extractionNote != null
   )
+}
+
+export function isPhotoMealEstimate(meal: MealEntry): boolean {
+  return meal.mealSource === "photo_ai"
 }
 
 export function normalizeComponents(raw: unknown): MealComponent[] | undefined {
@@ -84,11 +90,19 @@ export function normalizeComponents(raw: unknown): MealComponent[] | undefined {
     if (!name) continue
     const kh_g = Number(o.kh_g)
     if (!Number.isFinite(kh_g)) continue
-    out.push({
+    const comp: MealComponent = {
       name,
       kh_g,
       amount_g: o.amount_g != null && Number.isFinite(Number(o.amount_g)) ? Number(o.amount_g) : undefined,
-    })
+    }
+    const est =
+      typeof o.estimated_amount === "string"
+        ? o.estimated_amount.trim()
+        : typeof o.estimatedAmount === "string"
+          ? o.estimatedAmount.trim()
+          : ""
+    if (est) comp.estimatedAmount = est
+    out.push(comp)
   }
   return out.length ? out : undefined
 }

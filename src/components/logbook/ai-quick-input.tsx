@@ -11,6 +11,8 @@ import { useUser } from "@/hooks/useUser"
 import type { ExtractedEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db-client"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
+import { PhotoMealProvider } from "@/components/logbook/photo-meal-context"
+import { PhotoMealInput, PhotoMealPanels } from "@/components/logbook/photo-meal-input"
 import { format } from "date-fns"
 
 interface AiQuickInputProps {
@@ -96,6 +98,7 @@ export function AiQuickInput({
   }
 
   return (
+    <PhotoMealProvider onRefetch={onRefetch}>
     <div className="sticky top-16 z-20 bg-slate-50/90 backdrop-blur pt-3 pb-2 px-0">
       <div className="mx-auto max-w-3xl md:max-w-7xl px-0">
         <p className="mb-2 px-1 text-xs leading-snug text-slate-600 sm:px-0">
@@ -107,7 +110,7 @@ export function AiQuickInput({
             "p-3 sm:p-4"
           )}
         >
-          <div className="flex gap-3 items-start">
+          <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 items-start">
             <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
               <Sparkles className="h-5 w-5 text-teal-600" />
             </div>
@@ -134,6 +137,8 @@ export function AiQuickInput({
               }}
             />
 
+            <PhotoMealInput disabled={isDisabled || isExtracting} />
+
             <Button
               onClick={() => {
                 const trimmed = text.trim()
@@ -149,6 +154,8 @@ export function AiQuickInput({
             >
               {isExtracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
+
+            <PhotoMealPanels />
           </div>
 
           <div className="mt-2 text-xs text-slate-600 flex items-center gap-2">
@@ -180,6 +187,7 @@ export function AiQuickInput({
           <ExtractionConfirmation
             extractedEntries={extractedEntries}
             aiMessage={aiMessage}
+            mealSource="freetext_ai"
             source="manual"
             onSaveEntry={async (entry) => {
               if (!userId) throw new Error("Not signed in")
@@ -201,6 +209,7 @@ export function AiQuickInput({
         )}
       </div>
     </div>
+    </PhotoMealProvider>
   )
 }
 

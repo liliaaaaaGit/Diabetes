@@ -8,6 +8,7 @@ import type {
   GlucoseEntry,
   InsulinEntry,
   MealEntry,
+  MealInputSource,
   ActivityEntry,
   MoodEntry,
   MoodValue,
@@ -60,6 +61,9 @@ type ExtractionConfirmationProps = {
   onDiscard: () => void
   source?: "manual" | "conversation"
   conversationId?: string
+  /** Stored on entry_meal.source when saving meals. */
+  mealSource?: MealInputSource
+  photoWarning?: string | null
 }
 
 function getEntryTypeFromData(data: ExtractedEntry["data"]): EntryType | null {
@@ -111,6 +115,8 @@ export function ExtractionConfirmation({
   onDiscard,
   source = "conversation",
   conversationId,
+  mealSource = "freetext_ai",
+  photoWarning,
 }: ExtractionConfirmationProps) {
   const { t, locale: appLocale } = useTranslation()
   const locale = appLocale === "en" ? "en" : "de"
@@ -208,6 +214,9 @@ export function ExtractionConfirmation({
         fatProteinNote: data.fatProteinNote as string | undefined,
         extractionNote: data.extractionNote as string | undefined,
         mealType: (data.mealType as MealEntry["mealType"]) ?? "lunch",
+        mealSource:
+          (data.mealSource as MealInputSource | undefined) ?? mealSource,
+        estimated: data.estimated !== false,
       } as NewEntry
     }
 
@@ -601,6 +610,12 @@ export function ExtractionConfirmation({
             </div>
           </div>
         </div>
+
+        {photoWarning ? (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            {photoWarning}
+          </p>
+        ) : null}
 
         <div className="space-y-3 mt-4">
           {computed.map((entry, idx) => (

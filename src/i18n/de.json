@@ -221,7 +221,16 @@
     "templateKh": "Kohlenhydrate (g)",
     "addMealTemplate": "Standard-Mahlzeit anlegen",
     "templateSaved": "Standard-Mahlzeit gespeichert",
-    "templateSaveFailed": "Speichern fehlgeschlagen"
+    "templateSaveFailed": "Speichern fehlgeschlagen",
+    "photoDisclaimer": "Foto-basierte KH-Schätzung ist eine Hilfe, kein Maß. Bitte gegenchecken — besonders bei selbst gekochten oder ungewohnten Gerichten.",
+    "photoPickLabel": "Foto der Mahlzeit aufnehmen oder hochladen",
+    "photoAnalyzeButton": "Analysieren",
+    "photoAnalyzing": "Analysiere Foto…",
+    "photoNotFood": "Auf diesem Bild ist keine Mahlzeit erkennbar. Bitte ein anderes Foto wählen.",
+    "photoAnalyzeFailed": "Foto-Analyse fehlgeschlagen. Bitte erneut versuchen.",
+    "photoCompressFailed": "Bild konnte nicht vorbereitet werden.",
+    "photoRateLimited": "Tägliches Limit für Foto-Analysen erreicht. Bitte morgen erneut.",
+    "photoKeepCheckbox": "Foto behalten (optional, privat gespeichert)"
   },
   "buddy": {
     "chat": "Chat",

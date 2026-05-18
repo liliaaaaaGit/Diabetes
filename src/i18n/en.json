@@ -221,7 +221,16 @@
     "templateKh": "Carbohydrates (g)",
     "addMealTemplate": "Add standard meal",
     "templateSaved": "Standard meal saved",
-    "templateSaveFailed": "Could not save"
+    "templateSaveFailed": "Could not save",
+    "photoDisclaimer": "Photo-based carb estimates are a guide, not a measure. Cross-check — especially for home-cooked or unfamiliar dishes.",
+    "photoPickLabel": "Take or upload a meal photo",
+    "photoAnalyzeButton": "Analyze",
+    "photoAnalyzing": "Analyzing photo…",
+    "photoNotFood": "No meal detected in this image. Please choose another photo.",
+    "photoAnalyzeFailed": "Photo analysis failed. Please try again.",
+    "photoCompressFailed": "Could not prepare the image.",
+    "photoRateLimited": "Daily limit for photo analyses reached. Please try again tomorrow.",
+    "photoKeepCheckbox": "Keep photo (optional, stored privately)"
   },
   "buddy": {
     "chat": "Chat",

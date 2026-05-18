@@ -65,8 +65,12 @@ export function DatenschutzPolicyContent() {
         <p>
           <strong className="font-semibold text-slate-900">4.3 Nutzergenerierte Gesundheitsdaten:</strong> Sofern
           Sie eigene Einträge erstellen: Blutzuckerwerte (mg/dL bzw. mmol/L), Insulindosen (Einheiten,
-          Insulintyp), Mahlzeiten (Beschreibung, geschätzte Kohlenhydrate), körperliche Aktivitäten,
-          Stimmungseinträge (Freitext und/oder Skalenwert 1–5), Zeitstempel aller Einträge.
+          Insulintyp), Mahlzeiten (Beschreibung, geschätzte Kohlenhydrate als Spanne mit Konfidenz-Hinweis),
+          optional Fotos von Mahlzeiten zur KI-Analyse (standardmäßig wird das Foto nach der Analyse verworfen;
+          nur wenn Sie „Foto behalten“ aktivieren, wird es privat in unserem Speicher abgelegt), körperliche
+          Aktivitäten, Stimmungseinträge (Freitext und/oder Skalenwert 1–5), Zeitstempel aller Einträge.
+          Foto-Analysen werden ohne Pseudonym oder Benutzer-ID an den KI-Dienst übermittelt — nur das Bild und
+          der Analyse-Prompt.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">4.4 Gesprächsdaten (Diabetes-Buddy):</strong> Ihre

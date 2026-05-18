@@ -79,7 +79,12 @@ export function MealDetailSheet({ meal, open, onOpenChange, onCorrected }: MealD
               <ul className="space-y-2 text-sm text-slate-700">
                 {meal.components.map((c, i) => (
                   <li key={i} className="flex justify-between gap-2 border-b border-slate-100 pb-2">
-                    <span>{c.name}</span>
+                    <span>
+                      {c.name}
+                      {c.estimatedAmount ? (
+                        <span className="block text-xs text-slate-500">{c.estimatedAmount}</span>
+                      ) : null}
+                    </span>
                     <span className="tabular-nums shrink-0">{c.kh_g} g KH</span>
                   </li>
                 ))}

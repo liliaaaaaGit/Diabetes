@@ -31,7 +31,7 @@ import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { formatInsulin } from "@/lib/insulin-format"
-import { formatMealCarbsLabel, hasAiMealEstimate } from "@/lib/meal-carbs"
+import { formatMealCarbsLabel, hasAiMealEstimate, isPhotoMealEstimate } from "@/lib/meal-carbs"
 import { MealConfidenceBadge } from "@/components/logbook/meal-confidence-badge"
 import { MealDetailSheet } from "@/components/logbook/meal-detail-sheet"
 
@@ -75,6 +75,7 @@ export function LogbookUnifiedEntryCard({ entries, onMealUpdated }: LogbookUnifi
   const moodList = sorted.filter((e) => e.type === "mood") as MoodEntry[]
 
   const showAiDisclaimer = mealList.some(hasAiMealEstimate)
+  const showPhotoDisclaimer = mealList.some(isPhotoMealEstimate)
 
   return (
     <>
@@ -85,6 +86,9 @@ export function LogbookUnifiedEntryCard({ entries, onMealUpdated }: LogbookUnifi
         )}
       >
         <CardContent className="p-4">
+          {showPhotoDisclaimer && (
+            <p className="mb-1 text-[10px] leading-snug text-slate-500">{t("logbook.photoDisclaimer")}</p>
+          )}
           {showAiDisclaimer && (
             <p className="mb-2 text-[10px] leading-snug text-slate-500">{t("logbook.aiCarbsDisclaimer")}</p>
           )}

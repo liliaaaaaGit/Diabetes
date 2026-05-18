@@ -1,10 +1,10 @@
 import { supabaseServer as supabase } from "@/lib/supabase-server"
-import type { CarbConfidence, MealEntry, MealTemplate } from "@/lib/types"
+import type { CarbConfidence, MealEntry, MealInputSource, MealTemplate } from "@/lib/types"
 import { normalizeComponents } from "@/lib/meal-carbs"
 import { mealCarbsMidpoint } from "@/lib/meal-carbs"
 
 const MEAL_SELECT =
-  "entry_id,description,carbs_grams,kh_min,kh_max,confidence,components,fat_protein_note,extraction_note,user_corrected_kh,correction_timestamp,meal_type,linked_insulin_id"
+  "entry_id,description,carbs_grams,kh_min,kh_max,confidence,components,fat_protein_note,extraction_note,user_corrected_kh,correction_timestamp,meal_type,linked_insulin_id,source,photo_url"
 
 export function mapMealRow(m: Record<string, unknown>): Omit<MealEntry, keyof import("@/lib/types").BaseEntry | "type"> {
   return {
@@ -22,6 +22,8 @@ export function mapMealRow(m: Record<string, unknown>): Omit<MealEntry, keyof im
       : undefined,
     mealType: m.meal_type as MealEntry["mealType"],
     linkedInsulinEntryId: (m.linked_insulin_id as string) || undefined,
+    mealSource: (m.source as MealInputSource) || undefined,
+    photoUrl: (m.photo_url as string) || undefined,
   }
 }
 
@@ -46,6 +48,8 @@ export function mealInsertRow(entryId: string, meal: Partial<MealEntry> & { meal
     correction_timestamp: meal.correctionTimestamp ?? null,
     meal_type: meal.mealType ?? "lunch",
     linked_insulin_id: meal.linkedInsulinEntryId ?? null,
+    source: meal.mealSource ?? "manual",
+    photo_url: meal.photoUrl ?? null,
   }
 }
 

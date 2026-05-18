@@ -62,8 +62,11 @@ export function PrivacyPolicyContentEn() {
         <p>
           <strong className="font-semibold text-slate-900">4.3 User-generated health data:</strong> If you create
           your own entries: blood glucose values (mg/dL or mmol/L), insulin doses (units, insulin type), meals
-          (description, estimated carbohydrates), physical activity, mood entries (free text and/or scale value
-          1–5), timestamps of all entries.
+          (description, estimated carbohydrates as a range with confidence indicator), optional meal photos for
+          AI analysis (by default the photo is discarded after analysis; only if you enable “Keep photo” is it
+          stored privately in our storage), physical activity, mood entries (free text and/or scale value 1–5),
+          timestamps of all entries. Photo analyses are sent to the AI service without pseudonym or user ID — only
+          the image and analysis prompt.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">4.4 Conversation data (Diabetes Buddy):</strong> Your

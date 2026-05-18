@@ -10,9 +10,14 @@ export type MealType = "breakfast" | "lunch" | "dinner" | "snack"
 
 export type CarbConfidence = "low" | "medium" | "high"
 
+/** How meal carb data was captured (entry_meal.source). */
+export type MealInputSource = "manual" | "freetext_ai" | "photo_ai"
+
 export interface MealComponent {
   name: string
   amount_g?: number
+  /** Human-readable portion from photo AI, e.g. "ca. 1 Handvoll". */
+  estimatedAmount?: string
   kh_g: number
 }
 
@@ -71,6 +76,8 @@ export interface MealEntry extends BaseEntry {
   correctionTimestamp?: string
   /** True when carbs came from AI extraction (not manual/template). */
   estimated?: boolean
+  mealSource?: MealInputSource
+  photoUrl?: string
   mealType: MealType
   linkedInsulinEntryId?: string
 }

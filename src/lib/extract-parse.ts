@@ -120,6 +120,7 @@ export function parseExtractResponse(
             typeof o.extraction_note === "string" ? o.extraction_note.trim() || undefined : undefined,
           mealType: "lunch",
           estimated: true,
+          mealSource: "freetext_ai",
         },
       })
       continue
