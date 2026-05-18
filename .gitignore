@@ -17,6 +17,9 @@
 
 # misc
 .DS_Store
+
+# Buddy hero source (run npm run optimize:buddy-image); deploy uses WebP outputs only
+/public/TherapistRobot4.png
 *.pem
 
 # debug

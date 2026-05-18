@@ -90,7 +90,7 @@ export function LogbookWeekCalendar({
           type="button"
           variant="outline"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={() => onShiftWeek(-1)}
           aria-label={t("logbook.weekPrev")}
         >
@@ -100,7 +100,7 @@ export function LogbookWeekCalendar({
           type="button"
           variant="outline"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={openDatePicker}
           aria-label={t("logbook.pickDate")}
         >
@@ -132,7 +132,7 @@ export function LogbookWeekCalendar({
           type="button"
           variant="outline"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="h-11 w-11 shrink-0"
           onClick={() => onShiftWeek(1)}
           aria-label={t("logbook.weekNext")}
         >

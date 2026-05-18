@@ -94,7 +94,7 @@ export function InsightsSummaryStrip({
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-3 gap-2 overflow-hidden">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <Card className="min-w-0 rounded-xl border-teal-100 bg-teal-50/40 shadow-sm">
           <CardContent className="p-3 flex flex-col justify-center min-h-[110px]">
             <p className="text-[11px] font-medium text-slate-600 uppercase tracking-wide break-words">{t("insights.stripInsulin")}</p>

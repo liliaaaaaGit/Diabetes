@@ -59,4 +59,11 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Prevents iOS zoom-on-focus for form fields (needs ≥16px) */
+  input,
+  textarea,
+  select {
+    @apply text-base;
+  }
 }

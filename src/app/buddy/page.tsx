@@ -478,21 +478,21 @@ export default function BuddyPage() {
           <button
             type="button"
             onClick={() => setActiveTab("chat")}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:px-3 sm:py-2 sm:text-sm ${activeTab === "chat" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+            className={`min-h-[44px] rounded-md px-3 py-2 text-xs font-medium sm:px-3 sm:text-sm ${activeTab === "chat" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("pages.buddy")}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:px-3 sm:py-2 sm:text-sm ${activeTab === "history" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+            className={`min-h-[44px] rounded-md px-3 py-2 text-xs font-medium sm:px-3 sm:text-sm ${activeTab === "history" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("buddy.history.tab")}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("stats")}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-medium sm:px-3 sm:py-2 sm:text-sm ${activeTab === "stats" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
+            className={`min-h-[44px] rounded-md px-3 py-2 text-xs font-medium sm:px-3 sm:text-sm ${activeTab === "stats" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}`}
           >
             {t("buddy.stats.tab")}
           </button>
@@ -513,7 +513,7 @@ export default function BuddyPage() {
         )}
 
         {activeTab === "chat" && isFullChatView && (
-          <div className="flex h-[calc(100vh-10rem)] min-h-0 flex-col">
+          <div className="flex h-[calc(100dvh-10rem)] min-h-0 flex-col">
             <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pb-2 md:px-6 lg:px-8">
               <div className="flex flex-wrap items-center gap-2">
                 <Button

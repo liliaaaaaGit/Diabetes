@@ -106,10 +106,21 @@ export default function LogbookPage() {
       title={t("pages.logbook")}
       mainClassName="max-w-none w-full px-4 md:px-6 py-4 md:py-6"
       actions={
-        <Button onClick={() => setIsModalOpen(true)} variant="outline">
-          <Plus className="h-4 w-4 mr-2" />
-          {t("logbook.manualFallback")}
-        </Button>
+        <>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            variant="outline"
+            size="icon"
+            className="md:hidden"
+            aria-label={t("logbook.manualFallback")}
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} variant="outline" className="hidden md:inline-flex">
+            <Plus className="h-4 w-4 mr-2" />
+            {t("logbook.manualFallback")}
+          </Button>
+        </>
       }
     >
       <div className="space-y-4 w-full">

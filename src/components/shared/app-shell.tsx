@@ -49,7 +49,7 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
         {/* Content */}
         <main
           className={cn(
-            "mx-auto max-w-7xl p-4 pb-16 md:p-6 md:pb-14",
+            "mx-auto max-w-7xl p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:p-6 md:pb-14",
             mainClassName
           )}
         >

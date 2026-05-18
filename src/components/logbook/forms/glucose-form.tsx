@@ -110,7 +110,7 @@ export function GlucoseForm({ value, onChange }: GlucoseFormProps) {
           <button
             type="button"
             onClick={() => handleUnitChange("mg_dl")}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+            className={`flex-1 min-h-[44px] rounded-lg border px-3 py-2.5 text-sm ${
               unit === "mg_dl"
                 ? "border-teal-500 bg-teal-50 text-teal-800"
                 : "border-slate-200 text-slate-600"
@@ -121,7 +121,7 @@ export function GlucoseForm({ value, onChange }: GlucoseFormProps) {
           <button
             type="button"
             onClick={() => handleUnitChange("mmol_l")}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm ${
+            className={`flex-1 min-h-[44px] rounded-lg border px-3 py-2.5 text-sm ${
               unit === "mmol_l"
                 ? "border-teal-500 bg-teal-50 text-teal-800"
                 : "border-slate-200 text-slate-600"

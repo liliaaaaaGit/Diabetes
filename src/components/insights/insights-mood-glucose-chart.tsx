@@ -102,21 +102,20 @@ export function InsightsMoodGlucoseChart({
         {!hasAnySignal ? (
           <p className="text-sm text-slate-500 text-center py-10">{t("insights.chartNoData")}</p>
         ) : (
-          <div className="w-full h-[320px] md:h-[380px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartRows} margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
+          <div className="w-full -mx-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]">
+            <div
+              className="h-[320px] md:h-[380px]"
+              style={{ minWidth: Math.max(300, chartRows.length * 36) }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chartRows} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#57534e" }} interval="preserveStartEnd" />
                 <YAxis
                   yAxisId="left"
                   domain={[chartScale.yMin, "auto"]}
                   tick={{ fontSize: 11, fill: "#0f766e" }}
-                  label={{
-                    value: `${t("insights.legendGlucose").replace(/\s*\(.*\)$/, "")} (${unitSuffix})`,
-                    angle: -90,
-                    position: "insideLeft",
-                    style: { fill: "#0f766e", fontSize: 11 },
-                  }}
+                  width={36}
                 />
                 <YAxis
                   yAxisId="right"
@@ -124,12 +123,7 @@ export function InsightsMoodGlucoseChart({
                   domain={[1, 5]}
                   ticks={[1, 2, 3, 4, 5]}
                   tick={{ fontSize: 11, fill: "#6d28d9" }}
-                  label={{
-                    value: t("insights.legendMood"),
-                    angle: 90,
-                    position: "insideRight",
-                    style: { fill: "#6d28d9", fontSize: 11 },
-                  }}
+                  width={28}
                 />
                 <Tooltip
                   contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 12 }}
@@ -194,8 +188,9 @@ export function InsightsMoodGlucoseChart({
                   activeDot={{ r: 5 }}
                   connectNulls
                 />
-              </ComposedChart>
-            </ResponsiveContainer>
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
 

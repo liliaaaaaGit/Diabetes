@@ -24,9 +24,9 @@ export function FilterTabs({ activeFilter, counts, onChange }: FilterTabsProps) 
   ]
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
       <Tabs value={activeFilter} onValueChange={(v) => onChange(v as EntryType | "all")}>
-        <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
+        <TabsList className="inline-flex h-auto w-max min-w-full flex-nowrap justify-start gap-1 bg-transparent p-0">
           {filters.map((filter) => {
             const count = counts[filter.value] || 0
             return (
@@ -34,7 +34,7 @@ export function FilterTabs({ activeFilter, counts, onChange }: FilterTabsProps) 
                 key={filter.value}
                 value={filter.value}
                 className={cn(
-                  "min-h-[40px] rounded-lg px-3 py-1.5 text-xs font-medium sm:text-sm",
+                  "min-h-[44px] shrink-0 rounded-lg px-3 py-2 text-xs font-medium sm:text-sm",
                   "data-[state=active]:bg-teal-500 data-[state=active]:text-white",
                   "data-[state=inactive]:bg-slate-100 data-[state=inactive]:text-slate-700"
                 )}

@@ -45,7 +45,7 @@ export function SafetyBanner({ level, title, body, onClose }: SafetyBannerProps)
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 rounded-md p-1 opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
+          className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
           aria-label={t("common.close")}
         >
           <X className="h-4 w-4" />

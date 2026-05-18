@@ -47,7 +47,7 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="flex w-[280px] max-w-[85vw] flex-col p-0">
+      <SheetContent side="left" hideClose className="flex w-[280px] max-w-[85vw] flex-col p-0">
         <div className="flex h-full min-h-0 flex-col">
           {/* Header */}
           <SheetHeader className="h-16 flex flex-row items-center justify-between px-4 border-b border-slate-200">
@@ -60,6 +60,7 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
             <Button
               variant="ghost"
               size="icon"
+              className="min-h-[44px] min-w-[44px]"
               onClick={() => onOpenChange(false)}
             >
               <X className="h-5 w-5" />
@@ -131,7 +132,7 @@ function LanguageSwitcher() {
       <Button
         variant={locale === "de" ? "default" : "outline"}
         size="sm"
-        className="flex-1 h-8 text-xs"
+        className="flex-1 min-h-[44px] text-xs"
         onClick={() => setLocale("de")}
       >
         DE
@@ -139,7 +140,7 @@ function LanguageSwitcher() {
       <Button
         variant={locale === "en" ? "default" : "outline"}
         size="sm"
-        className="flex-1 h-8 text-xs"
+        className="flex-1 min-h-[44px] text-xs"
         onClick={() => setLocale("en")}
       >
         EN

@@ -29,7 +29,6 @@ import {
   Activity,
   Heart,
 } from "lucide-react"
-import { useMediaQuery } from "@/hooks/use-media-query"
 
 interface ManualEntryModalProps {
   open: boolean
@@ -37,13 +36,15 @@ interface ManualEntryModalProps {
   onSave: (entry: Entry) => void
 }
 
+const typeTabClass =
+  "flex min-h-[44px] min-w-[4.25rem] shrink-0 flex-col gap-1 py-2 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+
 export function ManualEntryModal({
   open,
   onClose,
   onSave,
 }: ManualEntryModalProps) {
   const { t } = useTranslation()
-  const isMobile = useMediaQuery("(max-width: 768px)")
   const [entryType, setEntryType] = useState<EntryType>("glucose")
   const [entryData, setEntryData] = useState<Partial<Entry>>({
     type: "glucose",
@@ -55,7 +56,6 @@ export function ManualEntryModal({
   const handleSave = () => {
     if (!entryData.type) return
 
-    // Create complete entry
     const newEntry: Entry = {
       id: `entry-${Date.now()}`,
       userId: "user-001",
@@ -119,34 +119,37 @@ export function ManualEntryModal({
 
   const content = (
     <>
-      <div className="mb-6">
-        <Tabs value={entryType} onValueChange={(v) => {
-          setEntryType(v as EntryType)
-          setEntryData({
-            type: v as EntryType,
-            timestamp: new Date().toISOString(),
-            source: "manual",
-            userId: "user-001",
-          })
-        }}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="glucose" className="flex flex-col gap-1 h-auto py-2">
+      <div className="mb-4 -mx-1 overflow-x-auto px-1 pb-1">
+        <Tabs
+          value={entryType}
+          onValueChange={(v) => {
+            setEntryType(v as EntryType)
+            setEntryData({
+              type: v as EntryType,
+              timestamp: new Date().toISOString(),
+              source: "manual",
+              userId: "user-001",
+            })
+          }}
+        >
+          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 bg-slate-100 p-1">
+            <TabsTrigger value="glucose" className={typeTabClass}>
               <Droplet className="h-4 w-4" />
               <span className="text-xs">{t("common.glucose")}</span>
             </TabsTrigger>
-            <TabsTrigger value="insulin" className="flex flex-col gap-1 h-auto py-2">
+            <TabsTrigger value="insulin" className={typeTabClass}>
               <Syringe className="h-4 w-4" />
               <span className="text-xs">{t("common.insulin")}</span>
             </TabsTrigger>
-            <TabsTrigger value="meal" className="flex flex-col gap-1 h-auto py-2">
+            <TabsTrigger value="meal" className={typeTabClass}>
               <UtensilsCrossed className="h-4 w-4" />
               <span className="text-xs">{t("common.meal")}</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex flex-col gap-1 h-auto py-2">
+            <TabsTrigger value="activity" className={typeTabClass}>
               <Activity className="h-4 w-4" />
               <span className="text-xs">{t("common.activity")}</span>
             </TabsTrigger>
-            <TabsTrigger value="mood" className="flex flex-col gap-1 h-auto py-2">
+            <TabsTrigger value="mood" className={typeTabClass}>
               <Heart className="h-4 w-4" />
               <span className="text-xs">{t("common.mood")}</span>
             </TabsTrigger>
@@ -154,42 +157,49 @@ export function ManualEntryModal({
         </Tabs>
       </div>
 
-      <div className="max-h-[60vh] overflow-y-auto">
+      <div className="max-h-[min(60vh,28rem)] overflow-y-auto overscroll-contain scroll-pb-24 [-webkit-overflow-scrolling:touch]">
         {renderForm()}
       </div>
 
-      <div className="flex gap-3 mt-6 pt-4 border-t">
-        <Button variant="outline" onClick={onClose} className="flex-1">
+      <div className="mt-4 flex gap-3 border-t pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <Button variant="outline" onClick={onClose} className="min-h-[44px] flex-1">
           {t("common.cancel")}
         </Button>
-        <Button onClick={handleSave} className="flex-1">
+        <Button onClick={handleSave} className="min-h-[44px] flex-1">
           {t("common.save")}
         </Button>
       </div>
     </>
   )
 
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent side="bottom" className="h-[90vh]">
-          <SheetHeader>
-            <SheetTitle>{t("logbook.newEntry")}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">{content}</div>
-        </SheetContent>
-      </Sheet>
-    )
-  }
-
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t("logbook.newEntry")}</DialogTitle>
-        </DialogHeader>
-        {content}
-      </DialogContent>
-    </Dialog>
+    <>
+      {/* Mobile: bottom sheet (CSS breakpoint — no hydration flash) */}
+      <div className="md:hidden">
+        <Sheet open={open} onOpenChange={(v) => !v && onClose()} modal>
+          <SheetContent
+            side="bottom"
+            className="flex max-h-[92dvh] flex-col gap-0 overflow-hidden rounded-t-2xl px-4 pb-0 pt-6"
+          >
+            <SheetHeader className="shrink-0 text-left">
+              <SheetTitle>{t("logbook.newEntry")}</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4 min-h-0 flex-1 overflow-hidden">{content}</div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop: dialog */}
+      <div className="hidden md:block">
+        <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{t("logbook.newEntry")}</DialogTitle>
+            </DialogHeader>
+            {content}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>
   )
 }

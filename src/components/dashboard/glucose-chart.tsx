@@ -122,7 +122,7 @@ export function GlucoseChart({
   }
 
   const tabTriggerClass =
-    "text-[11px] px-2 py-1.5 sm:text-xs sm:px-2.5 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+    "min-h-[44px] shrink-0 px-3 text-xs sm:px-2.5 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
 
   return (
     <Card className="rounded-xl border-slate-200 shadow-sm">
@@ -134,7 +134,7 @@ export function GlucoseChart({
             onValueChange={(v) => setTimeRange(v as GlucoseChartTimeRange)}
             className="w-full sm:w-auto"
           >
-            <TabsList className="h-auto min-h-8 w-full flex flex-wrap justify-start gap-0.5 p-1 sm:justify-end sm:max-w-[340px]">
+            <TabsList className="h-auto w-full max-w-full justify-start gap-1 overflow-x-auto p-1 [-webkit-overflow-scrolling:touch] sm:justify-end sm:max-w-[340px]">
               <TabsTrigger value="24h" className={tabTriggerClass}>
                 {t("dashboard.hours24")}
               </TabsTrigger>
@@ -158,8 +158,13 @@ export function GlucoseChart({
         {chartData.length === 0 ? (
           <p className="text-sm text-slate-500 text-center py-12 px-2">{t("empty.glucoseChartEmpty")}</p>
         ) : (
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+          <div className="-mx-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]">
+            <div
+              className="min-w-full"
+              style={{ minWidth: Math.max(280, chartData.length * (timeRange === "24h" ? 12 : 28)) }}
+            >
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={chartData} margin={{ top: 5, right: 10, left: 4, bottom: 5 }}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.35} />
@@ -198,8 +203,10 @@ export function GlucoseChart({
                 dot={{ fill: "#14B8A6", r: 4 }}
                 activeDot={{ r: 6 }}
               />
-            </LineChart>
-          </ResponsiveContainer>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>
