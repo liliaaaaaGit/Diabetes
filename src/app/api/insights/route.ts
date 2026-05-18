@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 import { openai } from "@/lib/openai-server"
 import { getConversations, getEntries } from "@/lib/db"
 import { getWeeklyStats, getEntryCountsByType, getMoodTrend } from "@/lib/stats"
+import { getOrCreateUserSettings } from "@/lib/user-settings"
 import { getSessionUserId } from "@/lib/auth-session"
 import type { GlucoseEntry, MoodEntry } from "@/lib/types"
 
@@ -76,8 +77,11 @@ export async function POST(req: NextRequest) {
       })
       .join("\n")
 
+    const userSettings = await getOrCreateUserSettings(userId)
+    const { targetMinMgDl, targetMaxMgDl } = userSettings
+
     // Calculate stats
-    const stats = getWeeklyStats(entries)
+    const stats = getWeeklyStats(entries, targetMinMgDl, targetMaxMgDl)
     const entryCounts = getEntryCountsByType(entries)
     const glucoseEntries = entries.filter((e) => e.type === "glucose") as GlucoseEntry[]
     const moodEntries = entries.filter((e) => e.type === "mood") as MoodEntry[]
@@ -86,7 +90,8 @@ export async function POST(req: NextRequest) {
     // Build entry stats string
     const entryStats = `
 Durchschnittlicher Blutzucker: ${stats.avgGlucose} mg/dL (${stats.glucoseCount} Messungen)
-Time in Range: ${stats.timeInRange}%
+Zielbereich des Nutzers (Time in Range): ${targetMinMgDl}–${targetMaxMgDl} mg/dL
+Time in Range (Anteil im Zielbereich ${targetMinMgDl}–${targetMaxMgDl} mg/dL): ${stats.timeInRange}%
 Durchschnittliche Stimmung: ${stats.avgMood.toFixed(1)}/5 (${stats.moodCount} Einträge)
 Stimmungstrend: ${moodTrend === "improving" ? "verbessert" : moodTrend === "declining" ? "verschlechtert" : "stabil"}
 Aktivitätsminuten: ${stats.activityMinutes}

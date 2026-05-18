@@ -18,6 +18,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { glucoseToMgDl } from "@/lib/glucose-units"
+import type { GlucoseUnit } from "@/lib/types"
 import { format, parse } from "date-fns"
 import { de as deLocale, enUS } from "date-fns/locale"
 import { isValidDateYmd, timestampForEntryDate } from "@/lib/entry-timestamp"
@@ -105,6 +108,7 @@ export function ExtractionConfirmation({
 }: ExtractionConfirmationProps) {
   const { t, locale } = useTranslation()
   const { toast } = useToast()
+  const { formatGlucoseWithUnit } = useUserPreferences()
 
   const [entries, setEntries] = useState<ExtractedEntry[]>(extractedEntries)
   const [saving, setSaving] = useState(false)
@@ -491,10 +495,11 @@ export function ExtractionConfirmation({
         : null
 
     if (type === "glucose" && typeof d.value === "number") {
-      const unit = d.unit === "mmol_l" ? t("units.mmoll") : t("units.mgdl")
+      const unit = (d.unit === "mmol_l" ? "mmol_l" : "mg_dl") as GlucoseUnit
+      const formatted = formatGlucoseWithUnit(glucoseToMgDl(d.value, unit))
       return (
         <p className="mt-1 text-sm text-slate-700">
-          {d.value} {unit}
+          {formatted.value} {formatted.suffix}
         </p>
       )
     }

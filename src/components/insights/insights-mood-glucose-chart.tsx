@@ -79,7 +79,7 @@ export function InsightsMoodGlucoseChart({
     return () => {
       cancelled = true
     }
-  }, [timeRange])
+  }, [timeRange, targetMinMgDl, targetMaxMgDl])
 
   return (
     <Card className="rounded-xl border-teal-100 bg-white shadow-sm w-full">
@@ -203,7 +203,7 @@ export function InsightsMoodGlucoseChart({
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-700 mt-2">
             <span className="inline-flex items-center gap-2">
               <span className="h-3 w-8 rounded-full bg-[#0d9488]" aria-hidden />
-              {t("insights.legendGlucose")}
+              {t("insights.legendGlucoseWithUnit", { unit: unitSuffix })}
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="h-3 w-8 rounded-full bg-[#7c3aed]" aria-hidden />

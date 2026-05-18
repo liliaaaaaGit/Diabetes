@@ -29,10 +29,7 @@ import { enUS } from "date-fns/locale/en-US"
 import { cn } from "@/lib/utils"
 import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
-
-function glucoseMgDl(g: GlucoseEntry): number {
-  return g.unit === "mmol_l" ? g.value * 18.0182 : g.value
-}
+import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 
 /** Nur Umriss-Gesichter, alles in Grau – kein Emoji-Look. */
 const moodIcons: Record<number, LucideIcon> = {
@@ -56,7 +53,7 @@ interface LogbookUnifiedEntryCardProps {
  */
 export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProps) {
   const { t, locale } = useTranslation()
-  const { formatGlucoseWithUnit } = useUserPreferences()
+  const { formatGlucoseWithUnit, targetRange } = useUserPreferences()
   const dateLocale = locale === "de" ? de : enUS
   const [expanded, setExpanded] = useState(false)
 
@@ -88,13 +85,16 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
 
         <div className="mt-2 flex flex-col gap-2">
           {glucoseList.map((g) => {
-            const mg = glucoseMgDl(g)
+            const mg = glucoseEntryToMgDl(g)
             const formatted = formatGlucoseWithUnit(mg)
             return (
               <div key={g.id} className="flex items-center gap-2 text-base">
                 <Droplet className={rowIconClass} aria-hidden strokeWidth={2} />
                 <span
-                  className={cn("font-semibold tabular-nums", glucoseValueTextClassMgDl(mg))}
+                  className={cn(
+                    "font-semibold tabular-nums",
+                    glucoseValueTextClassMgDl(mg, targetRange.min, targetRange.max)
+                  )}
                 >
                   {formatted.value} {formatted.suffix}
                 </span>

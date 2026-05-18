@@ -7,13 +7,10 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { BookOpen } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { format } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
-
-function mgDl(g: GlucoseEntry): number {
-  return g.unit === "mmol_l" ? g.value * 18.0182 : g.value
-}
 
 interface LogbookDayViewProps {
   selectedDate: Date
@@ -38,7 +35,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
 
     const avgGlucose =
       g.length > 0
-        ? Math.round((g.reduce((s, x) => s + mgDl(x), 0) / g.length) * 10) / 10
+        ? Math.round((g.reduce((s, x) => s + glucoseEntryToMgDl(x), 0) / g.length)
         : null
 
     const sumCarbs = meals.reduce((s, m) => s + (m.carbsGrams ?? 0), 0)

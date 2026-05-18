@@ -11,6 +11,7 @@ import { Entry, GlucoseEntry, InsulinEntry, MealEntry, ActivityEntry, MoodEntry 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { cn } from "@/lib/utils"
@@ -40,7 +41,7 @@ export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedPro
     switch (entry.type) {
       case "glucose": {
         const glucoseEntry = entry as GlucoseEntry
-        const formatted = formatGlucoseWithUnit(glucoseEntry.value)
+        const formatted = formatGlucoseWithUnit(glucoseEntryToMgDl(glucoseEntry))
         let contextText = ""
         if (glucoseEntry.context === "fasting") contextText = t("dashboard.fasting")
         else if (glucoseEntry.context === "pre_meal") contextText = t("dashboard.beforeMeal")

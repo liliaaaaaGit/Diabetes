@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { openai } from "@/lib/openai-server"
 import { getSessionUserId } from "@/lib/auth-session"
 import { getEntries, getConversations } from "@/lib/db"
+import { getOrCreateUserSettings } from "@/lib/user-settings"
 import {
   buildDailyMoodGlucosePoints,
   computeInsightsRange,
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ summary: FALLBACK_DE })
   }
 
+  const { targetMinMgDl, targetMaxMgDl } = await getOrCreateUserSettings(userId)
   const points = buildDailyMoodGlucosePoints(range, entries, conversations, "de")
 
   const glucoseReadings = entries.filter((e) => e.type === "glucose").length
@@ -79,7 +81,7 @@ export async function POST(req: Request) {
         { role: "system", content: SYSTEM },
         {
           role: "user",
-          content: `Analysiere den Zusammenhang zwischen Blutzuckerwerten und Stimmung. Gibt es Muster? Hier die täglichen Daten (JSON):\n${JSON.stringify(compact)}`,
+          content: `Analysiere den Zusammenhang zwischen Blutzuckerwerten (mg/dL) und Stimmung. Der persönliche Zielbereich des Nutzers liegt bei ${targetMinMgDl}–${targetMaxMgDl} mg/dL — beziehe Werte darauf ein, wenn du Muster beschreibst. Gibt es Muster? Hier die täglichen Daten (JSON):\n${JSON.stringify(compact)}`,
         },
       ],
       max_tokens: 220,

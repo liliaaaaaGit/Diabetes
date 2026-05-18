@@ -15,7 +15,11 @@ import { LanguageSwitcher } from "@/components/shared/language-switcher"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/useUser"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
-import { mmolLToMgDl, mgDlToMmolL } from "@/lib/glucose-units"
+import { mgDlToMmolL } from "@/lib/glucose-units"
+import {
+  parseTargetRangeFromDisplay,
+  TARGET_RANGE_LIMITS_MG_DL,
+} from "@/lib/target-range"
 import type { GlucoseUnit } from "@/lib/types"
 
 export default function SettingsPage() {
@@ -36,6 +40,7 @@ export default function SettingsPage() {
   const [targetMinInput, setTargetMinInput] = useState("")
   const [targetMaxInput, setTargetMaxInput] = useState("")
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isSavingRange, setIsSavingRange] = useState(false)
 
   useEffect(() => {
     if (prefsLoading) return
@@ -46,8 +51,10 @@ export default function SettingsPage() {
   }, [prefsLoading, targetMinMgDl, targetMaxMgDl, displayUnit])
 
   const handleUnitChange = async (unit: GlucoseUnit) => {
+    if (unit === preferredUnit || prefsLoading) return
     try {
       await setPreferredUnit(unit)
+      toast({ title: t("settings.unitSaved") })
     } catch {
       toast({ title: t("settings.saveFailed"), variant: "destructive" })
     }
@@ -56,20 +63,47 @@ export default function SettingsPage() {
   const saveTargetRange = useCallback(async () => {
     const minDisplay = parseFloat(targetMinInput)
     const maxDisplay = parseFloat(targetMaxInput)
-    if (!Number.isFinite(minDisplay) || !Number.isFinite(maxDisplay) || minDisplay >= maxDisplay) {
-      toast({ title: t("settings.targetRangeInvalid"), variant: "destructive" })
+    const validation = parseTargetRangeFromDisplay(minDisplay, maxDisplay, displayUnit)
+
+    if (!validation.ok) {
+      if (validation.code === "out_of_bounds") {
+        const bounds =
+          displayUnit === "mmol/L"
+            ? `${mgDlToMmolL(TARGET_RANGE_LIMITS_MG_DL.min).toFixed(1)}–${mgDlToMmolL(TARGET_RANGE_LIMITS_MG_DL.max).toFixed(1)} mmol/L`
+            : `${TARGET_RANGE_LIMITS_MG_DL.min}–${TARGET_RANGE_LIMITS_MG_DL.max} mg/dL`
+        toast({
+          title: t("settings.targetRangeOutOfBounds", { bounds }),
+          variant: "destructive",
+        })
+      } else {
+        toast({ title: t("settings.targetRangeInvalid"), variant: "destructive" })
+      }
       return
     }
-    const minMg =
-      displayUnit === "mmol/L" ? mmolLToMgDl(minDisplay) : Math.round(minDisplay)
-    const maxMg =
-      displayUnit === "mmol/L" ? mmolLToMgDl(maxDisplay) : Math.round(maxDisplay)
+
+    if (validation.min === targetMinMgDl && validation.max === targetMaxMgDl) {
+      return
+    }
+
+    setIsSavingRange(true)
     try {
-      await setTargetRangeMgDl(minMg, maxMg)
+      await setTargetRangeMgDl(validation.min, validation.max)
+      toast({ title: t("settings.targetRangeSaved") })
     } catch {
       toast({ title: t("settings.saveFailed"), variant: "destructive" })
+    } finally {
+      setIsSavingRange(false)
     }
-  }, [targetMinInput, targetMaxInput, displayUnit, setTargetRangeMgDl, toast, t])
+  }, [
+    targetMinInput,
+    targetMaxInput,
+    displayUnit,
+    targetMinMgDl,
+    targetMaxMgDl,
+    setTargetRangeMgDl,
+    toast,
+    t,
+  ])
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -130,7 +164,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="text-base">{t("settings.targetRange")}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm text-slate-600 mb-2 block">
@@ -141,8 +175,7 @@ export default function SettingsPage() {
                   step={displayUnit === "mmol/L" ? "0.1" : "1"}
                   value={targetMinInput}
                   onChange={(e) => setTargetMinInput(e.target.value)}
-                  onBlur={() => void saveTargetRange()}
-                  disabled={prefsLoading}
+                  disabled={prefsLoading || isSavingRange}
                 />
               </div>
               <div>
@@ -154,11 +187,19 @@ export default function SettingsPage() {
                   step={displayUnit === "mmol/L" ? "0.1" : "1"}
                   value={targetMaxInput}
                   onChange={(e) => setTargetMaxInput(e.target.value)}
-                  onBlur={() => void saveTargetRange()}
-                  disabled={prefsLoading}
+                  disabled={prefsLoading || isSavingRange}
                 />
               </div>
             </div>
+            <p className="text-xs text-slate-500">{t("settings.targetRangeHint")}</p>
+            <Button
+              type="button"
+              onClick={() => void saveTargetRange()}
+              disabled={prefsLoading || isSavingRange}
+              className="w-full sm:w-auto"
+            >
+              {isSavingRange ? t("common.loading") : t("settings.saveTargetRange")}
+            </Button>
           </CardContent>
         </Card>
 

@@ -1,4 +1,4 @@
-import type { GlucoseUnit } from "@/lib/types"
+import type { GlucoseEntry, GlucoseUnit } from "@/lib/types"
 
 /** mg/dL per 1 mmol/L (standard conversion factor). */
 export const MG_DL_PER_MMOL_L = 18.0182
@@ -21,9 +21,13 @@ export function mmolLToMgDl(mmol: number): number {
   return Math.round(mmol * MG_DL_PER_MMOL_L)
 }
 
-/** Values in DB are always mg/dL; this helper exists for legacy paths. */
-export function glucoseToMgDl(value: number, _entryUnit: GlucoseUnit = "mg_dl"): number {
-  return value
+/** Normalize a stored or in-form value to mg/dL (DB stores mg/dL; legacy rows may use mmol_l). */
+export function glucoseToMgDl(value: number, entryUnit: GlucoseUnit = "mg_dl"): number {
+  return entryUnit === "mmol_l" ? mmolLToMgDl(value) : value
+}
+
+export function glucoseEntryToMgDl(entry: Pick<GlucoseEntry, "value" | "unit">): number {
+  return glucoseToMgDl(entry.value, entry.unit)
 }
 
 export function formatGlucose(valueMgDl: number, unit: GlucoseDisplayUnit): string {

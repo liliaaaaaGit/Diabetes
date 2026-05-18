@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { GLUCOSE_RANGE, GLUCOSE_RANGE_MMOL } from "@/lib/constants"
-import { mgDlToMmolL, mmolLToMgDl } from "@/lib/glucose-units"
+import { glucoseUnitSuffix, mgDlToMmolL, mmolLToMgDl, storageUnitToDisplay } from "@/lib/glucose-units"
 
 interface GlucoseFormProps {
   value: Partial<GlucoseEntry>
@@ -18,9 +18,10 @@ interface GlucoseFormProps {
 
 export function GlucoseForm({ value, onChange }: GlucoseFormProps) {
   const { t } = useTranslation()
-  const { preferredUnit, unitSuffix } = useUserPreferences()
+  const { preferredUnit } = useUserPreferences()
   const [unit, setUnit] = useState<GlucoseUnit>(value.unit || preferredUnit)
   const [glucoseValue, setGlucoseValue] = useState<string>(value.value?.toString() || "")
+  const inputUnitSuffix = glucoseUnitSuffix(storageUnitToDisplay(unit))
 
   useEffect(() => {
     setUnit(preferredUnit)
@@ -82,7 +83,7 @@ export function GlucoseForm({ value, onChange }: GlucoseFormProps) {
             placeholder="0"
           />
           <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-lg text-slate-500">
-            {unitSuffix}
+            {inputUnitSuffix}
           </span>
         </div>
         {!isValid() && glucoseValue && (
@@ -117,7 +118,7 @@ export function GlucoseForm({ value, onChange }: GlucoseFormProps) {
           </button>
         </div>
         <p className="text-xs text-slate-500 mt-2">
-          {t("settings.preferredUnit")}: {unitSuffix}
+          {t("settings.preferredUnit")}: {glucoseUnitSuffix(storageUnitToDisplay(preferredUnit))}
         </p>
       </div>
 

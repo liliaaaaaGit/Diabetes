@@ -277,7 +277,8 @@
     "subtitle": "Glucose, mood, and a short AI summary for the period you select.",
     "tirBlockTitle": "Glucose overview",
     "avgGlucoseLargeLabel": "Period average",
-    "tirBandHint": "Values in the green segment: 70–180 mg/dL (time in range).",
+    "tirBandHint": "Values in the green segment: {{range}} (time in range).",
+    "inTargetWithRange": "In target range ({{range}})",
     "summaryDailyBg": "Glucose by day",
     "periodAvgShort": "period avg.",
     "noGlucoseInPeriod": "No glucose readings in this period",
@@ -288,6 +289,7 @@
     "moodGlucoseTitle": "Mood & glucose",
     "moodGlucoseSubtitle": "Daily averages: glucose from the logbook; mood from logbook entries and ended buddy chats (emotions mapped to 1–5).",
     "legendGlucose": "Glucose (mg/dL)",
+    "legendGlucoseWithUnit": "Glucose ({{unit}})",
     "legendMood": "Mood (1–5)",
     "chartNoData": "Not enough data for this period yet.",
     "correlationTitle": "Short summary",
@@ -405,7 +407,12 @@
     "deleteDataTitle": "Delete your data",
     "deleteDataBody": "If you wish to have your data deleted, please email lilia@schraut.de stating your pseudonym. Your data will be fully deleted within 14 days. At the latest after the study ends, all data will be deleted automatically and irreversibly anyway.",
     "saveFailed": "Could not save setting.",
-    "targetRangeInvalid": "Please enter a valid target range (minimum must be less than maximum)."
+    "targetRangeInvalid": "Please enter a valid target range (minimum must be less than maximum).",
+    "targetRangeOutOfBounds": "Target range must be between {{bounds}}.",
+    "targetRangeSaved": "Target range saved.",
+    "targetRangeHint": "Values are stored in mg/dL and shown in your selected unit.",
+    "saveTargetRange": "Save target range",
+    "unitSaved": "Unit saved."
   },
   "auth": {
     "accessSubtitle": "Please enter the access code",

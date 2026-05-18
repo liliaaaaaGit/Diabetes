@@ -13,14 +13,12 @@ import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { glucoseEntryToMgDl } from "@/lib/glucose-units"
+import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
 import { cn } from "@/lib/utils"
 
 interface MomentCardProps {
   entries: Entry[]
-}
-
-function toMgDl(glucose: GlucoseEntry): number {
-  return glucose.unit === "mmol_l" ? glucose.value * 18.0182 : glucose.value
 }
 
 function bgValueClass(mgDl: number): string {
@@ -81,7 +79,7 @@ function Chip({ text }: { text: string }) {
 
 export function MomentCard({ entries }: MomentCardProps) {
   const { locale } = useTranslation()
-  const { formatGlucoseWithUnit } = useUserPreferences()
+  const { formatGlucoseWithUnit, targetRange } = useUserPreferences()
   const dateLocale = locale === "en" ? enUS : de
   const sorted = [...entries].sort(
     (a, b) => parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
@@ -90,7 +88,8 @@ export function MomentCard({ entries }: MomentCardProps) {
   const meals = sorted.filter((entry) => entry.type === "meal") as MealEntry[]
   const glucoseEntries = sorted.filter((entry) => entry.type === "glucose") as GlucoseEntry[]
   const glucose = pickHeroGlucose(glucoseEntries, meals)
-  const glucoseDisplay = glucose ? formatGlucoseWithUnit(toMgDl(glucose)) : null
+  const glucoseMgDl = glucose ? glucoseEntryToMgDl(glucose) : null
+  const glucoseDisplay = glucoseMgDl != null ? formatGlucoseWithUnit(glucoseMgDl) : null
   const insulin = sorted.filter((entry) => entry.type === "insulin") as InsulinEntry[]
   const activities = sorted.filter((entry) => entry.type === "activity") as ActivityEntry[]
   const moods = sorted.filter((entry) => entry.type === "mood") as MoodEntry[]
@@ -130,7 +129,12 @@ export function MomentCard({ entries }: MomentCardProps) {
       {glucose && glucoseDisplay ? (
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-end gap-1.5">
-            <span className={cn("text-2xl font-medium leading-none", bgValueClass(toMgDl(glucose)))}>
+            <span
+              className={cn(
+                "text-2xl font-medium leading-none",
+                glucoseValueTextClassMgDl(glucoseMgDl!, targetRange.min, targetRange.max)
+              )}
+            >
               {glucoseDisplay.value}
             </span>
             <span className="text-[13px] text-gray-400">{glucoseDisplay.suffix}</span>

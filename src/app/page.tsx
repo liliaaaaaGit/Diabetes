@@ -18,8 +18,9 @@ import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { defaultMoodLabel } from "@/lib/mood"
 import type { Entry, GlucoseEntry, MoodEntry } from "@/lib/types"
-import { formatDistanceToNow, parseISO } from "date-fns"
+import { formatDistanceToNow, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { glucoseTirPercents } from "@/lib/insights-aggregate"
 
 function MoodSummaryCard({ label, moodEntry }: { label: string; moodEntry?: MoodEntry }) {
   const moodValue = moodEntry?.moodValue ?? 3
@@ -89,6 +90,12 @@ export default function DashboardPage() {
 
   const glucoseTyped = glucoseEntries as GlucoseEntry[]
   const moodTyped = moodEntries as MoodEntry[]
+
+  const timeInRangePercent = useMemo(() => {
+    const cutoff = subDays(new Date(), 7)
+    const last7d = glucoseTyped.filter((e) => parseISO(e.timestamp) >= cutoff)
+    return glucoseTirPercents(last7d, targetMinMgDl, targetMaxMgDl).inRange
+  }, [glucoseTyped, targetMinMgDl, targetMaxMgDl])
 
   const lastGlucoseEntry = useMemo(() => {
     return [...glucoseTyped]
@@ -192,7 +199,7 @@ export default function DashboardPage() {
             <div className="min-w-0">
               <StatCard
                 label={t("dashboard.timeInRange")}
-                value={`${statsSafe.timeInRange}%`}
+                value={`${timeInRangePercent}%`}
                 icon={TrendingUp}
                 color="purple"
               />
@@ -258,7 +265,7 @@ export default function DashboardPage() {
               />
               <StatCard
                 label={t("dashboard.timeInRange")}
-                value={`${statsSafe.timeInRange}%`}
+                value={`${timeInRangePercent}%`}
                 icon={TrendingUp}
                 color="purple"
               />

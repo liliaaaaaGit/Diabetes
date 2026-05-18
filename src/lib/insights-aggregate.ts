@@ -154,11 +154,16 @@ export function glucoseTirPercents(
   }
 }
 
-/** Average glucose in clinical band 70–180 mg/dL → green (matches TIR „im Ziel“). */
-export function averageGlucoseLabelClass(avgMgDl: number | null): string {
+/** Average glucose color vs user target range (matches TIR „im Ziel“). */
+export function averageGlucoseLabelClass(
+  avgMgDl: number | null,
+  targetMinMgDl: number,
+  targetMaxMgDl: number
+): string {
   if (avgMgDl == null) return "text-slate-400"
-  if (avgMgDl >= 70 && avgMgDl <= 180) return "text-green-600"
-  if (avgMgDl >= 60 && avgMgDl < 70) return "text-amber-600"
-  if (avgMgDl > 180 && avgMgDl <= 250) return "text-amber-600"
+  if (avgMgDl >= targetMinMgDl && avgMgDl <= targetMaxMgDl) return "text-green-600"
+  const margin = Math.max(10, Math.round((targetMaxMgDl - targetMinMgDl) * 0.15))
+  if (avgMgDl >= targetMinMgDl - margin && avgMgDl < targetMinMgDl) return "text-amber-600"
+  if (avgMgDl > targetMaxMgDl && avgMgDl <= targetMaxMgDl + margin) return "text-amber-600"
   return "text-red-600"
 }

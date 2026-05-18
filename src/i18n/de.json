@@ -277,7 +277,8 @@
     "subtitle": "Blutzucker, Stimmung und eine kurze KI-Einordnung – alles im gewählten Zeitraum.",
     "tirBlockTitle": "Blutzucker im Überblick",
     "avgGlucoseLargeLabel": "Durchschnitt (Zeitraum)",
-    "tirBandHint": "Einzelwerte im grünen Balken: 70–180 mg/dL (Time in Range).",
+    "tirBandHint": "Einzelwerte im grünen Balken: {{range}} (Time in Range).",
+    "inTargetWithRange": "Im Zielbereich ({{range}})",
     "summaryDailyBg": "Blutzucker je Tag",
     "periodAvgShort": "Ø Zeitraum",
     "noGlucoseInPeriod": "Keine BZ-Messungen im Zeitraum",
@@ -288,6 +289,7 @@
     "moodGlucoseTitle": "Stimmung & Blutzucker",
     "moodGlucoseSubtitle": "Tagesmittel: Blutzucker aus dem Tagebuch; Stimmung aus Tagebuch-Einträgen und abgeschlossenen Buddy-Gesprächen (Emotion → Skala 1–5).",
     "legendGlucose": "Blutzucker (mg/dL)",
+    "legendGlucoseWithUnit": "Blutzucker ({{unit}})",
     "legendMood": "Stimmung (1–5)",
     "chartNoData": "Für diesen Zeitraum liegen noch keine ausreichenden Daten vor.",
     "correlationTitle": "Kurze Einordnung",
@@ -405,7 +407,12 @@
     "deleteDataTitle": "Daten löschen",
     "deleteDataBody": "Wenn Sie die Löschung Ihrer Daten wünschen, schreiben Sie bitte eine E-Mail an lilia@schraut.de unter Angabe Ihres Pseudonyms. Ihre Daten werden innerhalb von 14 Tagen vollständig gelöscht. Spätestens nach Abschluss der Studie werden ohnehin alle Daten automatisch und unwiderruflich gelöscht.",
     "saveFailed": "Einstellung konnte nicht gespeichert werden.",
-    "targetRangeInvalid": "Bitte einen gültigen Zielbereich eingeben (Minimum kleiner als Maximum)."
+    "targetRangeInvalid": "Bitte einen gültigen Zielbereich eingeben (Minimum kleiner als Maximum).",
+    "targetRangeOutOfBounds": "Der Zielbereich muss zwischen {{bounds}} liegen.",
+    "targetRangeSaved": "Zielbereich gespeichert.",
+    "targetRangeHint": "Werte werden intern in mg/dL gespeichert und in Ihrer gewählten Einheit angezeigt.",
+    "saveTargetRange": "Zielbereich speichern",
+    "unitSaved": "Einheit gespeichert."
   },
   "auth": {
     "accessSubtitle": "Bitte gib den Zugangscode ein",

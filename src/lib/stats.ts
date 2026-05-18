@@ -1,11 +1,17 @@
 import type { Entry, GlucoseEntry, MoodEntry, ActivityEntry } from "./types"
 
 /**
- * Calculate percentage of glucose values within target range (70-180 mg/dL)
+ * Calculate percentage of glucose values within the user's target range (mg/dL).
  */
-export function getTimeInRange(glucoseEntries: GlucoseEntry[]): number {
+export function getTimeInRange(
+  glucoseEntries: GlucoseEntry[],
+  targetMinMgDl: number,
+  targetMaxMgDl: number
+): number {
   if (glucoseEntries.length === 0) return 0
-  const inRange = glucoseEntries.filter((e) => e.value >= 70 && e.value <= 180).length
+  const inRange = glucoseEntries.filter(
+    (e) => e.value >= targetMinMgDl && e.value <= targetMaxMgDl
+  ).length
   return Math.round((inRange / glucoseEntries.length) * 100)
 }
 
@@ -56,7 +62,11 @@ export function getEntryCountsByType(entries: Entry[]): Record<string, number> {
 /**
  * Calculate weekly statistics from entries
  */
-export function getWeeklyStats(entries: Entry[]): {
+export function getWeeklyStats(
+  entries: Entry[],
+  targetMinMgDl: number,
+  targetMaxMgDl: number
+): {
   avgGlucose: number
   glucoseCount: number
   timeInRange: number
@@ -74,7 +84,7 @@ export function getWeeklyStats(entries: Entry[]): {
       ? Math.round((glucoseEntries.reduce((sum, e) => sum + e.value, 0) / glucoseEntries.length) * 10) / 10
       : 0
 
-  const timeInRange = getTimeInRange(glucoseEntries)
+  const timeInRange = getTimeInRange(glucoseEntries, targetMinMgDl, targetMaxMgDl)
 
   const avgMood = moodEntries.length > 0 ? moodEntries.reduce((sum, e) => sum + e.moodValue, 0) / moodEntries.length : 0
 

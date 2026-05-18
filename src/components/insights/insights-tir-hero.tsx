@@ -14,7 +14,8 @@ interface InsightsTirHeroProps {
 
 export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
   const { t } = useTranslation()
-  const { displayUnit } = useUserPreferences()
+  const { formatTargetRangeLabel, targetRange } = useUserPreferences()
+  const rangeLabel = formatTargetRangeLabel()
   const hasData = tir.under + tir.inRange + tir.over > 0
   const avgDisplay = avgMgDl != null ? formatGlucoseWithUnit(avgMgDl, displayUnit) : null
 
@@ -31,7 +32,7 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
               <p
                 className={cn(
                   "text-4xl md:text-5xl font-bold tabular-nums tracking-tight",
-                  averageGlucoseLabelClass(avgMgDl)
+                  averageGlucoseLabelClass(avgMgDl, targetRange.min, targetRange.max)
                 )}
               >
                 {avgDisplay ? (
@@ -43,7 +44,9 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
                   <span className="text-slate-400">—</span>
                 )}
               </p>
-              <p className="text-xs text-slate-500 mt-2">{t("insights.tirBandHint")}</p>
+              <p className="text-xs text-slate-500 mt-2">
+                {t("insights.tirBandHint", { range: rangeLabel })}
+              </p>
             </div>
 
             <div className="flex-1 min-w-0 space-y-4">
@@ -84,7 +87,7 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500 shrink-0" />
-                  {t("insights.inTarget")} ({tir.inRange}%)
+                  {t("insights.inTargetWithRange", { range: rangeLabel })} ({tir.inRange}%)
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm bg-teal-900 shrink-0" />

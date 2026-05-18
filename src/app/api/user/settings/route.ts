@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSessionUserId } from "@/lib/auth-session"
 import { getOrCreateUserSettings, updateUserSettings } from "@/lib/user-settings"
+import { validateTargetRangeMgDl } from "@/lib/target-range"
 import type { GlucoseUnit } from "@/lib/types"
 
 export const runtime = "nodejs"
@@ -39,6 +40,17 @@ export async function PATCH(req: NextRequest) {
       body.preferredUnit !== "mmol_l"
     ) {
       return NextResponse.json({ error: "invalid_unit" }, { status: 400 })
+    }
+
+    if (body.targetMinMgDl != null || body.targetMaxMgDl != null) {
+      const current = await getOrCreateUserSettings(userId)
+      const validation = validateTargetRangeMgDl(
+        body.targetMinMgDl ?? current.targetMinMgDl,
+        body.targetMaxMgDl ?? current.targetMaxMgDl
+      )
+      if (!validation.ok) {
+        return NextResponse.json({ error: validation.code }, { status: 400 })
+      }
     }
 
     const settings = await updateUserSettings(userId, {

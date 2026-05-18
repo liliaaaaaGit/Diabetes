@@ -102,13 +102,11 @@ export function GlucoseChart({
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: (typeof chartData)[0] }[] }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
+      const formatted = formatGlucoseWithUnit(data.valueMgDl)
       return (
         <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-sm">
           <p className="font-semibold text-slate-900">
-            {(() => {
-              const f = formatGlucoseWithUnit(data.valueMgDl)
-              return `${f.value} ${f.suffix}`
-            })()}
+            {formatted.value} {formatted.suffix}
           </p>
           <p className="text-xs text-slate-600">
             {format(
