@@ -66,4 +66,22 @@
   select {
     @apply text-base;
   }
+
+  /* Long emails/URLs in narrow viewports */
+  a[href^="mailto:"],
+  a[href^="http"],
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+@layer utilities {
+  .mobile-page-title {
+    @apply text-xl font-semibold leading-relaxed text-slate-900 md:text-2xl;
+  }
+
+  .mobile-section-title {
+    @apply text-base font-semibold leading-relaxed text-slate-900 md:text-lg;
+  }
 }

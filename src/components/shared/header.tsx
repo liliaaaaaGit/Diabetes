@@ -26,7 +26,9 @@ export function Header({ title, actions, onMenuClick }: HeaderProps) {
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          <h1 className="min-w-0 truncate text-lg font-semibold text-slate-900">{title}</h1>
+          <h1 className="min-w-0 truncate text-base font-semibold leading-relaxed text-slate-900 md:text-lg">
+            {title}
+          </h1>
         </div>
 
         {/* Actions */}

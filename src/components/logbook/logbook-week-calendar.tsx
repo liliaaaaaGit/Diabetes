@@ -112,8 +112,8 @@ export function LogbookWeekCalendar({
             <span className="text-sm font-semibold text-slate-800">{t("logbook.today")}</span>
           ) : (
             <>
-              <span className="text-sm font-semibold text-slate-800 truncate text-center">
-                {format(selectedDate, "d. MMMM yyyy", { locale: dateLocale })}
+              <span className="text-xs font-semibold text-slate-800 truncate text-center sm:text-sm">
+                {format(selectedDate, "d. MMM yyyy", { locale: dateLocale })}
               </span>
               <Button
                 type="button"
@@ -140,7 +140,8 @@ export function LogbookWeekCalendar({
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+      <div className="overflow-x-auto -mx-1 px-1 [-webkit-overflow-scrolling:touch]">
+        <div className="grid min-w-[320px] grid-cols-7 gap-1 sm:min-w-0 sm:gap-1">
         {days.map((day) => {
           const selected = isSameDay(day, selectedStart)
           const todayCell = isToday(day)
@@ -184,6 +185,7 @@ export function LogbookWeekCalendar({
             </button>
           )
         })}
+        </div>
       </div>
     </div>
   )

@@ -77,6 +77,7 @@ export default function InsightsPage() {
               data={chartPoints}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
+              hidePeriodTabs
             />
           </>
         )}

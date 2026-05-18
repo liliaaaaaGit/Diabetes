@@ -160,7 +160,7 @@ export default function DashboardPage() {
               <CardContent className="p-6">
                 <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-bold text-slate-900">
+                  <span className="text-3xl font-bold text-slate-900 sm:text-4xl">
                     {formatGlucoseWithUnit(lastGlucoseEntry.value).value}
                   </span>
                   <span className="text-lg text-slate-600">{unitSuffix}</span>
@@ -172,33 +172,27 @@ export default function DashboardPage() {
             </Card>
           )}
 
-          {/* Mobile stat cards: fixed grid, no horizontal scroll */}
-          <div className="grid grid-cols-3 gap-2 overflow-hidden">
-            <div className="min-w-0">
-              <StatCard
-                label={t("dashboard.avgGlucose")}
-                value={formatGlucoseWithUnit(statsSafe.avgGlucose).value}
-                unit={unitSuffix}
-                icon={Droplet}
-                color="teal"
-              />
-            </div>
-            <div className="min-w-0">
-              <StatCard
-                label={t("dashboard.entriesToday")}
-                value={statsSafe.entriesToday}
-                icon={Activity}
-                color="green"
-              />
-            </div>
-            <div className="min-w-0">
-              <StatCard
-                label={t("dashboard.timeInRange")}
-                value={`${timeInRangePercent}%`}
-                icon={TrendingUp}
-                color="purple"
-              />
-            </div>
+          {/* Mobile stat cards: stacked on narrow screens */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <StatCard
+              label={t("dashboard.avgGlucose")}
+              value={formatGlucoseWithUnit(statsSafe.avgGlucose).value}
+              unit={unitSuffix}
+              icon={Droplet}
+              color="teal"
+            />
+            <StatCard
+              label={t("dashboard.entriesToday")}
+              value={statsSafe.entriesToday}
+              icon={Activity}
+              color="green"
+            />
+            <StatCard
+              label={t("dashboard.timeInRange")}
+              value={`${timeInRangePercent}%`}
+              icon={TrendingUp}
+              color="purple"
+            />
           </div>
 
           <div className="min-w-0">

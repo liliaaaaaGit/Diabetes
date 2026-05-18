@@ -21,7 +21,7 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
   return (
     <Card className="rounded-xl border-teal-100 bg-white shadow-sm w-full">
       <CardContent className="p-5 md:p-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-6">{t("insights.tirBlockTitle")}</h2>
+        <h2 className="mobile-section-title mb-6">{t("insights.tirBlockTitle")}</h2>
         {!hasData ? (
           <p className="text-sm text-slate-500 text-center py-6">{t("empty.glucoseChartEmpty")}</p>
         ) : (
@@ -30,7 +30,7 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
               <p className="text-sm font-medium text-slate-600 mb-1">{t("insights.avgGlucoseLargeLabel")}</p>
               <p
                 className={cn(
-                  "text-4xl md:text-5xl font-bold tabular-nums tracking-tight",
+                  "text-3xl font-bold tabular-nums tracking-tight sm:text-4xl md:text-5xl",
                   averageGlucoseLabelClass(avgMgDl, targetRange.min, targetRange.max)
                 )}
               >

@@ -21,6 +21,7 @@ import {
   TARGET_RANGE_LIMITS_MG_DL,
 } from "@/lib/target-range"
 import type { GlucoseUnit } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 export default function SettingsPage() {
   const { t } = useTranslation()
@@ -142,7 +143,7 @@ export default function SettingsPage() {
               value={preferredUnit}
               onValueChange={(v) => void handleUnitChange(v as GlucoseUnit)}
             >
-              <TabsList className={prefsLoading ? "pointer-events-none opacity-50" : undefined}>
+              <TabsList className={cn("grid w-full grid-cols-2", prefsLoading && "pointer-events-none opacity-50")}>
                 <TabsTrigger value="mg_dl" disabled={prefsLoading}>
                   {t("units.mgdl")}
                 </TabsTrigger>
@@ -168,9 +169,9 @@ export default function SettingsPage() {
             <CardTitle className="text-base">{t("settings.targetRange")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm text-slate-600 mb-2 block">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-sm text-slate-600 block">
                   {t("settings.min")} ({unitLabel})
                 </Label>
                 <Input
@@ -179,10 +180,11 @@ export default function SettingsPage() {
                   value={targetMinInput}
                   onChange={(e) => setTargetMinInput(e.target.value)}
                   disabled={prefsLoading || isSavingRange}
+                  className="w-full"
                 />
               </div>
-              <div>
-                <Label className="text-sm text-slate-600 mb-2 block">
+              <div className="space-y-2">
+                <Label className="text-sm text-slate-600 block">
                   {t("settings.max")} ({unitLabel})
                 </Label>
                 <Input
@@ -191,6 +193,7 @@ export default function SettingsPage() {
                   value={targetMaxInput}
                   onChange={(e) => setTargetMaxInput(e.target.value)}
                   disabled={prefsLoading || isSavingRange}
+                  className="w-full"
                 />
               </div>
             </div>
@@ -243,7 +246,7 @@ export default function SettingsPage() {
             {pseudonym && (
               <div>
                 <Label className="text-sm text-slate-600">{t("settings.loggedInAs")}</Label>
-                <p className="text-sm text-slate-900 mt-1 font-medium">{pseudonym}</p>
+                <p className="text-sm text-slate-900 mt-1 font-medium break-anywhere">{pseudonym}</p>
               </div>
             )}
             <Separator />

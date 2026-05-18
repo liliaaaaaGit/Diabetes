@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/hooks/useTranslation"
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context"
 import { GlucoseSafetyProvider } from "@/contexts/glucose-safety-context"
 import { PwaRegister } from "@/components/pwa-register"
+import { MobileFormEnhancements } from "@/components/shared/mobile-form-enhancements"
 import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -43,6 +44,7 @@ export default function RootLayout({
           <UserPreferencesProvider>
             <GlucoseSafetyProvider>
               {children}
+              <MobileFormEnhancements />
               <PwaRegister />
               <Toaster />
             </GlucoseSafetyProvider>

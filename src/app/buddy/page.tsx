@@ -446,8 +446,8 @@ export default function BuddyPage() {
   }, [activeTab, conversations, refetchConversations, userId])
 
   return (
-    <AppShell title={t("buddy.title")}>
-      <div className="relative flex h-[calc(100dvh-8.5rem)] min-h-0 flex-col md:h-[calc(100dvh-9rem)]">
+    <AppShell title={t("buddy.title")} mainClassName="flex min-h-0 flex-col">
+      <div className="relative flex min-h-0 flex-1 flex-col">
         {conversationsError && (
           <p className="shrink-0 text-sm text-red-600">{t("buddy.historyLoadFailed")}</p>
         )}
@@ -499,7 +499,7 @@ export default function BuddyPage() {
         </div>
 
         {activeTab === "chat" && !isFullChatView && (
-          <div className="mx-auto mt-8 flex h-full min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-2 pb-2 md:mt-10 md:px-4 md:pb-3 lg:mt-12 lg:px-6">
+          <div className="mx-auto mt-4 flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-y-auto px-2 pb-2 md:mt-10 md:px-4 md:pb-3 lg:mt-12 lg:px-6">
             <BuddyHomeHero
               quote={buddyPersonalQuote}
               quoteLoading={quoteLoading}
@@ -513,7 +513,7 @@ export default function BuddyPage() {
         )}
 
         {activeTab === "chat" && isFullChatView && (
-          <div className="flex h-[calc(100dvh-10rem)] min-h-0 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col">
             <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pb-2 md:px-6 lg:px-8">
               <div className="flex flex-wrap items-center gap-2">
                 <Button
@@ -564,15 +564,17 @@ export default function BuddyPage() {
         )}
 
         {activeTab === "stats" && (
+          <div className="min-h-0 flex-1 overflow-y-auto">
           <BuddyStats
             userId={userId}
             refreshKey={historyRefreshKey}
             dailyRefreshNonce={statsDailyNonce}
           />
+          </div>
         )}
 
         {activeTab === "history" && (
-          <div className="mx-auto w-full max-w-6xl p-4 md:p-6 lg:px-8">
+          <div className="mx-auto min-h-0 w-full max-w-6xl flex-1 overflow-y-auto p-4 md:p-6 lg:px-8">
             <ConversationList
               userId={userId}
               conversations={conversations}

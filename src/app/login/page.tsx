@@ -54,7 +54,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-500 text-white mb-4">
             <Droplet className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("auth.loginTitle")}</h1>
+          <h1 className="text-xl font-bold leading-relaxed text-slate-900 mb-2 sm:text-2xl">{t("auth.loginTitle")}</h1>
           <p className="text-sm text-slate-600">{t("auth.loginSubtitle")}</p>
         </div>
 
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPin(!showPin)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    className="absolute right-1 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700"
                   >
                     {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>

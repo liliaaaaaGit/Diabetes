@@ -35,7 +35,7 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
       {/* Main Content Area */}
       <div
         className={cn(
-          "transition-all duration-200",
+          "flex min-h-screen min-h-[100dvh] flex-col transition-all duration-200",
           "md:ml-[280px]" // Desktop: offset by sidebar width
         )}
       >
@@ -49,7 +49,8 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
         {/* Content */}
         <main
           className={cn(
-            "mx-auto max-w-7xl p-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:p-6 md:pb-14",
+            "mx-auto flex w-full min-w-0 max-w-7xl flex-1 flex-col px-4 py-4",
+            "pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:px-6 md:py-6 md:pb-14",
             mainClassName
           )}
         >

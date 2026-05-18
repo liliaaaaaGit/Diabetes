@@ -33,7 +33,7 @@ export function HistoryStats({ userId, refreshKey = 0 }: HistoryStatsProps) {
   }, [refreshKey, userId])
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-2">
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <p className="text-[11px] leading-tight text-slate-500 md:text-sm">{t("buddy.history.total")}</p>
         <p className="mt-1 text-xl font-semibold text-teal-600">{stats.total}</p>

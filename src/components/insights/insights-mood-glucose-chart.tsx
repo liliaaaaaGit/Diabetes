@@ -27,12 +27,15 @@ interface InsightsMoodGlucoseChartProps {
   data: DailyMoodGlucosePoint[]
   timeRange: InsightsTimeRangeKey
   onTimeRangeChange: (v: InsightsTimeRangeKey) => void
+  /** Hide period tabs when the page already shows them above the chart. */
+  hidePeriodTabs?: boolean
 }
 
 export function InsightsMoodGlucoseChart({
   data,
   timeRange,
   onTimeRangeChange,
+  hidePeriodTabs = false,
 }: InsightsMoodGlucoseChartProps) {
   const { t } = useTranslation()
   const { displayUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
@@ -86,17 +89,17 @@ export function InsightsMoodGlucoseChart({
       <CardContent className="p-5 md:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 mb-6">
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">
-              {t("insights.moodGlucoseTitle")}
-            </h2>
-            <p className="text-sm text-slate-600">{t("insights.moodGlucoseSubtitle")}</p>
+            <h2 className="mobile-section-title mb-1">{t("insights.moodGlucoseTitle")}</h2>
+            <p className="text-sm leading-relaxed text-slate-600">{t("insights.moodGlucoseSubtitle")}</p>
           </div>
-          <InsightsPeriodTabs
-            value={timeRange}
-            onValueChange={onTimeRangeChange}
-            size="compact"
-            className="shrink-0"
-          />
+          {!hidePeriodTabs && (
+            <InsightsPeriodTabs
+              value={timeRange}
+              onValueChange={onTimeRangeChange}
+              size="compact"
+              className="shrink-0 w-full sm:w-auto"
+            />
+          )}
         </div>
 
         {!hasAnySignal ? (
@@ -195,14 +198,14 @@ export function InsightsMoodGlucoseChart({
         )}
 
         {hasAnySignal ? (
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-700 mt-2">
+          <div className="mt-3 flex flex-col items-stretch gap-2 text-sm text-slate-700 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-6">
             <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-8 rounded-full bg-[#0d9488]" aria-hidden />
-              {t("insights.legendGlucoseWithUnit", { unit: unitSuffix })}
+              <span className="h-3 w-8 shrink-0 rounded-full bg-[#0d9488]" aria-hidden />
+              <span className="leading-relaxed">{t("insights.legendGlucoseWithUnit", { unit: unitSuffix })}</span>
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-8 rounded-full bg-[#7c3aed]" aria-hidden />
-              {t("insights.legendMood")}
+              <span className="h-3 w-8 shrink-0 rounded-full bg-[#7c3aed]" aria-hidden />
+              <span className="leading-relaxed">{t("insights.legendMood")}</span>
             </span>
           </div>
         ) : null}

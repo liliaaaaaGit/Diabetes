@@ -32,8 +32,8 @@ export function InputComposer({ onSend, isDisabled = false, onTypingChange }: In
   }
 
   return (
-    <div className="border-t border-slate-200 bg-white/90 backdrop-blur-sm px-4 py-3">
-      <div className="flex items-end gap-2 max-w-3xl mx-auto">
+    <div className="sticky bottom-0 z-20 shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex max-w-3xl items-end gap-2">
         <Textarea
           value={text}
           onChange={(e) => {
@@ -63,7 +63,7 @@ export function InputComposer({ onSend, isDisabled = false, onTypingChange }: In
           onClick={handleSend}
           disabled={!text.trim() || isDisabled}
           size="icon"
-          className="h-11 w-11 flex-shrink-0 rounded-full bg-teal-500 hover:bg-teal-600"
+          className="h-11 min-h-[44px] w-11 min-w-[44px] flex-shrink-0 rounded-full bg-teal-500 hover:bg-teal-600"
         >
           <Send className="h-4 w-4" />
         </Button>

@@ -23,7 +23,7 @@ export function BuddyHomeHero({
   disabled = false,
 }: BuddyHomeHeroProps) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-x-hidden">
+    <div className="flex min-h-0 w-full flex-col justify-between overflow-x-hidden overflow-y-auto">
       <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:gap-3 md:gap-4 lg:items-stretch lg:gap-6 xl:gap-8">
         <div className="flex min-h-[120px] w-full min-w-0 flex-col items-center justify-center sm:min-h-[130px] sm:w-2/5 lg:min-h-0 lg:w-auto lg:max-w-[min(100%,420px)] lg:shrink-0 lg:items-stretch">
           <div className="relative flex h-full min-h-0 w-full flex-1 items-center justify-center overflow-visible">

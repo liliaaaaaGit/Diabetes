@@ -83,7 +83,7 @@ export default function RegisterPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-500 text-white mb-4">
             <Droplet className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("auth.registerTitle")}</h1>
+          <h1 className="text-xl font-bold leading-relaxed text-slate-900 mb-2 sm:text-2xl">{t("auth.registerTitle")}</h1>
           <p className="text-sm text-slate-600">{t("auth.registerSubtitle")}</p>
         </div>
 
