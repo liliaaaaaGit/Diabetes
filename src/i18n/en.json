@@ -33,7 +33,18 @@
   },
   "safety": {
     "disclaimer": "This is a research prototype. Not medical advice. Discuss all decisions with your healthcare team.",
-    "notice": "Research prototype – not medical advice"
+    "notice": "Research prototype – not medical advice",
+    "closeBanner": "Dismiss notice",
+    "glucoseLow": {
+      "label": "Low value",
+      "title": "Low value detected",
+      "body": "Your reading is below 70 mg/dL. If you feel unwell: take fast-acting carbohydrates (e.g. 15 g glucose tablets or 150 ml juice) and recheck in 15 minutes. If values stay low or you have confusion or loss of consciousness: seek medical help. This app does not replace medical advice."
+    },
+    "glucoseHigh": {
+      "label": "High value",
+      "title": "High value detected",
+      "body": "Your reading is above 250 mg/dL. Watch for symptoms such as intense thirst, frequent urination, or nausea. Checking ketones may be useful. If values stay high or you feel unwell: please contact your healthcare provider. This app does not replace medical advice."
+    }
   },
   "pages": {
     "dashboard": "Glucose trend",

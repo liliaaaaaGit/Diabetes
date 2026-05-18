@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button"
 import { useEntries } from "@/hooks/useEntries"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db-client"
+import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
+import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucose-form"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
 import { addDays, isSameDay, parseISO, startOfDay } from "date-fns"
@@ -23,6 +25,7 @@ export default function LogbookPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
+  const { showGlucoseSafetyIfNeeded } = useGlucoseSafetyBanner()
   const [activeFilter, setActiveFilter] = useState<EntryType | "all">("all")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
@@ -80,6 +83,9 @@ export default function LogbookPage() {
         }
 
         await createEntry(userId, entryToSave)
+        if (entryToSave.type === "glucose") {
+          triggerGlucoseSafetyAfterSave(entryToSave, showGlucoseSafetyIfNeeded)
+        }
         await refetch()
         toast({
           title: t("logbook.entrySaved"),

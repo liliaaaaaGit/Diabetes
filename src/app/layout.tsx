@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { LanguageProvider } from "@/hooks/useTranslation"
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context"
+import { GlucoseSafetyProvider } from "@/contexts/glucose-safety-context"
 import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -22,8 +23,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <LanguageProvider>
           <UserPreferencesProvider>
-            {children}
-            <Toaster />
+            <GlucoseSafetyProvider>
+              {children}
+              <Toaster />
+            </GlucoseSafetyProvider>
           </UserPreferencesProvider>
         </LanguageProvider>
       </body>

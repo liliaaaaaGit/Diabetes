@@ -33,7 +33,18 @@
   },
   "safety": {
     "disclaimer": "Dies ist ein Forschungsprototyp. Keine medizinische Beratung. Besprich alle Entscheidungen mit deinem Behandlungsteam.",
-    "notice": "Forschungsprototyp – keine medizinische Beratung"
+    "notice": "Forschungsprototyp – keine medizinische Beratung",
+    "closeBanner": "Hinweis schließen",
+    "glucoseLow": {
+      "label": "Niedriger Wert",
+      "title": "Niedriger Wert erkannt",
+      "body": "Ihr Wert liegt unter 70 mg/dL. Wenn Sie sich unwohl fühlen: Achten Sie auf schnelle Kohlenhydrate (z. B. 15 g Traubenzucker oder 150 ml Saft) und messen Sie in 15 Minuten erneut. Bei anhaltend niedrigen Werten oder Bewusstseinsstörungen: medizinische Hilfe holen. Diese App ersetzt keine medizinische Beratung."
+    },
+    "glucoseHigh": {
+      "label": "Hoher Wert",
+      "title": "Hoher Wert erkannt",
+      "body": "Ihr Wert liegt über 250 mg/dL. Achten Sie auf Symptome wie starker Durst, häufiges Wasserlassen oder Übelkeit. Eine Ketonprüfung kann sinnvoll sein. Bei anhaltend hohen Werten oder Unwohlsein: bitte ärztlich abklären lassen. Diese App ersetzt keine medizinische Beratung."
+    }
   },
   "pages": {
     "dashboard": "Glucose-Verlauf",

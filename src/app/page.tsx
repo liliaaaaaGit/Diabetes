@@ -14,6 +14,8 @@ import { useEntries } from "@/hooks/useEntries"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
 import { useUser } from "@/hooks/useUser"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
+import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucose-form"
 import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel, resolveMoodDisplayNote } from "@/lib/mood"
@@ -50,6 +52,7 @@ export default function DashboardPage() {
   const { toast } = useToast()
   const { userId } = useUser()
   const { formatGlucoseWithUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
+  const { showGlucoseSafetyIfNeeded } = useGlucoseSafetyBanner()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -129,6 +132,9 @@ export default function DashboardPage() {
         }
       }
       await createEntry(userId, entryToSave)
+      if (entryToSave.type === "glucose") {
+        triggerGlucoseSafetyAfterSave(entryToSave, showGlucoseSafetyIfNeeded)
+      }
       toast({
         title: t("logbook.entrySaved"),
         description: t("logbook.entrySavedSuccess"),

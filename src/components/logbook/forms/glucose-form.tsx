@@ -11,6 +11,19 @@ import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { GLUCOSE_RANGE, GLUCOSE_RANGE_MMOL } from "@/lib/constants"
 import { glucoseUnitSuffix, mgDlToMmolL, mmolLToMgDl, storageUnitToDisplay } from "@/lib/glucose-units"
 
+/** Call after a glucose entry was saved successfully to show a safety banner if needed. */
+export function triggerGlucoseSafetyAfterSave(
+  entry: Partial<GlucoseEntry>,
+  showGlucoseSafetyIfNeeded: (entry: Partial<GlucoseEntry>) => void
+): void {
+  if (entry.type !== "glucose" || typeof entry.value !== "number") return
+  showGlucoseSafetyIfNeeded({
+    type: "glucose",
+    value: entry.value,
+    unit: entry.unit ?? "mg_dl",
+  })
+}
+
 interface GlucoseFormProps {
   value: Partial<GlucoseEntry>
   onChange: (value: Partial<GlucoseEntry>) => void

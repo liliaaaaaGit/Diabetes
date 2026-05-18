@@ -26,6 +26,8 @@ import { format, parse } from "date-fns"
 import { de as deLocale, enUS } from "date-fns/locale"
 import { isValidDateYmd, timestampForEntryDate } from "@/lib/entry-timestamp"
 import { useToast } from "@/hooks/use-toast"
+import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
+import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucose-form"
 import {
   Select,
   SelectContent,
@@ -111,6 +113,7 @@ export function ExtractionConfirmation({
   const locale = appLocale === "en" ? "en" : "de"
   const { toast } = useToast()
   const { formatGlucoseWithUnit } = useUserPreferences()
+  const { showGlucoseSafetyIfNeeded } = useGlucoseSafetyBanner()
 
   const [entries, setEntries] = useState<ExtractedEntry[]>(extractedEntries)
   const [saving, setSaving] = useState(false)
@@ -237,6 +240,9 @@ export function ExtractionConfirmation({
       try {
         // eslint-disable-next-line no-await-in-loop
         await onSaveEntry(ne)
+        if (ne.type === "glucose") {
+          triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
+        }
         saved += 1
       } catch {
         failed += 1
