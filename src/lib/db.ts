@@ -1,4 +1,5 @@
 import { supabaseServer as supabase } from "@/lib/supabase-server"
+import { roundInsulinDose } from "@/lib/insulin-format"
 import type {
   Entry,
   EntryType,
@@ -275,7 +276,7 @@ export async function createEntry(userId: string, entry: NewEntry | Entry): Prom
     if (type === "insulin") {
       const { error } = await supabase.from("entry_insulin").insert({
         entry_id: entryId,
-        dose: dose,
+        dose: roundInsulinDose(toNumber(dose)),
         insulin_type: insulinType,
         insulin_name: insulinName || null,
       })

@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from "recharts"
 import { useTranslation } from "@/hooks/useTranslation"
+import { formatInsulin } from "@/lib/insulin-format"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { formatGlucose, mgDlToMmolL } from "@/lib/glucose-units"
 import type { DailyMoodGlucosePoint } from "@/lib/insights-aggregate"
@@ -27,7 +28,7 @@ export function InsightsSummaryStrip({
   sumCarbs,
   entryCount,
 }: InsightsSummaryStripProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { displayUnit, unitSuffix } = useUserPreferences()
   const sparkData = chartPoints.map((p) => ({
     name: p.label,
@@ -98,7 +99,7 @@ export function InsightsSummaryStrip({
           <CardContent className="p-3 flex flex-col justify-center min-h-[110px]">
             <p className="text-[11px] font-medium text-slate-600 uppercase tracking-wide break-words">{t("insights.stripInsulin")}</p>
             <p className="text-lg sm:text-2xl font-bold text-teal-800 tabular-nums mt-1 break-words">
-              {sumInsulin % 1 === 0 ? sumInsulin : sumInsulin.toFixed(1)}
+              {formatInsulin(sumInsulin, locale)}
             </p>
             <p className="text-xs text-slate-500 mt-0.5">{t("units.units")}</p>
           </CardContent>

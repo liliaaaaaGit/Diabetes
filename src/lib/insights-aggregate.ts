@@ -10,6 +10,7 @@ import type {
   MealEntry,
   MoodEntry,
 } from "@/lib/types"
+import { roundInsulinDose } from "@/lib/insulin-format"
 
 export type InsightsTimeRangeKey = "7d" | "30d" | "3m"
 
@@ -108,10 +109,11 @@ export function buildDailyMoodGlucosePoints(
 }
 
 export function sumInsulinUnits(entries: Entry[]): number {
-  return (entries.filter((e) => e.type === "insulin") as InsulinEntry[]).reduce(
+  const total = (entries.filter((e) => e.type === "insulin") as InsulinEntry[]).reduce(
     (s, e) => s + e.dose,
     0
   )
+  return roundInsulinDose(total)
 }
 
 export function sumCarbsGrams(entries: Entry[]): number {

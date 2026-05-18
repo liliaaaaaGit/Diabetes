@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
 import { Minus, Plus } from "lucide-react"
+import { roundInsulinDose } from "@/lib/insulin-format"
 
 interface InsulinFormProps {
   value: Partial<InsulinEntry>
@@ -23,10 +24,11 @@ export function InsulinForm({ value, onChange }: InsulinFormProps) {
     setDose(newDose)
     const numDose = parseFloat(newDose)
     if (!isNaN(numDose)) {
+      const rounded = roundInsulinDose(numDose)
       onChange({
         ...value,
         type: "insulin",
-        dose: numDose,
+        dose: rounded,
       })
     }
   }

@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseToMgDl } from "@/lib/glucose-units"
+import { formatInsulin, roundInsulinDose } from "@/lib/insulin-format"
 import type { GlucoseUnit } from "@/lib/types"
 import { format, parse } from "date-fns"
 import { de as deLocale, enUS } from "date-fns/locale"
@@ -106,7 +107,8 @@ export function ExtractionConfirmation({
   source = "conversation",
   conversationId,
 }: ExtractionConfirmationProps) {
-  const { t, locale } = useTranslation()
+  const { t, locale: appLocale } = useTranslation()
+  const locale = appLocale === "en" ? "en" : "de"
   const { toast } = useToast()
   const { formatGlucoseWithUnit } = useUserPreferences()
 
@@ -160,8 +162,8 @@ export function ExtractionConfirmation({
     }
 
     if (type === "insulin") {
-      const dose = Number(data.dose)
-      if (!Number.isFinite(dose)) return null
+      const dose = roundInsulinDose(Number(data.dose))
+      if (!Number.isFinite(dose) || dose <= 0) return null
       return {
         type,
         source,
@@ -507,7 +509,7 @@ export function ExtractionConfirmation({
     if (type === "insulin" && typeof d.dose === "number") {
       return (
         <p className="mt-1 text-sm text-slate-700">
-          {d.dose} {t("units.units")}
+          {formatInsulin(d.dose, locale)} {t("logbook.insulinUnitsAbbrev")}
         </p>
       )
     }

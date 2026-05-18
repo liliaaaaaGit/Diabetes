@@ -1,4 +1,6 @@
+import type { Locale } from "@/i18n/config"
 import type { ActivityEntry, Entry, InsulinEntry, MealEntry } from "@/lib/types"
+import { formatInsulin } from "@/lib/insulin-format"
 
 type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
 
@@ -16,11 +18,11 @@ export function logbookEntryTypeLabel(type: Entry["type"], t: TranslateFn): stri
 export function formatInsulinChipText(
   dose: number,
   insulinName: string | undefined,
-  t: TranslateFn
+  t: TranslateFn,
+  locale: Locale
 ): string {
-  const doseText = dose % 1 === 0 ? String(dose) : dose.toFixed(1)
   return t("logbook.insulinChip", {
-    dose: doseText,
+    dose: formatInsulin(dose, locale),
     insulinAbbrev: t("logbook.insulinUnitsAbbrev"),
     name: insulinName || t("logbook.insulin"),
   })

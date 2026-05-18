@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
+import { formatInsulin } from "@/lib/insulin-format"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { cn } from "@/lib/utils"
@@ -30,7 +31,7 @@ const moodEmojis: Record<number, string> = {
 }
 
 export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { formatGlucoseWithUnit } = useUserPreferences()
 
   const recentEntries = entries
@@ -59,7 +60,7 @@ export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedPro
         const insulinEntry = entry as InsulinEntry
         return {
           icon: <Syringe className="h-5 w-5 text-purple-600" />,
-          text: `${insulinEntry.dose} IE ${insulinEntry.insulinName || ""}`,
+          text: `${formatInsulin(insulinEntry.dose, locale)} ${t("logbook.insulinUnitsAbbrev")} ${insulinEntry.insulinName || ""}`.trim(),
           color: "purple",
         }
       }

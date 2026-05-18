@@ -8,6 +8,7 @@ import { BookOpen } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
+import { formatInsulin, roundInsulinDose } from "@/lib/insulin-format"
 import { format } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
@@ -39,7 +40,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
         : null
 
     const sumCarbs = meals.reduce((s, m) => s + (m.carbsGrams ?? 0), 0)
-    const sumInsulin = ins.reduce((s, i) => s + i.dose, 0)
+    const sumInsulin = roundInsulinDose(ins.reduce((s, i) => s + i.dose, 0))
 
     return {
       count: filteredEntries.length,
@@ -80,7 +81,11 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
               <span>{t("logbook.daySummaryCarbs", { grams: summary.sumCarbs })}</span>
             ) : null}
             {summary.showInsulin ? (
-              <span>{t("logbook.daySummaryInsulin", { units: summary.sumInsulin })}</span>
+              <span>
+                {t("logbook.daySummaryInsulin", {
+                  units: formatInsulin(summary.sumInsulin, locale),
+                })}
+              </span>
             ) : null}
           </div>
         </div>

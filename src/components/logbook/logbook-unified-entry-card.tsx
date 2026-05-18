@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils"
 import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
+import { formatInsulin } from "@/lib/insulin-format"
 
 /** Nur Umriss-Gesichter, alles in Grau – kein Emoji-Look. */
 const moodIcons: Record<number, LucideIcon> = {
@@ -52,7 +53,8 @@ interface LogbookUnifiedEntryCardProps {
  * Einheitliche Tagesbuch-Karte: Uhrzeit oben links, darunter BZ → Insulin → KH (graue Icons, nur wenn vorhanden).
  */
 export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProps) {
-  const { t, locale } = useTranslation()
+  const { t, locale: appLocale } = useTranslation()
+  const locale = appLocale === "en" ? "en" : "de"
   const { formatGlucoseWithUnit, targetRange } = useUserPreferences()
   const dateLocale = locale === "de" ? de : enUS
   const [expanded, setExpanded] = useState(false)
@@ -106,7 +108,7 @@ export function LogbookUnifiedEntryCard({ entries }: LogbookUnifiedEntryCardProp
             <div key={ins.id} className="flex items-center gap-2 text-base flex-wrap">
               <Syringe className={rowIconClass} aria-hidden strokeWidth={2} />
               <span className="font-semibold text-slate-900 tabular-nums">
-                {ins.dose % 1 === 0 ? ins.dose : ins.dose.toFixed(1)} {t("units.units")}
+                {formatInsulin(ins.dose, locale)} {t("logbook.insulinUnitsAbbrev")}
               </span>
               {ins.insulinName ? (
                 <span className="text-sm text-slate-500">{ins.insulinName}</span>

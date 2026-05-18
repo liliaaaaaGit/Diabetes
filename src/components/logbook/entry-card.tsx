@@ -61,7 +61,8 @@ function Chip({ text }: { text: string }) {
 }
 
 export function MomentCard({ entries }: MomentCardProps) {
-  const { t, locale } = useTranslation()
+  const { t, locale: appLocale } = useTranslation()
+  const locale = appLocale === "en" ? "en" : "de"
   const { formatGlucoseWithUnit, targetRange } = useUserPreferences()
   const dateLocale = locale === "de" ? de : enUS
   const sorted = [...entries].sort(
@@ -155,7 +156,8 @@ export function MomentCard({ entries }: MomentCardProps) {
                 text={formatInsulinChipText(
                   basalInsulin.dose,
                   basalInsulin.insulinName || t("logbook.defaultLantus"),
-                  t
+                  t,
+                  locale
                 )}
               />
               <span className="text-[11px] italic text-gray-400">{t("logbook.basalLabel")}</span>
@@ -189,7 +191,7 @@ export function MomentCard({ entries }: MomentCardProps) {
           {bolusInsulin.map((entry) => (
             <Chip
               key={entry.id}
-              text={formatInsulinChipText(entry.dose, entry.insulinName, t)}
+              text={formatInsulinChipText(entry.dose, entry.insulinName, t, locale)}
             />
           ))}
           {activities.map((activity) => (
@@ -206,7 +208,7 @@ export function MomentCard({ entries }: MomentCardProps) {
           {bolusInsulin.map((entry) => (
             <Chip
               key={entry.id}
-              text={formatInsulinChipText(entry.dose, entry.insulinName, t)}
+              text={formatInsulinChipText(entry.dose, entry.insulinName, t, locale)}
             />
           ))}
           {!glucose
