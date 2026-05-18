@@ -1,0 +1,1 @@
+-- Meal extraction enhancements — run supabase/migrations/20260519120000_meal_extraction_enhanced.sql

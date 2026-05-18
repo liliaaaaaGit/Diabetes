@@ -9,6 +9,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { formatInsulin, roundInsulinDose } from "@/lib/insulin-format"
+import { mealCarbsForSum } from "@/lib/meal-carbs"
 import { format } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
@@ -17,9 +18,10 @@ interface LogbookDayViewProps {
   selectedDate: Date
   filter: EntryType | "all"
   entriesForDay: Entry[]
+  onMealUpdated?: () => void
 }
 
-export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookDayViewProps) {
+export function LogbookDayView({ selectedDate, filter, entriesForDay, onMealUpdated }: LogbookDayViewProps) {
   const { t, locale } = useTranslation()
   const { formatGlucoseWithUnit: fmt } = useUserPreferences()
   const dateLocale = locale === "de" ? de : enUS
@@ -39,7 +41,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
         ? Math.round(g.reduce((s, x) => s + glucoseEntryToMgDl(x), 0) / g.length)
         : null
 
-    const sumCarbs = meals.reduce((s, m) => s + (m.carbsGrams ?? 0), 0)
+    const sumCarbs = meals.reduce((s, m) => s + mealCarbsForSum(m), 0)
     const sumInsulin = roundInsulinDose(ins.reduce((s, i) => s + i.dose, 0))
 
     return {
@@ -91,7 +93,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
         </div>
       </div>
 
-      <EntryList entries={entriesForDay} filter={filter} />
+      <EntryList entries={entriesForDay} filter={filter} onMealUpdated={onMealUpdated} />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { supabaseServer as supabase } from "@/lib/supabase-server"
+import { MEAL_SELECT, mapMealRow, mealInsertRow } from "@/lib/meal-db"
 import { roundInsulinDose } from "@/lib/insulin-format"
 import type {
   Entry,
@@ -165,7 +166,7 @@ async function getEntryById(entryId: string, userId: string): Promise<Entry> {
   if (type === "meal") {
     const { data, error } = await supabase
       .from("entry_meal")
-      .select("entry_id,description,carbs_grams,meal_type,linked_insulin_id")
+      .select(MEAL_SELECT)
       .eq("entry_id", entryId)
       .maybeSingle()
     if (error) throw error
@@ -174,11 +175,7 @@ async function getEntryById(entryId: string, userId: string): Promise<Entry> {
     return {
       ...(common as any),
       type: "meal",
-      description: (data as any).description,
-      carbsGrams:
-        (data as any).carbs_grams === null ? undefined : toNumber((data as any).carbs_grams),
-      mealType: (data as any).meal_type,
-      linkedInsulinEntryId: (data as any).linked_insulin_id || undefined,
+      ...(mapMealRow(data as Record<string, unknown>)),
     }
   }
 
@@ -234,6 +231,14 @@ export async function createEntry(userId: string, entry: NewEntry | Entry): Prom
     dose,
     description,
     carbsGrams,
+    carbsMinGrams,
+    carbsMaxGrams,
+    carbsConfidence,
+    components,
+    fatProteinNote,
+    extractionNote,
+    userCorrectedKh,
+    correctionTimestamp,
     mealType,
     activityType,
     durationMinutes,
@@ -284,13 +289,9 @@ export async function createEntry(userId: string, entry: NewEntry | Entry): Prom
     }
 
     if (type === "meal") {
-      const { error } = await supabase.from("entry_meal").insert({
-        entry_id: entryId,
-        description,
-        carbs_grams: carbsGrams ?? null,
-        meal_type: mealType,
-        linked_insulin_id: linkedInsulinEntryId || null,
-      })
+      const { error } = await supabase.from("entry_meal").insert(
+        mealInsertRow(entryId, entry as Partial<MealEntry>)
+      )
       if (error) throw error
     }
 
@@ -377,13 +378,11 @@ export async function getEntries(
       insulin_type: string
       insulin_name: string | null
     }>("entry_insulin", "entry_id,dose,insulin_type,insulin_name", insulinIds),
-    selectByEntryIds<{
-      entry_id: string
-      description: string
-      carbs_grams: number | null
-      meal_type: string
-      linked_insulin_id: string | null
-    }>("entry_meal", "entry_id,description,carbs_grams,meal_type,linked_insulin_id", mealIds),
+    selectByEntryIds<Record<string, unknown>>(
+      "entry_meal",
+      MEAL_SELECT,
+      mealIds
+    ),
     selectByEntryIds<{
       entry_id: string
       activity_type: string
@@ -448,10 +447,7 @@ export async function getEntries(
       return {
         ...(common as any),
         type: "meal",
-        description: m.description,
-        carbsGrams: m.carbs_grams === null ? undefined : toNumber(m.carbs_grams),
-        mealType: m.meal_type as MealType,
-        linkedInsulinEntryId: m.linked_insulin_id || undefined,
+        ...(mapMealRow(m as Record<string, unknown>)),
       } satisfies MealEntry
     }
 

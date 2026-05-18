@@ -8,6 +8,23 @@ export type InsulinType = "rapid" | "long_acting" | "mixed" | "other"
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack"
 
+export type CarbConfidence = "low" | "medium" | "high"
+
+export interface MealComponent {
+  name: string
+  amount_g?: number
+  kh_g: number
+}
+
+export interface MealTemplate {
+  id: string
+  userId: string
+  name: string
+  description: string
+  kh: number
+  createdAt: string
+}
+
 export type Intensity = "low" | "medium" | "high"
 
 export type MoodValue = 1 | 2 | 3 | 4 | 5
@@ -42,7 +59,18 @@ export interface InsulinEntry extends BaseEntry {
 export interface MealEntry extends BaseEntry {
   type: "meal"
   description: string
+  /** Midpoint of kh_min/kh_max for backwards compatibility and charts. */
   carbsGrams?: number
+  carbsMinGrams?: number
+  carbsMaxGrams?: number
+  carbsConfidence?: CarbConfidence
+  components?: MealComponent[]
+  fatProteinNote?: string
+  extractionNote?: string
+  userCorrectedKh?: number
+  correctionTimestamp?: string
+  /** True when carbs came from AI extraction (not manual/template). */
+  estimated?: boolean
   mealType: MealType
   linkedInsulinEntryId?: string
 }

@@ -93,9 +93,11 @@ export function PrivacyPolicyContentEn() {
         </p>
         <p>
           <strong className="font-semibold text-slate-900">5.2 Logbook extraction:</strong> The extraction feature
-          turns free-text input into structured entries. AI-estimated carbohydrate values are rough estimates and
-          do not replace professional dietary or diabetes advice. They must not be used as a basis for insulin
-          dosing.
+          turns free-text input into structured entries. AI-estimated carbohydrates are shown as a range
+          (minimum–maximum) with a confidence indicator (low / medium / high) and may include a component
+          breakdown. These values are rough estimates and do not replace professional dietary or diabetes advice.
+          They must not be used as a basis for insulin dosing. Corrections you make are stored to help improve
+          future estimates.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">5.3 Mood analysis and profiling:</strong> Free-text mood

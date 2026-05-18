@@ -36,6 +36,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { MealConfidenceBadge } from "@/components/logbook/meal-confidence-badge"
+import { formatMealCarbsLabel } from "@/lib/meal-carbs"
 
 const ENTRY_TYPES: EntryType[] = ["glucose", "insulin", "meal", "activity", "mood"]
 
@@ -182,6 +185,14 @@ export function ExtractionConfirmation({
     if (type === "meal") {
       const description = String(data.description ?? "")
       if (!description.trim()) return null
+      const min = data.carbsMinGrams != null ? Number(data.carbsMinGrams) : undefined
+      const max = data.carbsMaxGrams != null ? Number(data.carbsMaxGrams) : undefined
+      const midpoint =
+        data.carbsGrams != null
+          ? Number(data.carbsGrams)
+          : min != null && max != null
+            ? Math.round((min + max) / 2)
+            : undefined
       return {
         type,
         source,
@@ -189,7 +200,13 @@ export function ExtractionConfirmation({
         note,
         conversationId,
         description,
-        carbsGrams: data.carbsGrams !== undefined ? Number(data.carbsGrams) : undefined,
+        carbsGrams: midpoint,
+        carbsMinGrams: min,
+        carbsMaxGrams: max,
+        carbsConfidence: data.carbsConfidence as MealEntry["carbsConfidence"],
+        components: data.components as MealEntry["components"],
+        fatProteinNote: data.fatProteinNote as string | undefined,
+        extractionNote: data.extractionNote as string | undefined,
         mealType: (data.mealType as MealEntry["mealType"]) ?? "lunch",
       } as NewEntry
     }
@@ -376,26 +393,37 @@ export function ExtractionConfirmation({
               rows={1}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                inputMode="decimal"
-                value={(entry.data as MealEntry).carbsGrams ?? ""}
-                onChange={(e) =>
-                  updateEntryData(idx, {
-                    carbsGrams: e.target.value ? Number(e.target.value) : undefined,
-                    estimated: false,
-                  })
-                }
-                placeholder={t("logbook.estimatedCarbs")}
-              />
-              {isMealCarbsEstimated(entry.data as Record<string, unknown>) ? (
-                <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
-                  {t("logbook.estimatedCarbsHint")}
-                </span>
-              ) : null}
-            </div>
+          <div>
+            <Label className="text-xs text-slate-500">{t("logbook.khMin")}</Label>
+            <Input
+              type="number"
+              inputMode="decimal"
+              className="mt-1"
+              value={(entry.data as MealEntry).carbsMinGrams ?? ""}
+              onChange={(e) => {
+                const min = e.target.value ? Number(e.target.value) : undefined
+                const max = (entry.data as MealEntry).carbsMaxGrams
+                const mid =
+                  min != null && max != null ? Math.round((min + max) / 2) : min ?? max
+                updateEntryData(idx, { carbsMinGrams: min, carbsMaxGrams: max, carbsGrams: mid })
+              }}
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-slate-500">{t("logbook.khMax")}</Label>
+            <Input
+              type="number"
+              inputMode="decimal"
+              className="mt-1"
+              value={(entry.data as MealEntry).carbsMaxGrams ?? ""}
+              onChange={(e) => {
+                const max = e.target.value ? Number(e.target.value) : undefined
+                const min = (entry.data as MealEntry).carbsMinGrams
+                const mid =
+                  min != null && max != null ? Math.round((min + max) / 2) : min ?? max
+                updateEntryData(idx, { carbsMinGrams: min, carbsMaxGrams: max, carbsGrams: mid })
+              }}
+            />
           </div>
           <div>
             <Select
@@ -520,20 +548,15 @@ export function ExtractionConfirmation({
       )
     }
 
-    if (type === "meal" && (typeof d.carbsGrams === "number" || typeof d.description === "string")) {
+    if (type === "meal" && (typeof d.description === "string" || d.carbsMinGrams != null)) {
+      const hintMeal = { ...(d as unknown as MealEntry), type: "meal" as const }
+      const label = formatMealCarbsLabel(hintMeal, locale)
       return (
-        <p className="mt-1 text-sm text-slate-700">
-          {typeof d.carbsGrams === "number" ? (
-            <>
-              {d.carbsGrams}g KH{mealEstimated}
-            </>
-          ) : (
-            <>
-              {t("logbook.estimatedCarbs")}
-              {mealEstimated}
-            </>
-          )}
-        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          {label ? <p className="text-sm text-slate-700">{label}</p> : null}
+          <MealConfidenceBadge confidence={d.carbsConfidence as MealEntry["carbsConfidence"]} />
+          {mealEstimated}
+        </div>
       )
     }
 
@@ -612,8 +635,8 @@ export function ExtractionConfirmation({
                           typeof d.dose === "number" &&
                           d.dose > 100) ||
                         (entry.resolvedType === "meal" &&
-                          typeof d.carbsGrams === "number" &&
-                          d.carbsGrams > 500)
+                          ((typeof d.carbsMaxGrams === "number" && d.carbsMaxGrams > 120) ||
+                            (typeof d.carbsGrams === "number" && d.carbsGrams > 120)))
 
                       return implausible ? (
                         <Badge

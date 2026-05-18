@@ -8,6 +8,7 @@ import { LogbookWeekCalendar } from "@/components/logbook/logbook-week-calendar"
 import { LogbookDayView } from "@/components/logbook/logbook-day-view"
 import { ManualEntryModal } from "@/components/logbook/manual-entry-modal"
 import { AiQuickInput } from "@/components/logbook/ai-quick-input"
+import { MealTemplatesSection } from "@/components/logbook/meal-templates-section"
 import { useTranslation } from "@/hooks/useTranslation"
 import { Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -161,6 +162,7 @@ export default function LogbookPage() {
             selectedDate={selectedDate}
             filter={activeFilter}
             entriesForDay={dayEntries}
+            onMealUpdated={() => void refetch()}
           />
         )}
       </div>

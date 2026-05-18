@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/config"
 import type { ActivityEntry, Entry, InsulinEntry, MealEntry } from "@/lib/types"
 import { formatInsulin } from "@/lib/insulin-format"
+import { formatMealCarbsLabel } from "@/lib/meal-carbs"
 
 type TranslateFn = (key: string, vars?: Record<string, string | number>) => string
 
@@ -36,9 +37,10 @@ export function formatActivityChipText(activity: ActivityEntry, t: TranslateFn):
   })
 }
 
-export function formatMealTitle(meal: MealEntry, t: TranslateFn): string {
-  const carbs = meal.carbsGrams ?? 0
-  const carbsText = carbs % 1 === 0 ? String(carbs) : carbs.toFixed(1)
+export function formatMealTitle(meal: MealEntry, t: TranslateFn, locale: Locale = "de"): string {
   const description = (meal.description || t("logbook.meal")).trim()
-  return `${description} · ${carbsText}g`
+  const loc = locale === "en" ? "en" : "de"
+  const carbsLabel = formatMealCarbsLabel(meal, loc)
+  if (carbsLabel) return `${description} · ${carbsLabel}`
+  return description
 }

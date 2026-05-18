@@ -99,8 +99,11 @@ export function DatenschutzPolicyContent() {
         <p>
           <strong className="font-semibold text-slate-900">5.2 Tagebuch-Extraktion:</strong> Die
           Extraktionsfunktion wandelt Freitext-Eingaben in strukturierte Einträge um. KI-geschätzte
-          Kohlenhydratwerte sind grobe Richtwerte und ersetzen keine professionelle Ernährungs- oder
+          Kohlenhydrate werden als Spanne (Minimum–Maximum) mit einem Konfidenz-Hinweis (niedrig /
+          mittel / hoch) angezeigt; die Schätzung kann nach Komponenten aufgeschlüsselt werden. Diese
+          Werte sind grobe Richtwerte und ersetzen keine professionelle Ernährungs- oder
           Diabetesberatung. Sie dürfen nicht als Grundlage für Insulindosierungen verwendet werden.
+          Korrekturen durch Sie werden gespeichert, um die Schätzqualität künftig zu verbessern.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">5.3 Stimmungsanalyse und Profiling:</strong>{" "}

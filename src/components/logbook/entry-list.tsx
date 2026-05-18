@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import type { Entry, EntryType } from "@/lib/types"
 import { parseISO } from "date-fns"
-import { MomentCard } from "./entry-card"
+import { LogbookUnifiedEntryCard } from "./logbook-unified-entry-card"
 
 const GROUP_WINDOW_MINUTES = 90
 
@@ -57,9 +57,10 @@ function groupEntriesByMoment(entries: Entry[]): Entry[][] {
 interface EntryListProps {
   entries: Entry[]
   filter: EntryType | "all"
+  onMealUpdated?: () => void
 }
 
-export function EntryList({ entries, filter }: EntryListProps) {
+export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
   const groupedEntries = useMemo(
     () => groupEntriesByMoment(entries).reverse(),
     [entries]
@@ -76,9 +77,10 @@ export function EntryList({ entries, filter }: EntryListProps) {
   return (
     <div className="w-full">
       {visibleGroups.map((group) => (
-        <MomentCard
+        <LogbookUnifiedEntryCard
           key={group.map((entry) => entry.id).join("-")}
           entries={group}
+          onMealUpdated={onMealUpdated}
         />
       ))}
     </div>

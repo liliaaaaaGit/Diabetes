@@ -170,7 +170,7 @@ export function MomentCard({ entries }: MomentCardProps) {
             </div>
           ) : hasMeals ? (
             <p className="text-[15px] font-medium text-slate-800">
-              {formatMealTitle(meals[0], t)}
+              {formatMealTitle(meals[0], t, locale)}
             </p>
           ) : hasNonBasalInsulin ? (
             <p className="text-[15px] font-medium text-slate-800">{t("logbook.insulin")}</p>
@@ -186,7 +186,7 @@ export function MomentCard({ entries }: MomentCardProps) {
       {glucose ? (
         <div className="flex flex-wrap gap-2">
           {meals.map((meal) => (
-            <Chip key={meal.id} text={formatMealTitle(meal, t)} />
+            <Chip key={meal.id} text={formatMealTitle(meal, t, locale)} />
           ))}
           {bolusInsulin.map((entry) => (
             <Chip
@@ -202,7 +202,7 @@ export function MomentCard({ entries }: MomentCardProps) {
         <div className="flex flex-wrap gap-2">
           {hasMeals
             ? meals.slice(1).map((meal) => (
-                <Chip key={meal.id} text={formatMealTitle(meal, t)} />
+                <Chip key={meal.id} text={formatMealTitle(meal, t, locale)} />
               ))
             : null}
           {bolusInsulin.map((entry) => (
