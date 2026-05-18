@@ -1,0 +1,1 @@
+-- Study questionnaire schema — run supabase/migrations/20260518120000_questionnaire.sql in the Supabase SQL Editor.

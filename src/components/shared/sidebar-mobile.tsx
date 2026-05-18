@@ -1,15 +1,9 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import {
-  Droplet,
-  BookOpen,
-  Circle,
-  Lightbulb,
-  Settings,
-  X,
-} from "lucide-react"
+import { Droplet, Settings, X, CheckCircle2 } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useQuestionnaireStatus } from "@/hooks/useQuestionnaireStatus"
 import {
   Sheet,
   SheetContent,
@@ -18,17 +12,7 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-
-const mainNavItems = [
-  { href: "/", icon: Droplet, key: "dashboard" },
-  { href: "/logbook", icon: BookOpen, key: "logbook" },
-  { href: "/buddy", icon: Circle, key: "buddy" },
-  { href: "/insights", icon: Lightbulb, key: "insights" },
-]
-
-const footerNavItems = [
-  { href: "/settings", icon: Settings, key: "settings" },
-]
+import { footerNavItems, mainNavItems } from "@/lib/nav-items"
 
 interface SidebarMobileProps {
   open: boolean
@@ -39,6 +23,7 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useTranslation()
+  const { completed } = useQuestionnaireStatus()
 
   const handleLinkClick = (href: string) => {
     router.push(href)
@@ -72,6 +57,7 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
             {mainNavItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
+              const showCompleted = item.key === "questionnaire" && completed
               return (
                 <button
                   key={item.href}
@@ -87,7 +73,12 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-teal-500 rounded-r" />
                   )}
                   <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">{t(`nav.${item.key}`)}</span>
+                  <span className="text-sm font-medium flex-1 text-left">
+                    {t(`nav.${item.key}`)}
+                  </span>
+                  {showCompleted && (
+                    <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" aria-hidden />
+                  )}
                 </button>
               )
             })}

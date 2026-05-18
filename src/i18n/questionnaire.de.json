@@ -1,0 +1,127 @@
+{
+  "intro": "Vielen Dank, dass Sie sich Zeit für diesen Fragebogen nehmen. Er dauert etwa 10 Minuten. Es gibt keine richtigen oder falschen Antworten — uns interessiert Ihre persönliche Einschätzung.",
+  "progress": "Schritt {{current}} von {{total}}",
+  "back": "Zurück",
+  "next": "Weiter",
+  "submit": "Absenden",
+  "saving": "Wird gespeichert…",
+  "saveError": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+  "submitConfirmTitle": "Fragebogen absenden?",
+  "submitConfirmBody": "Sie haben {{answered}} von {{total}} Fragen beantwortet. Trotzdem absenden?",
+  "submitConfirmYes": "Ja, absenden",
+  "submitConfirmNo": "Noch bearbeiten",
+  "resumeTitle": "Fragebogen fortsetzen?",
+  "resumeBody": "Sie hatten den Fragebogen pausiert. Möchten Sie bei Schritt {{section}} fortfahren?",
+  "resumeYes": "Fortsetzen",
+  "resumeNo": "Von vorne beginnen",
+  "completedTitle": "Bereits abgeschlossen",
+  "completedBody": "Sie haben den Fragebogen bereits abgeschlossen. Vielen Dank! Möchten Sie Ihre Antworten ergänzen oder überarbeiten?",
+  "completedEdit": "Antworten überarbeiten",
+  "completedViewThanks": "Danke-Ansicht anzeigen",
+  "thankYouTitle": "Vielen Dank!",
+  "thankYouBody": "Ihre Antworten werden gemeinsam mit denen aller anderen Teilnehmenden anonymisiert ausgewertet. Spätestens nach Abschluss der Studie werden Ihre Daten vollständig gelöscht.",
+  "thankYouHint": "Sie können den Fragebogen jederzeit erneut öffnen, falls Sie etwas ergänzen möchten.",
+  "toInsights": "Zur Übersicht",
+  "reopen": "Antworten erneut öffnen",
+  "likertMin": "trifft gar nicht zu",
+  "likertMax": "trifft voll zu",
+  "ueqHint": "Klicken Sie das Feld an, das am ehesten Ihrem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen.",
+  "charCount": "{{count}} / {{max}} Zeichen",
+  "sections": {
+    "A": {
+      "title": "Hintergrund",
+      "intro": ""
+    },
+    "B": {
+      "title": "Allgemeine Bedienbarkeit",
+      "intro": "Bitte beurteilen Sie GlucoCompanion auf den folgenden Skalen. Klicken Sie das Feld an, das am ehesten Ihrem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen."
+    },
+    "C": {
+      "title": "App-Konsolidierung",
+      "intro": "Viele Menschen mit Diabetes nutzen mehrere Apps parallel — Sensor-App, Tagebuch, Insulin-Tracker, Ernährungs-App. Wie beurteilen Sie GlucoCompanion in diesem Kontext?"
+    },
+    "D": {
+      "title": "Diabetes-Buddy",
+      "intro": "Der Diabetes-Buddy ist ein KI-gestützter Chatbot, mit dem Sie über Ihren Alltag mit Diabetes sprechen können. Bitte beurteilen Sie die folgenden Aussagen."
+    },
+    "E": {
+      "title": "Stimmung & Einblicke",
+      "intro": "GlucoCompanion verbindet Ihre Blutzuckerwerte mit Ihren Stimmungseinträgen und liefert daraus Einblicke. Außerdem können Sie Einträge als freien Text eingeben, die die KI in strukturierte Daten umwandelt."
+    },
+    "F": {
+      "title": "Vertrauen & Datenschutz",
+      "intro": "Zum Abschluss noch ein paar Fragen zu Vertrauen und Datenschutz."
+    },
+    "G": {
+      "title": "Nutzungsabsicht",
+      "intro": ""
+    },
+    "H": {
+      "title": "Offene Fragen",
+      "intro": "Zum Schluss würden wir gern Ihre eigenen Worte hören. Ihre Antworten helfen uns am meisten, die App weiterzuentwickeln."
+    }
+  },
+  "items": {
+    "a1": "Wie alt sind Sie?",
+    "a1unit": "Jahre",
+    "a2": "Welche Form von Diabetes haben Sie?",
+    "a3": "Seit wie vielen Jahren haben Sie Diabetes?",
+    "a3unit": "Jahre",
+    "a4": "Welche Therapieform nutzen Sie hauptsächlich?",
+    "a5": "Wie viele digitale Diabetes-Tools (Apps, Sensor-Apps, Tagebücher) nutzen Sie aktuell regelmäßig?",
+    "b1_left": "behindernd",
+    "b1_right": "unterstützend",
+    "b2_left": "kompliziert",
+    "b2_right": "einfach",
+    "b3_left": "ineffizient",
+    "b3_right": "effizient",
+    "b4_left": "verwirrend",
+    "b4_right": "übersichtlich",
+    "b5_left": "langweilig",
+    "b5_right": "spannend",
+    "b6_left": "uninteressant",
+    "b6_right": "interessant",
+    "b7_left": "konventionell",
+    "b7_right": "originell",
+    "b8_left": "herkömmlich",
+    "b8_right": "neuartig",
+    "c9": "GlucoCompanion könnte mehrere meiner aktuell genutzten Diabetes-Apps ersetzen oder ergänzen.",
+    "c10": "Eine einzige App für Blutzucker-Tracking, Tagebuch und emotionalen Austausch würde meinen Diabetes-Alltag spürbar einfacher machen.",
+    "c11": "Wenn GlucoCompanion zusätzlich Sensor-Daten (z. B. FreeStyle Libre, Dexcom) anzeigen könnte, wäre die App für mich im Alltag brauchbar.",
+    "d12": "Der Diabetes-Buddy reagierte einfühlsam auf meine Anliegen.",
+    "d13": "Ich könnte mir vorstellen, mit dem Diabetes-Buddy auch über Frustrationen oder Sorgen rund um meinen Diabetes zu sprechen.",
+    "d14": "Der Buddy hält klar die Rolle als emotionaler Begleiter ein und gibt keine medizinischen Dosierungs-Empfehlungen.",
+    "d15": "Es war für mich erkennbar, dass die Antworten des Buddys von einer KI stammen und nicht fehlerfrei sind.",
+    "d16": "Ein empathischer KI-Begleiter wie der Diabetes-Buddy wäre eine sinnvolle Ergänzung zu bestehenden Diabetes-Apps.",
+    "e17": "Die Stimmung-Blutzucker-Korrelation hat mir einen für mich neuen Zusammenhang sichtbar gemacht.",
+    "e18": "Die KI-Einordnungen im Bereich Einblicke sind verständlich und nachvollziehbar.",
+    "e19": "Die App regt mich an, meine Stimmung im Zusammenhang mit meinem Diabetes bewusster wahrzunehmen.",
+    "e20": "Funktionen für das emotionale Selbstmanagement, wie sie GlucoCompanion bietet, vermisse ich in den bisher genutzten Diabetes-Apps.",
+    "e21": "Die KI-gestützte Freitext-Eingabe im Tagebuch (z. B. „Mittag: Pasta, 60g KH“) erleichtert mir die Dokumentation deutlich.",
+    "f22": "Mir ist klar, welche meiner Daten in der App gespeichert werden und welche nicht.",
+    "f23": "Ich vertraue dem Umgang mit meinen Daten in dieser App.",
+    "f24": "Die Hinweise zu Datenschutz und KI sind verständlich formuliert.",
+    "g25": "Ich könnte mir vorstellen, GlucoCompanion über die Studie hinaus weiter zu nutzen, wenn die App verfügbar wäre.",
+    "g26": "Ich würde GlucoCompanion anderen Menschen mit Diabetes empfehlen.",
+    "h27": "Was hat Ihnen an GlucoCompanion am besten gefallen?",
+    "h28": "Was hat Sie an der App gestört oder was haben Sie vermisst?",
+    "h29": "Wenn Sie eine einzige Funktion verändern oder hinzufügen könnten — welche wäre das?"
+  },
+  "options": {
+    "diabetes_typ1": "Typ 1",
+    "diabetes_typ2": "Typ 2",
+    "diabetes_lada": "LADA",
+    "diabetes_andere": "MODY oder anderer Typ",
+    "diabetes_keine_angabe": "Möchte ich nicht angeben",
+    "therapy_pen": "Insulinpen (ICT)",
+    "therapy_pumpe": "Insulinpumpe (CSII)",
+    "therapy_tabletten": "Tabletten",
+    "therapy_lifestyle": "Nur Lebensstil",
+    "therapy_keine_angabe": "Möchte ich nicht angeben",
+    "tools_0": "0",
+    "tools_1": "1",
+    "tools_2": "2",
+    "tools_3": "3",
+    "tools_4_plus": "4 oder mehr"
+  }
+}

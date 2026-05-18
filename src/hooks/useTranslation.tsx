@@ -4,12 +4,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Locale, defaultLocale } from "@/i18n/config"
 import deTranslations from "@/i18n/de.json"
 import enTranslations from "@/i18n/en.json"
+import questionnaireDe from "@/i18n/questionnaire.de.json"
+import questionnaireEn from "@/i18n/questionnaire.en.json"
 
-type Translations = typeof deTranslations
+type Translations = typeof deTranslations & {
+  questionnaire: typeof questionnaireDe
+}
 
 const translations: Record<Locale, Translations> = {
-  de: deTranslations,
-  en: enTranslations,
+  de: { ...deTranslations, questionnaire: questionnaireDe },
+  en: { ...enTranslations, questionnaire: questionnaireEn },
 }
 
 interface TranslationContextType {

@@ -15,18 +15,9 @@ import {
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUser } from "@/hooks/useUser"
 import { Button } from "@/components/ui/button"
+import { QuestionnaireNavLink } from "@/components/shared/questionnaire-nav-link"
 import { cn } from "@/lib/utils"
-
-const mainNavItems = [
-  { href: "/", icon: Droplet, key: "dashboard" },
-  { href: "/logbook", icon: BookOpen, key: "logbook" },
-  { href: "/buddy", icon: Circle, key: "buddy" },
-  { href: "/insights", icon: Lightbulb, key: "insights" },
-]
-
-const footerNavItems = [
-  { href: "/settings", icon: Settings, key: "settings" },
-]
+import { footerNavItems, mainNavItems } from "@/lib/nav-items"
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
@@ -77,12 +68,23 @@ export function Sidebar() {
           {mainNavItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
+            if (item.key === "questionnaire") {
+              return (
+                <QuestionnaireNavLink
+                  key={item.href}
+                  href={item.href}
+                  icon={Icon}
+                  labelKey={`nav.${item.key}`}
+                  collapsed={collapsed}
+                />
+              )
+            }
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative min-h-[44px]",
                   isActive
                     ? "bg-slate-100 text-teal-600"
                     : "text-slate-700 hover:bg-slate-50",

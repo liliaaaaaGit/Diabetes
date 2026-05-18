@@ -79,6 +79,13 @@ export function DatenschutzPolicyContent() {
           Vercel (Hosting) fallen Server-Logs mit IP-Adressen an; diese werden maximal 30 Tage gespeichert und
           ausschließlich zur Abwehr von Angriffen und Fehleranalyse verwendet.
         </p>
+        <p>
+          <strong className="font-semibold text-slate-900">4.6 Fragebogen-Antworten:</strong> Wenn Sie den
+          Studien-Fragebogen ausfüllen, speichern wir Ihre Antworten (sowohl die Skalenwerte als auch Ihre
+          Freitext-Antworten) pseudonymisiert unter Ihrer Benutzer-ID. Die Antworten werden ausschließlich für
+          die wissenschaftliche Auswertung im Rahmen der Bachelorarbeit verwendet und spätestens zum 31.12.2026
+          gelöscht.
+        </p>
       </section>
 
       <section className="space-y-4">

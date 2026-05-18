@@ -76,6 +76,12 @@ export function PrivacyPolicyContentEn() {
           server logs including IP addresses are generated; these are stored for a maximum of 30 days and used
           solely for attack prevention and error analysis.
         </p>
+        <p>
+          <strong className="font-semibold text-slate-900">4.6 Questionnaire responses:</strong> When you complete
+          the study questionnaire, we store your answers (both scale ratings and free-text responses) in
+          pseudonymised form under your user ID. The answers are used solely for scientific evaluation as part
+          of the bachelor&apos;s thesis and will be deleted by 31 December 2026 at the latest.
+        </p>
       </section>
 
       <section className="space-y-4">

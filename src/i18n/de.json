@@ -4,6 +4,7 @@
     "logbook": "Tagebuch",
     "buddy": "Diabetes-Buddy",
     "insights": "Einblicke",
+    "questionnaire": "Studien-Fragebogen",
     "import": "Import",
     "settings": "Einstellungen"
   },
@@ -56,6 +57,7 @@
     "thesis": "Bachelorarbeit",
     "datenschutz": "Datenschutz",
     "impressum": "Impressum",
+    "questionnaire": "Studien-Fragebogen",
     "thesisInfo": "Studie"
   },
   "legal": {
