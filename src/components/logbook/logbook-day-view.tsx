@@ -35,7 +35,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
 
     const avgGlucose =
       g.length > 0
-        ? Math.round((g.reduce((s, x) => s + glucoseEntryToMgDl(x), 0) / g.length)
+        ? Math.round(g.reduce((s, x) => s + glucoseEntryToMgDl(x), 0) / g.length)
         : null
 
     const sumCarbs = meals.reduce((s, m) => s + (m.carbsGrams ?? 0), 0)
