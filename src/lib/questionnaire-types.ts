@@ -80,13 +80,17 @@ export type QuestionnairePatch = Partial<
   >
 >
 
-/** 29 closed scale items (excludes open text H27–H29). */
-export const CLOSED_ITEM_KEYS = [
+/** Section A — demographics (not included in the 29 scale-item count). */
+export const DEMOGRAPHIC_KEYS = [
   "a1Age",
   "a2DiabetesType",
   "a3YearsWithDiabetes",
   "a4TherapyForm",
   "a5CurrentToolsCount",
+] as const
+
+/** 29 closed scale items B–G (excludes demographics A and open text H27–H29). */
+export const SCALE_ITEM_KEYS = [
   "b1Supportive",
   "b2Easy",
   "b3Efficient",
@@ -115,9 +119,13 @@ export const CLOSED_ITEM_KEYS = [
   "g26IntentRecommend",
 ] as const
 
-export function countAnsweredClosedItems(row: QuestionnaireResponse): number {
+export const CLOSED_ITEM_KEYS = [...DEMOGRAPHIC_KEYS, ...SCALE_ITEM_KEYS] as const
+
+export const SCALE_ITEM_COUNT = SCALE_ITEM_KEYS.length
+
+export function countAnsweredScaleItems(row: QuestionnaireResponse): number {
   let n = 0
-  for (const key of CLOSED_ITEM_KEYS) {
+  for (const key of SCALE_ITEM_KEYS) {
     const v = row[key]
     if (v !== null && v !== undefined) n += 1
   }

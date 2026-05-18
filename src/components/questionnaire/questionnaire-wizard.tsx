@@ -19,7 +19,8 @@ import { UeqScale } from "@/components/questionnaire/ueq-scale"
 import { useTranslation } from "@/hooks/useTranslation"
 import {
   QUESTIONNAIRE_SECTIONS,
-  countAnsweredClosedItems,
+  countAnsweredScaleItems,
+  SCALE_ITEM_COUNT,
   nextSection,
   prevSection,
   type QuestionnaireResponse,
@@ -31,7 +32,6 @@ import { Loader2 } from "lucide-react"
 type Gate = "loading" | "resume" | "completed" | "form" | "thankyou"
 
 const MAX_TEXT = 1000
-const TOTAL_CLOSED = 29
 
 function emptyResponse(language: "de" | "en"): QuestionnaireResponse {
   return {
@@ -125,7 +125,7 @@ export function QuestionnaireWizard() {
   const [error, setError] = useState<string | null>(null)
 
   const stepIndex = QUESTIONNAIRE_SECTIONS.indexOf(section) + 1
-  const answeredCount = countAnsweredClosedItems(data)
+  const answeredCount = countAnsweredScaleItems(data)
   const isLast = section === "H"
 
   const setField = <K extends keyof QuestionnaireResponse>(key: K, value: QuestionnaireResponse[K]) => {
@@ -542,7 +542,10 @@ export function QuestionnaireWizard() {
           <CardContent className="p-4 space-y-3">
             <p className="font-medium text-slate-900">{t("questionnaire.submitConfirmTitle")}</p>
             <p className="text-sm text-slate-700">
-              {t("questionnaire.submitConfirmBody", { answered: answeredCount, total: TOTAL_CLOSED })}
+              {t("questionnaire.submitConfirmBody", {
+                answered: answeredCount,
+                total: SCALE_ITEM_COUNT,
+              })}
             </p>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setSubmitOpen(false)}>
@@ -556,28 +559,30 @@ export function QuestionnaireWizard() {
         </Card>
       )}
 
-      <div className="flex gap-3">
-        <Button
-          variant="outline"
-          className="min-h-[44px] flex-1"
-          disabled={section === "A" || saving}
-          onClick={handleBack}
-        >
-          {t("questionnaire.back")}
-        </Button>
-        <Button className="min-h-[44px] flex-1" disabled={saving} onClick={() => void handleNext()}>
-          {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t("questionnaire.saving")}
-            </>
-          ) : isLast ? (
-            t("questionnaire.submit")
-          ) : (
-            t("questionnaire.next")
-          )}
-        </Button>
-      </div>
+      {!submitOpen && (
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            className="min-h-[44px] flex-1"
+            disabled={section === "A" || saving}
+            onClick={handleBack}
+          >
+            {t("questionnaire.back")}
+          </Button>
+          <Button className="min-h-[44px] flex-1" disabled={saving} onClick={() => void handleNext()}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t("questionnaire.saving")}
+              </>
+            ) : isLast ? (
+              t("questionnaire.submit")
+            ) : (
+              t("questionnaire.next")
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
