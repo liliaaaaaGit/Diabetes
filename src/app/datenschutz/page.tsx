@@ -4,7 +4,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/shared/app-shell"
-import { DatenschutzPolicyContent } from "@/components/legal/datenschutz-policy-content"
+import { PrivacyPolicyContent } from "@/components/legal/privacy-policy-content"
 import { useTranslation } from "@/hooks/useTranslation"
 
 function safeReturnPath(raw: string | null): string | null {
@@ -22,7 +22,7 @@ function DatenschutzInner() {
 
   return (
     <AppShell title={t("pages.datenschutz")} mainClassName="max-w-3xl">
-      <DatenschutzPolicyContent />
+      <PrivacyPolicyContent />
       <nav className="mt-10 border-t border-slate-200 pt-6" aria-label="Zurück">
         <Link
           href={backHref}

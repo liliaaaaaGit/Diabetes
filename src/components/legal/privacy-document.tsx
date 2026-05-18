@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
+import { PrivacyPolicyContent } from "@/components/legal/privacy-policy-content"
 import { ArrowLeft } from "lucide-react"
 
 function safeReturnPath(raw: string | null): string | null {
@@ -32,15 +33,9 @@ export function PrivacyDocumentBody() {
           </Link>
         </Button>
 
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl mb-1">
-          {t("auth.privacyDocumentTitle")}
-        </h1>
-
         <Card className="rounded-xl border-slate-200 shadow-sm mt-4">
           <CardContent className="p-5 sm:p-6">
-            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-              {t("auth.privacyPolicyFull")}
-            </div>
+            <PrivacyPolicyContent />
           </CardContent>
         </Card>
       </div>

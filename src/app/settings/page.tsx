@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useTranslation } from "@/hooks/useTranslation"
 import { LanguageSwitcher } from "@/components/shared/language-switcher"
 import { TARGET_RANGE } from "@/lib/constants"
@@ -25,8 +24,6 @@ export default function SettingsPage() {
   const [unit, setUnit] = useState<"mg_dl" | "mmol_l">("mg_dl")
   const [targetMin, setTargetMin] = useState<number>(TARGET_RANGE.low)
   const [targetMax, setTargetMax] = useState<number>(TARGET_RANGE.high)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
@@ -49,34 +46,6 @@ export default function SettingsPage() {
       })
     } finally {
       setIsLoggingOut(false)
-    }
-  }
-
-  const handleDeleteAccount = async () => {
-    setIsDeleting(true)
-    try {
-      const res = await fetch("/api/auth/delete-account", { method: "POST", credentials: "include" })
-      const data = (await res.json()) as { success: boolean; error?: string }
-
-      if (data.success) {
-        router.push("/access")
-        router.refresh()
-      } else {
-        toast({
-          title: t("auth.deleteFailed"),
-          description: data.error,
-          variant: "destructive",
-        })
-        setShowDeleteDialog(false)
-      }
-    } catch (error) {
-      toast({
-        title: t("auth.deleteFailed"),
-        variant: "destructive",
-      })
-      setShowDeleteDialog(false)
-    } finally {
-      setIsDeleting(false)
     }
   }
 
@@ -186,40 +155,16 @@ export default function SettingsPage() {
               </div>
             )}
             <Separator />
-            <div className="space-y-3">
-              <Button onClick={handleLogout} disabled={isLoggingOut} variant="outline" className="w-full">
-                {isLoggingOut ? t("common.loading") : t("auth.logout")}
-              </Button>
-              <Button
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={isDeleting}
-                variant="destructive"
-                className="w-full"
-              >
-                {t("auth.deleteAccount")}
-              </Button>
+            <Button onClick={handleLogout} disabled={isLoggingOut} variant="outline" className="w-full">
+              {isLoggingOut ? t("common.loading") : t("auth.logout")}
+            </Button>
+            <div className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600 leading-relaxed">
+              <p className="font-medium text-slate-700">{t("settings.deleteDataTitle")}</p>
+              <p className="mt-1">{t("settings.deleteDataBody")}</p>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Delete Account Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("auth.deleteAccountConfirmTitle")}</DialogTitle>
-            <DialogDescription>{t("auth.deleteAccountConfirmText")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
-              {t("common.cancel")}
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteAccount} disabled={isDeleting}>
-              {isDeleting ? t("common.loading") : t("auth.deleteConfirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppShell>
   )
 }
