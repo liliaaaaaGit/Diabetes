@@ -15,9 +15,16 @@ export const dynamic = "force-dynamic"
 const FALLBACK_DE =
   "Sammle mehr Stimmungs- und Blutzuckerdaten, um Zusammenhänge zu erkennen."
 
-const SYSTEM = `Du bist ein einfühlsamer Begleiter für Menschen mit Diabetes. Du erhältst täglich gemittelte Blutzuckerwerte (mg/dL) und Stimmungswerte (1–5, aus Tagebuch und Gesprächs-Stimmungsanalyse).
+const SYSTEM = `Du bist ein empathischer Diabetes-Coach. Du erhältst die Blutzuckerwerte und Stimmungsdaten einer Person mit Diabetes aus dem gewählten Zeitraum (tägliche Mittelwerte, Einzelmessungen, persönlicher Zielbereich).
 
-Antworte NUR mit 2–3 kurzen Sätzen auf Deutsch. Keine Diagnose, keine Therapieanweisungen. Nutze „du“. Wenn die Daten keinen klaren Zusammenhang zeigen, sage das vorsichtig und ermutigend.`
+Erstelle eine kurze Einordnung in 3 bis 5 Sätzen auf Deutsch. Sie muss:
+1) eine konkrete beobachtete Auffälligkeit nennen (z. B. Tageszeit, Wochentag, wiederkehrende Hoch- oder Tiefwerte, Bezug zum Zielbereich, auffällige Stimmungstage) — keine Allgemeinplätze ohne Bezug zu den übergebenen Daten.
+2) ohne medizinische Empfehlung auskommen — keine Insulin-, Medikamenten- oder Therapievorschläge, keine Dosierung.
+3) wertschätzend und nicht wertend formuliert sein.
+4) am Ende einen Reflexionsimpuls geben (z. B. „Was glauben Sie, woran das liegen könnte?“).
+5) ehrlich kennzeichnen, wenn die Datenbasis zu klein ist (mit konkreter Zahl, z. B. „Mit nur X Tagen mit Blutzucker und Stimmung lässt sich noch kein Muster erkennen.“).
+
+Schreibe in der Sie-Form, genderneutral. Nutzen Sie nur die übergebenen Daten. Keine Einleitung wie „Hier ist Ihre Auswertung“. Einen technischen KI-Disclaimer am Ende nicht wiederholen (wird in der App separat angezeigt).`
 
 export async function POST(req: Request) {
   const userId = await getSessionUserId()
@@ -68,24 +75,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ summary: FALLBACK_DE })
   }
 
+  const periodLabel =
+    timeRange === "7d" ? "7 Tage" : timeRange === "30d" ? "30 Tage" : "90 Tage (3 Monate)"
+
   const compact = points.map((p) => ({
-    tag: p.dateKey,
-    bz: p.avgGlucose,
-    stimmung: p.mood,
+    datum: p.dateKey,
+    wochentag: new Date(`${p.dateKey}T12:00:00`).toLocaleDateString("de-DE", {
+      weekday: "long",
+    }),
+    bz_mg_dl: p.avgGlucose,
+    stimmung_1_bis_5: p.mood,
   }))
+
+  const userPrompt = `Zeitraum: letzte ${periodLabel}.
+Zielbereich Blutzucker: ${targetMinMgDl}–${targetMaxMgDl} mg/dL.
+Datenbasis: ${glucoseReadings} Blutzuckermessungen, ${moodEntries} Stimmungseinträge im Tagebuch, ${convWithEmotion} abgeschlossene Buddy-Gespräche mit Stimmungsanalyse, ${daysWithBoth} Tage mit sowohl Blutzucker- als auch Stimmungswert.
+
+Erstellen Sie die Einordnung (3–5 Sätze, Sie-Form). Nennen Sie mindestens ein konkretes Detail aus den Tagesdaten (Datum, Wochentag, Werte). Vermeiden Sie generische Formulierungen ohne Datenbezug.
+
+Tagesdaten (JSON):
+${JSON.stringify(compact, null, 2)}`
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: SYSTEM },
-        {
-          role: "user",
-          content: `Analysiere den Zusammenhang zwischen Blutzuckerwerten (mg/dL) und Stimmung. Der persönliche Zielbereich des Nutzers liegt bei ${targetMinMgDl}–${targetMaxMgDl} mg/dL — beziehe Werte darauf ein, wenn du Muster beschreibst. Gibt es Muster? Hier die täglichen Daten (JSON):\n${JSON.stringify(compact)}`,
-        },
+        { role: "user", content: userPrompt },
       ],
-      max_tokens: 220,
-      temperature: 0.7,
+      max_tokens: 400,
+      temperature: 0.5,
     })
 
     const text = completion.choices[0]?.message?.content?.trim()
