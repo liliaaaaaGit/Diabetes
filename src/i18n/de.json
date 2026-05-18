@@ -55,7 +55,12 @@
     "settings": "Einstellungen",
     "thesis": "Bachelorarbeit",
     "datenschutz": "Datenschutz",
+    "impressum": "Impressum",
     "thesisInfo": "Studie"
+  },
+  "legal": {
+    "impressumLink": "Impressum",
+    "privacyLink": "Datenschutz"
   },
   "thesisInfoPage": {
     "title": "Über diese Studie",

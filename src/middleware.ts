@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   }
 
   /** Legal / study info — fully public, no access or auth cookies required */
-  if (pathname === "/datenschutz" || pathname === "/thesis-info") {
+  if (pathname === "/datenschutz" || pathname === "/thesis-info" || pathname === "/impressum") {
     return NextResponse.next()
   }
 
@@ -31,7 +31,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (pathname === "/privacy" || pathname === "/thesis") {
+  if (pathname === "/privacy" || pathname === "/thesis" || pathname === "/imprint") {
     if (!hasAccess) {
       return redirectAccess()
     }

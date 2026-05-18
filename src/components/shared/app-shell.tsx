@@ -5,7 +5,7 @@ import { Sidebar } from "./sidebar"
 import { SidebarMobile } from "./sidebar-mobile"
 import { Header } from "./header"
 import { cn } from "@/lib/utils"
-import { useTranslation } from "@/hooks/useTranslation"
+import { AppFooter } from "@/components/shared/app-footer"
 
 interface AppShellProps {
   children: React.ReactNode
@@ -17,8 +17,6 @@ interface AppShellProps {
 
 export function AppShell({ children, title, actions, mainClassName }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { t } = useTranslation()
-
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50">
       {/* Desktop Sidebar */}
@@ -59,10 +57,7 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
         </main>
       </div>
 
-      {/* Global fixed safety notice (all pages) */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 py-1 backdrop-blur">
-        <p className="px-3 text-center text-xs text-slate-500">{t("safety.notice")}</p>
-      </div>
+      <AppFooter />
     </div>
   )
 }
