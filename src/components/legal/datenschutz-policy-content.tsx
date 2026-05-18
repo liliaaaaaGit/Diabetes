@@ -57,7 +57,7 @@ export function DatenschutzPolicyContent() {
         <p>
           <strong className="font-semibold text-slate-900">4.2 Demo-Daten:</strong> Bei der Registrierung werden
           automatisch fiktive Beispieldaten (Blutzuckerwerte, Mahlzeiten, Insulin, Stimmungseinträge, ein
-          Beispielgespräch) in Ihren Account geladen. Diese Daten stammen nicht von echten Patienten und dienen
+          Beispielgespräch) in Ihren Account geladen. Diese Daten stammen nicht von echten Menschen mit Diabetes und dienen
           der Demonstration der App-Funktionen.
         </p>
         <p>

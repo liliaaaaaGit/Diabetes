@@ -91,6 +91,10 @@ export default function ConsentPage() {
                 {t("auth.consentBodyAI")}
               </p>
               <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelProfiling")}:</strong>{" "}
+                {t("auth.consentBodyProfiling")}
+              </p>
+              <p>
                 <strong className="font-semibold text-slate-900">{t("auth.consentLabelNotMedical")}:</strong>{" "}
                 {t("auth.consentBodyNotMedical")}
               </p>
@@ -101,6 +105,10 @@ export default function ConsentPage() {
               <p>
                 <strong className="font-semibold text-slate-900">{t("auth.consentLabelDeletion")}:</strong>{" "}
                 {t("auth.consentBodyDeletion")}
+              </p>
+              <p>
+                <strong className="font-semibold text-slate-900">{t("auth.consentLabelAge")}:</strong>{" "}
+                {t("auth.consentBodyAge")}
               </p>
             </div>
           </CardContent>
