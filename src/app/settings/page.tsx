@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/shared/app-shell"
@@ -12,19 +12,64 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useTranslation } from "@/hooks/useTranslation"
 import { LanguageSwitcher } from "@/components/shared/language-switcher"
-import { TARGET_RANGE } from "@/lib/constants"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/useUser"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { mmolLToMgDl, mgDlToMmolL } from "@/lib/glucose-units"
+import type { GlucoseUnit } from "@/lib/types"
 
 export default function SettingsPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { toast } = useToast()
   const { pseudonym } = useUser()
-  const [unit, setUnit] = useState<"mg_dl" | "mmol_l">("mg_dl")
-  const [targetMin, setTargetMin] = useState<number>(TARGET_RANGE.low)
-  const [targetMax, setTargetMax] = useState<number>(TARGET_RANGE.high)
+  const {
+    preferredUnit,
+    displayUnit,
+    targetMinMgDl,
+    targetMaxMgDl,
+    setPreferredUnit,
+    setTargetRangeMgDl,
+    loading: prefsLoading,
+  } = useUserPreferences()
+
+  const [targetMinInput, setTargetMinInput] = useState("")
+  const [targetMaxInput, setTargetMaxInput] = useState("")
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  useEffect(() => {
+    if (prefsLoading) return
+    const toDisplay = (mg: number) =>
+      displayUnit === "mmol/L" ? mgDlToMmolL(mg).toFixed(1) : String(Math.round(mg))
+    setTargetMinInput(toDisplay(targetMinMgDl))
+    setTargetMaxInput(toDisplay(targetMaxMgDl))
+  }, [prefsLoading, targetMinMgDl, targetMaxMgDl, displayUnit])
+
+  const handleUnitChange = async (unit: GlucoseUnit) => {
+    try {
+      await setPreferredUnit(unit)
+    } catch {
+      toast({ title: t("settings.saveFailed"), variant: "destructive" })
+    }
+  }
+
+  const saveTargetRange = useCallback(async () => {
+    const minDisplay = parseFloat(targetMinInput)
+    const maxDisplay = parseFloat(targetMaxInput)
+    if (!Number.isFinite(minDisplay) || !Number.isFinite(maxDisplay) || minDisplay >= maxDisplay) {
+      toast({ title: t("settings.targetRangeInvalid"), variant: "destructive" })
+      return
+    }
+    const minMg =
+      displayUnit === "mmol/L" ? mmolLToMgDl(minDisplay) : Math.round(minDisplay)
+    const maxMg =
+      displayUnit === "mmol/L" ? mmolLToMgDl(maxDisplay) : Math.round(maxDisplay)
+    try {
+      await setTargetRangeMgDl(minMg, maxMg)
+    } catch {
+      toast({ title: t("settings.saveFailed"), variant: "destructive" })
+    }
+  }, [targetMinInput, targetMaxInput, displayUnit, setTargetRangeMgDl, toast, t])
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -39,7 +84,7 @@ export default function SettingsPage() {
           variant: "destructive",
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: t("auth.logoutFailed"),
         variant: "destructive",
@@ -49,16 +94,21 @@ export default function SettingsPage() {
     }
   }
 
+  const unitLabel = displayUnit === "mmol/L" ? t("units.mmoll") : t("units.mgdl")
+
   return (
     <AppShell title={t("pages.settings")}>
       <div className="space-y-6 max-w-3xl mx-auto">
-        {/* Preferred Unit */}
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">{t("settings.preferredUnit")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={unit} onValueChange={(v) => setUnit(v as "mg_dl" | "mmol_l")}>
+            <Tabs
+              value={preferredUnit}
+              onValueChange={(v) => void handleUnitChange(v as GlucoseUnit)}
+              disabled={prefsLoading}
+            >
               <TabsList>
                 <TabsTrigger value="mg_dl">{t("units.mgdl")}</TabsTrigger>
                 <TabsTrigger value="mmol_l">{t("units.mmoll")}</TabsTrigger>
@@ -67,7 +117,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Language */}
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">{t("settings.language")}</CardTitle>
@@ -77,7 +126,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Target Range */}
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">{t("settings.targetRange")}</CardTitle>
@@ -86,29 +134,34 @@ export default function SettingsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm text-slate-600 mb-2 block">
-                  {t("settings.min")} ({t("units.mgdl")})
+                  {t("settings.min")} ({unitLabel})
                 </Label>
                 <Input
                   type="number"
-                  value={targetMin}
-                  onChange={(e) => setTargetMin(parseInt(e.target.value) || 0)}
+                  step={displayUnit === "mmol/L" ? "0.1" : "1"}
+                  value={targetMinInput}
+                  onChange={(e) => setTargetMinInput(e.target.value)}
+                  onBlur={() => void saveTargetRange()}
+                  disabled={prefsLoading}
                 />
               </div>
               <div>
                 <Label className="text-sm text-slate-600 mb-2 block">
-                  {t("settings.max")} ({t("units.mgdl")})
+                  {t("settings.max")} ({unitLabel})
                 </Label>
                 <Input
                   type="number"
-                  value={targetMax}
-                  onChange={(e) => setTargetMax(parseInt(e.target.value) || 0)}
+                  step={displayUnit === "mmol/L" ? "0.1" : "1"}
+                  value={targetMaxInput}
+                  onChange={(e) => setTargetMaxInput(e.target.value)}
+                  onBlur={() => void saveTargetRange()}
+                  disabled={prefsLoading}
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* About */}
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">{t("settings.about")}</CardTitle>
@@ -120,12 +173,8 @@ export default function SettingsPage() {
             </div>
             <Separator />
             <div>
-              <Label className="text-sm text-slate-600 mb-2 block">
-                {t("settings.disclaimer")}
-              </Label>
-              <p className="text-sm text-slate-700">
-                {t("safety.disclaimer")}
-              </p>
+              <Label className="text-sm text-slate-600 mb-2 block">{t("settings.disclaimer")}</Label>
+              <p className="text-sm text-slate-700">{t("safety.disclaimer")}</p>
               <Link
                 href="/thesis-info?returnTo=/settings"
                 className="text-sm text-teal-600 underline mt-2 inline-block"
@@ -142,7 +191,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Account */}
         <Card className="rounded-xl border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">{t("settings.account")}</CardTitle>

@@ -10,6 +10,7 @@ import {
 import { Entry, GlucoseEntry, InsulinEntry, MealEntry, ActivityEntry, MoodEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { cn } from "@/lib/utils"
@@ -29,6 +30,7 @@ const moodEmojis: Record<number, string> = {
 
 export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedProps) {
   const { t } = useTranslation()
+  const { formatGlucoseWithUnit } = useUserPreferences()
 
   const recentEntries = entries
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -38,7 +40,7 @@ export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedPro
     switch (entry.type) {
       case "glucose": {
         const glucoseEntry = entry as GlucoseEntry
-        const unit = glucoseEntry.unit === "mg_dl" ? "mg/dL" : "mmol/L"
+        const formatted = formatGlucoseWithUnit(glucoseEntry.value)
         let contextText = ""
         if (glucoseEntry.context === "fasting") contextText = t("dashboard.fasting")
         else if (glucoseEntry.context === "pre_meal") contextText = t("dashboard.beforeMeal")
@@ -48,7 +50,7 @@ export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedPro
 
         return {
           icon: <Droplet className="h-5 w-5 text-teal-600" />,
-          text: `${glucoseEntry.value} ${unit} – ${contextText}`,
+          text: `${formatted.value} ${formatted.suffix} – ${contextText}`,
           color: "teal",
         }
       }

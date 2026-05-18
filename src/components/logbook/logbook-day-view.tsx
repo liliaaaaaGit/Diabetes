@@ -6,6 +6,7 @@ import { EntryList } from "./entry-list"
 import { EmptyState } from "@/components/shared/empty-state"
 import { BookOpen } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { format } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
@@ -22,6 +23,7 @@ interface LogbookDayViewProps {
 
 export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookDayViewProps) {
   const { t, locale } = useTranslation()
+  const { formatGlucoseWithUnit: fmt } = useUserPreferences()
   const dateLocale = locale === "de" ? de : enUS
 
   const filteredEntries = useMemo(
@@ -72,7 +74,11 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <p className="text-[15px] font-medium text-slate-900">{dateTitle}</p>
           <div className="flex flex-wrap items-center gap-[14px] text-xs text-gray-500">
-            {summary.showAvg ? <span>Ø {summary.avgGlucose} mg/dL</span> : null}
+            {summary.showAvg && summary.avgGlucose != null ? (
+              <span>
+                Ø {fmt(summary.avgGlucose).value} {fmt(summary.avgGlucose).suffix}
+              </span>
+            ) : null}
             {summary.showCarbs ? <span>{summary.sumCarbs}g KH</span> : null}
             {summary.showInsulin ? <span>{summary.sumInsulin} IE</span> : null}
           </div>

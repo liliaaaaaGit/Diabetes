@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useEntries } from "@/hooks/useEntries"
 import { useConversations } from "@/hooks/useConversations"
 import { useUser } from "@/hooks/useUser"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
 import type { GlucoseEntry } from "@/lib/types"
 import {
   buildDailyMoodGlucosePoints,
@@ -24,6 +25,7 @@ import {
 export default function InsightsPage() {
   const { t, locale } = useTranslation()
   const { userId } = useUser()
+  const { targetMinMgDl, targetMaxMgDl } = useUserPreferences()
   const [timeRange, setTimeRange] = useState<InsightsTimeRangeKey>("7d")
 
   const range = useMemo(() => computeInsightsRange(timeRange), [timeRange])
@@ -46,7 +48,10 @@ export default function InsightsPage() {
   )
 
   const avgMgDl = useMemo(() => averageGlucoseMgDl(glucoseEntries), [glucoseEntries])
-  const tir = useMemo(() => glucoseTirPercents(glucoseEntries), [glucoseEntries])
+  const tir = useMemo(
+    () => glucoseTirPercents(glucoseEntries, targetMinMgDl, targetMaxMgDl),
+    [glucoseEntries, targetMinMgDl, targetMaxMgDl]
+  )
 
   return (
     <AppShell title={t("pages.insights")} mainClassName="max-w-none w-full px-4 md:px-6 py-4 md:py-6">

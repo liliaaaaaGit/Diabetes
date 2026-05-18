@@ -127,7 +127,11 @@ export function averageGlucoseMgDl(entries: GlucoseEntry[]): number | null {
   return Math.round((sum / entries.length) * 10) / 10
 }
 
-export function glucoseTirPercents(entries: GlucoseEntry[]): {
+export function glucoseTirPercents(
+  entries: GlucoseEntry[],
+  targetMinMgDl = 70,
+  targetMaxMgDl = 180
+): {
   under: number
   inRange: number
   over: number
@@ -139,8 +143,8 @@ export function glucoseTirPercents(entries: GlucoseEntry[]): {
   let over = 0
   for (const e of entries) {
     const v = glucoseMgDl(e)
-    if (v < 70) under++
-    else if (v <= 180) inn++
+    if (v < targetMinMgDl) under++
+    else if (v <= targetMaxMgDl) inn++
     else over++
   }
   return {

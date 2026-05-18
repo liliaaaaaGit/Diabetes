@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Plus, Droplet, Activity, TrendingUp } from "lucide-react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useEntries } from "@/hooks/useEntries"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
 import { useUser } from "@/hooks/useUser"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { defaultMoodLabel } from "@/lib/mood"
@@ -58,6 +59,7 @@ export default function DashboardPage() {
   const { t } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
+  const { formatGlucoseWithUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -80,6 +82,10 @@ export default function DashboardPage() {
   )
   const statsSafe =
     stats ?? ({ avgGlucose: 0, unit: "mg_dl", entriesToday: 0, timeInRange: 0 } as const)
+
+  useEffect(() => {
+    if (userId) void refetchStats()
+  }, [targetMinMgDl, targetMaxMgDl, userId, refetchStats])
 
   const glucoseTyped = glucoseEntries as GlucoseEntry[]
   const moodTyped = moodEntries as MoodEntry[]
@@ -152,8 +158,10 @@ export default function DashboardPage() {
               <CardContent className="p-6">
                 <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
                 <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-bold text-slate-900">{lastGlucoseEntry.value}</span>
-                  <span className="text-lg text-slate-600">{t("units.mgdl")}</span>
+                  <span className="text-4xl font-bold text-slate-900">
+                    {formatGlucoseWithUnit(lastGlucoseEntry.value).value}
+                  </span>
+                  <span className="text-lg text-slate-600">{unitSuffix}</span>
                 </div>
                 <p className="text-sm text-slate-600">
                   {getContextText(lastGlucoseEntry.context)} • {getRelativeTime(lastGlucoseEntry.timestamp)}
@@ -167,8 +175,8 @@ export default function DashboardPage() {
             <div className="min-w-0">
               <StatCard
                 label={t("dashboard.avgGlucose")}
-                value={statsSafe.avgGlucose.toFixed(1)}
-                unit={t("units.mgdl")}
+                value={formatGlucoseWithUnit(statsSafe.avgGlucose).value}
+                unit={unitSuffix}
                 icon={Droplet}
                 color="teal"
               />
@@ -214,8 +222,8 @@ export default function DashboardPage() {
                 <CardContent className="p-6">
                   <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-4xl font-bold text-slate-900">{lastGlucoseEntry.value}</span>
-                    <span className="text-lg text-slate-600">{t("units.mgdl")}</span>
+                    <span className="text-4xl font-bold text-slate-900">{formatGlucoseWithUnit(lastGlucoseEntry.value).value}</span>
+                    <span className="text-lg text-slate-600">{unitSuffix}</span>
                   </div>
                   <p className="text-sm text-slate-600">
                     {getContextText(lastGlucoseEntry.context)} • {getRelativeTime(lastGlucoseEntry.timestamp)}
@@ -237,8 +245,8 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <StatCard
                 label={t("dashboard.avgGlucose")}
-                value={statsSafe.avgGlucose.toFixed(1)}
-                unit={t("units.mgdl")}
+                value={formatGlucoseWithUnit(statsSafe.avgGlucose).value}
+                unit={unitSuffix}
                 icon={Droplet}
                 color="teal"
               />

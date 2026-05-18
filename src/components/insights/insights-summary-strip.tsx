@@ -8,6 +8,8 @@ import {
   Tooltip,
 } from "recharts"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { formatGlucose, mgDlToMmolL } from "@/lib/glucose-units"
 import type { DailyMoodGlucosePoint } from "@/lib/insights-aggregate"
 
 interface InsightsSummaryStripProps {
@@ -26,7 +28,17 @@ export function InsightsSummaryStrip({
   entryCount,
 }: InsightsSummaryStripProps) {
   const { t } = useTranslation()
-  const sparkData = chartPoints.map((p) => ({ name: p.label, bg: p.avgGlucose }))
+  const { displayUnit, unitSuffix } = useUserPreferences()
+  const sparkData = chartPoints.map((p) => ({
+    name: p.label,
+    bg:
+      p.avgGlucose != null
+        ? displayUnit === "mmol/L"
+          ? mgDlToMmolL(p.avgGlucose)
+          : p.avgGlucose
+        : null,
+    bgMgDl: p.avgGlucose,
+  }))
 
   return (
     <div className="w-full space-y-3 overflow-hidden">
@@ -39,10 +51,11 @@ export function InsightsSummaryStrip({
             <ResponsiveContainer width="100%" height={52}>
               <LineChart data={sparkData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
                 <Tooltip
-                  formatter={(v) => {
-                    const num = typeof v === "number" ? v : undefined
-                    return num != null
-                      ? [`${num} ${t("units.mgdl")}`, t("insights.avgGlucose")]
+                  formatter={(v, _n, item) => {
+                    const row = (item as { payload?: { bgMgDl?: number | null } })?.payload
+                    const mg = row?.bgMgDl
+                    return mg != null
+                      ? [`${formatGlucose(mg, displayUnit)} ${unitSuffix}`, t("insights.avgGlucose")]
                       : ["—", ""]
                   }}
                   labelFormatter={(l) => l}
@@ -61,8 +74,10 @@ export function InsightsSummaryStrip({
           </div>
           {overallAvgGlucose != null ? (
             <p className="text-sm text-slate-700 tabular-nums">
-              <span className="font-semibold text-teal-800">{overallAvgGlucose}</span>{" "}
-              <span className="text-slate-500">{t("units.mgdl")}</span>{" "}
+              <span className="font-semibold text-teal-800">
+                {formatGlucose(overallAvgGlucose, displayUnit)}
+              </span>{" "}
+              <span className="text-slate-500">{unitSuffix}</span>{" "}
               <span className="text-slate-500">({t("insights.periodAvgShort")})</span>
             </p>
           ) : (

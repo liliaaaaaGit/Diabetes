@@ -403,7 +403,9 @@
     "loggedInAs": "Angemeldet als",
     "openPrivacyPolicy": "Datenschutzerklärung anzeigen",
     "deleteDataTitle": "Daten löschen",
-    "deleteDataBody": "Wenn Sie die Löschung Ihrer Daten wünschen, schreiben Sie bitte eine E-Mail an lilia@schraut.de unter Angabe Ihres Pseudonyms. Ihre Daten werden innerhalb von 14 Tagen vollständig gelöscht. Spätestens nach Abschluss der Studie werden ohnehin alle Daten automatisch und unwiderruflich gelöscht."
+    "deleteDataBody": "Wenn Sie die Löschung Ihrer Daten wünschen, schreiben Sie bitte eine E-Mail an lilia@schraut.de unter Angabe Ihres Pseudonyms. Ihre Daten werden innerhalb von 14 Tagen vollständig gelöscht. Spätestens nach Abschluss der Studie werden ohnehin alle Daten automatisch und unwiderruflich gelöscht.",
+    "saveFailed": "Einstellung konnte nicht gespeichert werden.",
+    "targetRangeInvalid": "Bitte einen gültigen Zielbereich eingeben (Minimum kleiner als Maximum)."
   },
   "auth": {
     "accessSubtitle": "Bitte gib den Zugangscode ein",

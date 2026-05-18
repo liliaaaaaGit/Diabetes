@@ -15,6 +15,8 @@ import { GlucoseEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { glucoseChartScale, mgDlToMmolL } from "@/lib/glucose-units"
 import { format, subHours, subDays, subMonths, subYears, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
@@ -64,6 +66,8 @@ export function GlucoseChart({
 }: GlucoseChartProps) {
   const [timeRange, setTimeRange] = useState<GlucoseChartTimeRange>(initialTimeRange)
   const { t, locale } = useTranslation()
+  const { displayUnit, formatGlucoseWithUnit, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
+  const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
   const dateLocale = locale === "en" ? enUS : de
   const timeFmt = timeLabelFormat(timeRange)
 
@@ -78,22 +82,34 @@ export function GlucoseChart({
     .map((entry) => ({
       ...entry,
       timestamp: entry.timestamp,
-      value: entry.unit === "mg_dl" ? entry.value : entry.value * 18.0182,
+      valueMgDl: entry.value,
     }))
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 
-  const chartData = filteredEntries.map((entry) => ({
-    timestamp: entry.timestamp,
-    value: Math.round(entry.value),
-    time: format(parseISO(entry.timestamp), timeFmt, { locale: dateLocale }),
-  }))
+  const chartData = filteredEntries.map((entry) => {
+    const displayVal =
+      displayUnit === "mmol/L"
+        ? mgDlToMmolL(entry.valueMgDl)
+        : Math.round(entry.valueMgDl)
+    return {
+      timestamp: entry.timestamp,
+      value: displayVal,
+      valueMgDl: entry.valueMgDl,
+      time: format(parseISO(entry.timestamp), timeFmt, { locale: dateLocale }),
+    }
+  })
 
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: (typeof chartData)[0] }[] }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
         <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-sm">
-          <p className="font-semibold text-slate-900">{data.value} mg/dL</p>
+          <p className="font-semibold text-slate-900">
+            {(() => {
+              const f = formatGlucoseWithUnit(data.valueMgDl)
+              return `${f.value} ${f.suffix}`
+            })()}
+          </p>
           <p className="text-xs text-slate-600">
             {format(
               parseISO(data.timestamp),
@@ -166,10 +182,16 @@ export function GlucoseChart({
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                domain={[60, 200]}
+                domain={[chartScale.yMin, chartScale.yMax]}
               />
               <Tooltip content={<CustomTooltip />} />
-              <ReferenceArea y1={70} y2={180} fill="#14B8A6" fillOpacity={0.14} stroke="none" />
+              <ReferenceArea
+                y1={chartScale.targetLow}
+                y2={chartScale.targetHigh}
+                fill="#14B8A6"
+                fillOpacity={0.14}
+                stroke="none"
+              />
               <Line
                 type="monotone"
                 dataKey="value"

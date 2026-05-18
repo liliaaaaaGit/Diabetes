@@ -14,6 +14,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { InsightsPeriodTabs } from "@/components/insights/insights-period-tabs"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { formatGlucose, glucoseChartScale, mgDlToMmolL } from "@/lib/glucose-units"
 import type { DailyMoodGlucosePoint, InsightsTimeRangeKey } from "@/lib/insights-aggregate"
 
 const GLUCOSE_STROKE = "#0d9488"
@@ -33,12 +35,20 @@ export function InsightsMoodGlucoseChart({
   onTimeRangeChange,
 }: InsightsMoodGlucoseChartProps) {
   const { t } = useTranslation()
+  const { displayUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
+  const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
   const [summary, setSummary] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(true)
 
   const chartRows = data.map((d) => ({
     label: d.label,
-    avgGlucose: d.avgGlucose,
+    avgGlucose:
+      d.avgGlucose != null
+        ? displayUnit === "mmol/L"
+          ? mgDlToMmolL(d.avgGlucose)
+          : d.avgGlucose
+        : null,
+    avgGlucoseMgDl: d.avgGlucose,
     mood: d.mood,
   }))
 
@@ -99,10 +109,10 @@ export function InsightsMoodGlucoseChart({
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#57534e" }} interval="preserveStartEnd" />
                 <YAxis
                   yAxisId="left"
-                  domain={[40, "auto"]}
+                  domain={[chartScale.yMin, "auto"]}
                   tick={{ fontSize: 11, fill: "#0f766e" }}
                   label={{
-                    value: t("insights.legendGlucose"),
+                    value: `${t("insights.legendGlucose").replace(/\s*\(.*\)$/, "")} (${unitSuffix})`,
                     angle: -90,
                     position: "insideLeft",
                     style: { fill: "#0f766e", fontSize: 11 },
@@ -127,7 +137,12 @@ export function InsightsMoodGlucoseChart({
                     const key = (item as { dataKey?: string })?.dataKey
                     const num = typeof value === "number" ? value : undefined
                     if (key === "avgGlucose") {
-                      return [num != null ? `${num} ${t("units.mgdl")}` : "—", t("insights.legendGlucose")]
+                      const row = (item as { payload?: { avgGlucoseMgDl?: number | null } })?.payload
+                      const mg = row?.avgGlucoseMgDl
+                      return [
+                        mg != null ? `${formatGlucose(mg, displayUnit)} ${unitSuffix}` : "—",
+                        t("insights.legendGlucose").replace(/\s*\(.*\)$/, ""),
+                      ]
                     }
                     if (key === "mood") {
                       return [num != null ? String(num) : "—", t("insights.legendMood")]

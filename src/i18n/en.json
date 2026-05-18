@@ -403,7 +403,9 @@
     "loggedInAs": "Logged in as",
     "openPrivacyPolicy": "View privacy policy",
     "deleteDataTitle": "Delete your data",
-    "deleteDataBody": "If you wish to have your data deleted, please email lilia@schraut.de stating your pseudonym. Your data will be fully deleted within 14 days. At the latest after the study ends, all data will be deleted automatically and irreversibly anyway."
+    "deleteDataBody": "If you wish to have your data deleted, please email lilia@schraut.de stating your pseudonym. Your data will be fully deleted within 14 days. At the latest after the study ends, all data will be deleted automatically and irreversibly anyway.",
+    "saveFailed": "Could not save setting.",
+    "targetRangeInvalid": "Please enter a valid target range (minimum must be less than maximum)."
   },
   "auth": {
     "accessSubtitle": "Please enter the access code",

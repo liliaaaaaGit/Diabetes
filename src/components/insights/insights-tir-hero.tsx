@@ -2,6 +2,8 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useUserPreferences } from "@/contexts/user-preferences-context"
+import { formatGlucoseWithUnit } from "@/lib/glucose-units"
 import { cn } from "@/lib/utils"
 import { averageGlucoseLabelClass } from "@/lib/insights-aggregate"
 
@@ -12,7 +14,9 @@ interface InsightsTirHeroProps {
 
 export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
   const { t } = useTranslation()
+  const { displayUnit } = useUserPreferences()
   const hasData = tir.under + tir.inRange + tir.over > 0
+  const avgDisplay = avgMgDl != null ? formatGlucoseWithUnit(avgMgDl, displayUnit) : null
 
   return (
     <Card className="rounded-xl border-teal-100 bg-white shadow-sm w-full">
@@ -30,9 +34,10 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
                   averageGlucoseLabelClass(avgMgDl)
                 )}
               >
-                {avgMgDl != null ? (
+                {avgDisplay ? (
                   <>
-                    {avgMgDl} <span className="text-xl md:text-2xl font-semibold text-slate-500">{t("units.mgdl")}</span>
+                    {avgDisplay.value}{" "}
+                    <span className="text-xl md:text-2xl font-semibold text-slate-500">{avgDisplay.suffix}</span>
                   </>
                 ) : (
                   <span className="text-slate-400">—</span>

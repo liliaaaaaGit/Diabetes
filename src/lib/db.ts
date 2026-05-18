@@ -483,6 +483,8 @@ export async function getRecentEntries(userId: string, limit: number): Promise<E
 }
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
+  const { getOrCreateUserSettings } = await import("@/lib/user-settings")
+  const { targetMinMgDl, targetMaxMgDl } = await getOrCreateUserSettings(userId)
   const now = new Date()
   const start7d = new Date(now)
   start7d.setDate(now.getDate() - 7)
@@ -508,7 +510,9 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       ? Math.round((glucose.reduce((sum, e) => sum + e.value, 0) / glucose.length) * 10) / 10
       : 0
 
-  const inRangeCount = glucose.filter((e) => e.value >= 70 && e.value <= 180).length
+  const inRangeCount = glucose.filter(
+    (e) => e.value >= targetMinMgDl && e.value <= targetMaxMgDl
+  ).length
   const timeInRange = glucose.length > 0 ? Math.round((inRangeCount / glucose.length) * 100) : 0
 
   const last = [...glucose].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]

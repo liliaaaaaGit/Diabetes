@@ -76,6 +76,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Konto konnte nicht erstellt werden" }, { status: 500 })
     }
 
+    const { error: settingsError } = await supabase.from("user_settings").insert({
+      user_id: newUser.id,
+      preferred_unit: "mg_dl",
+      target_min_mg_dl: 70,
+      target_max_mg_dl: 180,
+    })
+    if (settingsError) {
+      console.error("[auth/register] Error creating user_settings:", settingsError)
+    }
+
     // Set cookies
     const cookieStore = await cookies()
     cookieStore.set("gc_user_id", newUser.id, {
