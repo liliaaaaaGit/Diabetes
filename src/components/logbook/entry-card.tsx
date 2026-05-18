@@ -15,17 +15,17 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
+import {
+  formatActivityChipText,
+  formatInsulinChipText,
+  formatMealTitle,
+  logbookEntryTypeLabel,
+} from "@/lib/logbook-display"
 import { resolveMoodDisplayNote } from "@/lib/mood"
 import { cn } from "@/lib/utils"
 
 interface MomentCardProps {
   entries: Entry[]
-}
-
-function bgValueClass(mgDl: number): string {
-  if (mgDl > 180) return "text-[#E24B4A]"
-  if (mgDl < 70 || mgDl >= 140) return "text-[#BA7517]"
-  return "text-[#1D9E75]"
 }
 
 function isBasalLantus(entry: InsulinEntry): boolean {
@@ -52,16 +52,6 @@ function pickHeroGlucose(
   return byDistance[0]
 }
 
-function formatDose(dose: number): string {
-  return dose % 1 === 0 ? String(dose) : dose.toFixed(1)
-}
-
-function formatCarbs(meal: MealEntry): string {
-  const carbs = meal.carbsGrams ?? 0
-  const carbsText = carbs % 1 === 0 ? String(carbs) : carbs.toFixed(1)
-  return `${carbsText}g`
-}
-
 function Chip({ text }: { text: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
@@ -73,7 +63,7 @@ function Chip({ text }: { text: string }) {
 export function MomentCard({ entries }: MomentCardProps) {
   const { t, locale } = useTranslation()
   const { formatGlucoseWithUnit, targetRange } = useUserPreferences()
-  const dateLocale = locale === "en" ? enUS : de
+  const dateLocale = locale === "de" ? de : enUS
   const sorted = [...entries].sort(
     (a, b) => parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
   )
@@ -161,35 +151,30 @@ export function MomentCard({ entries }: MomentCardProps) {
             </div>
           ) : isBasalCard ? (
             <div className="flex items-center gap-2">
-              <Chip text={`${formatDose(basalInsulin.dose)} IE ${basalInsulin.insulinName || "Lantus"}`} />
-              <span className="text-[11px] italic text-gray-400">Basal</span>
+              <Chip
+                text={formatInsulinChipText(
+                  basalInsulin.dose,
+                  basalInsulin.insulinName || t("logbook.defaultLantus"),
+                  t
+                )}
+              />
+              <span className="text-[11px] italic text-gray-400">{t("logbook.basalLabel")}</span>
             </div>
           ) : isActivityOnly ? (
             <div className="flex flex-wrap gap-2">
               {activities.map((activity) => (
-                <Chip
-                  key={activity.id}
-                  text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
-                />
+                <Chip key={activity.id} text={formatActivityChipText(activity, t)} />
               ))}
             </div>
           ) : hasMeals ? (
             <p className="text-[15px] font-medium text-slate-800">
-              {(meals[0].description || "Mahlzeit").trim()} · {formatCarbs(meals[0])}
+              {formatMealTitle(meals[0], t)}
             </p>
           ) : hasNonBasalInsulin ? (
-            <p className="text-[15px] font-medium text-slate-800">Insulin</p>
+            <p className="text-[15px] font-medium text-slate-800">{t("logbook.insulin")}</p>
           ) : (
             <p className="text-[15px] font-medium text-slate-800">
-              {sorted[0].type === "meal"
-                ? "Mahlzeit"
-                : sorted[0].type === "insulin"
-                  ? "Insulin"
-                  : sorted[0].type === "mood"
-                    ? "Stimmung"
-                    : sorted[0].type === "activity"
-                      ? "Aktivitaet"
-                      : "Eintrag"}
+              {logbookEntryTypeLabel(sorted[0].type, t)}
             </p>
           )}
           <span className="text-xs text-gray-400">{timeText}</span>
@@ -199,46 +184,34 @@ export function MomentCard({ entries }: MomentCardProps) {
       {glucose ? (
         <div className="flex flex-wrap gap-2">
           {meals.map((meal) => (
-            <Chip
-              key={meal.id}
-              text={`${meal.description || "Mahlzeit"} · ${formatCarbs(meal)}`}
-            />
+            <Chip key={meal.id} text={formatMealTitle(meal, t)} />
           ))}
           {bolusInsulin.map((entry) => (
             <Chip
               key={entry.id}
-              text={`${formatDose(entry.dose)} IE ${entry.insulinName || "Insulin"}`}
+              text={formatInsulinChipText(entry.dose, entry.insulinName, t)}
             />
           ))}
           {activities.map((activity) => (
-            <Chip
-              key={activity.id}
-              text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
-            />
+            <Chip key={activity.id} text={formatActivityChipText(activity, t)} />
           ))}
         </div>
       ) : hasMeals || hasNonBasalInsulin || isActivityOnly ? (
         <div className="flex flex-wrap gap-2">
           {hasMeals
             ? meals.slice(1).map((meal) => (
-                <Chip
-                  key={meal.id}
-                  text={`${meal.description || "Mahlzeit"} · ${formatCarbs(meal)}`}
-                />
+                <Chip key={meal.id} text={formatMealTitle(meal, t)} />
               ))
             : null}
           {bolusInsulin.map((entry) => (
             <Chip
               key={entry.id}
-              text={`${formatDose(entry.dose)} IE ${entry.insulinName || "Insulin"}`}
+              text={formatInsulinChipText(entry.dose, entry.insulinName, t)}
             />
           ))}
           {!glucose
             ? activities.map((activity) => (
-                <Chip
-                  key={activity.id}
-                  text={`${activity.activityType || "Aktivitaet"} · ${activity.durationMinutes} Min`}
-                />
+                <Chip key={activity.id} text={formatActivityChipText(activity, t)} />
               ))
             : null}
         </div>

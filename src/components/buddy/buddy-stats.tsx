@@ -40,9 +40,18 @@ export function BuddyStats({
   const [moodLoading, setMoodLoading] = useState(true)
   const [averages, setAverages] = useState<ConversationEmotions | null>(null)
 
-  const [motivationQuote, setMotivationQuote] = useState(
-    "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
+  const fallbackMotivation = t("buddy.stats.fallbackMotivation")
+  const fallbackGoals = useMemo(
+    () =>
+      [
+        { id: "f-1", text: t("buddy.stats.fallbackGoal1"), completed: false },
+        { id: "f-2", text: t("buddy.stats.fallbackGoal2"), completed: false },
+        { id: "f-3", text: t("buddy.stats.fallbackGoal3"), completed: false },
+      ] satisfies BuddyDailyGoal[],
+    [t]
   )
+
+  const [motivationQuote, setMotivationQuote] = useState(fallbackMotivation)
   const [dailyGoals, setDailyGoals] = useState<BuddyDailyGoal[]>([])
   const [dailyLoading, setDailyLoading] = useState(true)
   const [refreshingQuote, setRefreshingQuote] = useState(false)
@@ -65,9 +74,9 @@ export function BuddyStats({
           const cached = localStorage.getItem(cacheKey("motivation"))
           if (cached) return cached
           const res = await fetch("/api/buddy/motivation", { credentials: "include" })
-          if (!res.ok) return "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
+          if (!res.ok) return fallbackMotivation
           const json = (await res.json()) as { quote?: string }
-          const value = json.quote || "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
+          const value = json.quote || fallbackMotivation
           localStorage.setItem(cacheKey("motivation"), value)
           return value
         }
@@ -83,11 +92,7 @@ export function BuddyStats({
           }
           const res = await fetch("/api/buddy/goals", { credentials: "include" })
           if (!res.ok) {
-            return [
-              { id: "f-1", text: "Nenne heute einen kleinen Erfolg.", completed: false },
-              { id: "f-2", text: "Atme 3 Mal bewusst tief ein.", completed: false },
-              { id: "f-3", text: "Schreib auf, was dir gut tat.", completed: false },
-            ] satisfies BuddyDailyGoal[]
+            return fallbackGoals
           }
           const json = (await res.json()) as { goals?: BuddyDailyGoal[] }
           const value = (json.goals || []).slice(0, 3)
@@ -104,7 +109,7 @@ export function BuddyStats({
     }
 
     void loadDaily()
-  }, [cacheKey, todayKey, userId, refreshKey, dailyRefreshNonce])
+  }, [cacheKey, todayKey, userId, refreshKey, dailyRefreshNonce, fallbackMotivation, fallbackGoals])
 
   const handleToggleGoal = async (goal: BuddyDailyGoal) => {
     const updated = dailyGoals.map((g) => (g.id === goal.id ? { ...g, completed: !g.completed } : g))
@@ -130,7 +135,7 @@ export function BuddyStats({
       const res = await fetch("/api/buddy/motivation", { credentials: "include" })
       if (!res.ok) return
       const json = (await res.json()) as { quote?: string }
-      const quote = json.quote || "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
+      const quote = json.quote || fallbackMotivation
       setMotivationQuote(quote)
       localStorage.setItem(cacheKey("motivation"), quote)
     } finally {

@@ -175,7 +175,15 @@
     "moodGood": "Good",
     "moodGreat": "Very good",
     "moodVeryBad": "Bad",
-    "moodBad": "Not great"
+    "moodBad": "Not great",
+    "insulinUnitsAbbrev": "U",
+    "minutesAbbrev": "min",
+    "basalLabel": "Basal",
+    "defaultLantus": "Lantus",
+    "insulinChip": "{{dose}} {{insulinAbbrev}} {{name}}",
+    "activityChip": "{{type}} · {{minutes}} {{minAbbrev}}",
+    "daySummaryCarbs": "{{grams}}g carbs",
+    "daySummaryInsulin": "{{units}} U"
   },
   "buddy": {
     "chat": "Chat",
@@ -202,7 +210,11 @@
     },
     "stats": {
       "tab": "Stats",
-      "listTitle": "stats",
+      "listTitle": "Stats",
+      "fallbackMotivation": "You don't have to be perfect today. One honest small step is enough.",
+      "fallbackGoal1": "Name one small win today.",
+      "fallbackGoal2": "Take 3 conscious deep breaths.",
+      "fallbackGoal3": "Write down what felt good today.",
       "dailySection": "Impulses & motivation",
       "convosCompleted": "convos completed",
       "messages": "messages",

@@ -76,8 +76,12 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay }: LogbookD
                 Ø {fmt(summary.avgGlucose).value} {fmt(summary.avgGlucose).suffix}
               </span>
             ) : null}
-            {summary.showCarbs ? <span>{summary.sumCarbs}g KH</span> : null}
-            {summary.showInsulin ? <span>{summary.sumInsulin} IE</span> : null}
+            {summary.showCarbs ? (
+              <span>{t("logbook.daySummaryCarbs", { grams: summary.sumCarbs })}</span>
+            ) : null}
+            {summary.showInsulin ? (
+              <span>{t("logbook.daySummaryInsulin", { units: summary.sumInsulin })}</span>
+            ) : null}
           </div>
         </div>
       </div>
