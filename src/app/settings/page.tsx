@@ -141,11 +141,14 @@ export default function SettingsPage() {
             <Tabs
               value={preferredUnit}
               onValueChange={(v) => void handleUnitChange(v as GlucoseUnit)}
-              disabled={prefsLoading}
             >
-              <TabsList>
-                <TabsTrigger value="mg_dl">{t("units.mgdl")}</TabsTrigger>
-                <TabsTrigger value="mmol_l">{t("units.mmoll")}</TabsTrigger>
+              <TabsList className={prefsLoading ? "pointer-events-none opacity-50" : undefined}>
+                <TabsTrigger value="mg_dl" disabled={prefsLoading}>
+                  {t("units.mgdl")}
+                </TabsTrigger>
+                <TabsTrigger value="mmol_l" disabled={prefsLoading}>
+                  {t("units.mmoll")}
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </CardContent>
