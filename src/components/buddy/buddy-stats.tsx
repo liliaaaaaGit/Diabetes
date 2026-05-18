@@ -211,7 +211,7 @@ export function BuddyStats({
           ) : moodLoading ? (
             <div className="h-[300px] animate-pulse rounded-lg bg-teal-50/50" />
           ) : (
-            <BuddyMoodRadar data={radarData} />
+            <BuddyMoodRadar data={radarData} chartLabel={t("buddy.mood.chartName")} />
           )}
         </div>
       </section>

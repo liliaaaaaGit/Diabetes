@@ -169,11 +169,13 @@
     "checkValue": "Check value",
     "savingEntries": "Saving…",
     "moodPickHint": "Adjust mood:",
-    "moodVeryBad": "Very bad",
-    "moodBad": "Bad",
-    "moodNeutral": "Okay",
+    "moodWorst": "Bad",
+    "moodNotGood": "Not great",
+    "moodNeutral": "Neutral",
     "moodGood": "Good",
-    "moodGreat": "Great"
+    "moodGreat": "Very good",
+    "moodVeryBad": "Bad",
+    "moodBad": "Not great"
   },
   "buddy": {
     "chat": "Chat",
@@ -213,15 +215,16 @@
     "fabNewChat": "Start a new conversation",
     "robotAlt": "Diabetes Buddy illustration",
     "mood": {
-      "listTitle": "mood",
+      "listTitle": "Mood",
+      "chartName": "Mood",
       "empty": "Start a conversation to track how your chats feel over time.",
       "axes": {
-        "happiness": "happiness",
-        "surprise": "surprise",
-        "sadness": "sadness",
-        "anger": "anger",
-        "fear": "fear",
-        "disgust": "disgust"
+        "happiness": "Joy",
+        "surprise": "Surprise",
+        "sadness": "Sadness",
+        "anger": "Anger",
+        "fear": "Fear",
+        "disgust": "Disgust"
       }
     },
     "summaryView": {
@@ -307,6 +310,7 @@
     "mood": "Your Mood",
     "glucoseDistribution": "Glucose Distribution",
     "mostCommonMood": "Most Common Mood",
+    "avgMoodShort": "Avg. mood",
     "trend": "Trend",
     "lastWeekVsThisWeek": "Last vs. This Week",
     "stable": "Stable",

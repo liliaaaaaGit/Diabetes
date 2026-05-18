@@ -16,7 +16,7 @@ import { useEntries } from "@/hooks/useEntries"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
-import { defaultMoodLabel } from "@/lib/mood"
+import { getMoodLabel } from "@/lib/mood"
 import { addDays, isSameDay, parseISO, startOfDay } from "date-fns"
 
 export default function LogbookPage() {
@@ -75,8 +75,7 @@ export default function LogbookPage() {
             const scoredMood = await scoreMoodTextClient(note)
             entryToSave = { ...newEntry, moodValue: scoredMood, note }
           } else {
-            const fallbackNote = defaultMoodLabel(newEntry.moodValue)
-            entryToSave = { ...newEntry, note: fallbackNote }
+            entryToSave = { ...newEntry, note: getMoodLabel(newEntry.moodValue, t) }
           }
         }
 

@@ -16,27 +16,16 @@ import { useUser } from "@/hooks/useUser"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
-import { defaultMoodLabel } from "@/lib/mood"
+import { getMoodLabel, resolveMoodDisplayNote } from "@/lib/mood"
 import type { Entry, GlucoseEntry, MoodEntry } from "@/lib/types"
 import { formatDistanceToNow, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { glucoseTirPercents } from "@/lib/insights-aggregate"
 
 function MoodSummaryCard({ label, moodEntry }: { label: string; moodEntry?: MoodEntry }) {
+  const { t } = useTranslation()
   const moodValue = moodEntry?.moodValue ?? 3
-  const fallbackLabel = defaultMoodLabel(moodValue)
-  const rawNote = moodEntry?.note?.trim() || ""
-  const normalizedGenericLabels = new Set([
-    "sehr schlecht",
-    "schlecht",
-    "geht so",
-    "gut",
-    "sehr gut",
-  ])
-  const note =
-    rawNote.length > 0 && !normalizedGenericLabels.has(rawNote.toLowerCase())
-      ? rawNote
-      : fallbackLabel
+  const note = resolveMoodDisplayNote(moodEntry?.note, moodValue, t)
 
   return (
     <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
@@ -136,7 +125,7 @@ export default function DashboardPage() {
           const scoredMood = await scoreMoodTextClient(note)
           entryToSave = { ...entry, moodValue: scoredMood, note }
         } else {
-          entryToSave = { ...entry, note: defaultMoodLabel(entry.moodValue) }
+          entryToSave = { ...entry, note: getMoodLabel(entry.moodValue, t) }
         }
       }
       await createEntry(userId, entryToSave)

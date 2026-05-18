@@ -29,7 +29,7 @@ import { ExtractionConfirmation } from "@/components/logbook/extraction-confirma
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 import { format } from "date-fns"
 import { scoreMoodTextClient } from "@/lib/mood-client"
-import { defaultMoodLabel } from "@/lib/mood"
+import { getMoodLabel } from "@/lib/mood"
 
 const FALLBACK_PERSONAL_QUOTE_DE =
   "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt."
@@ -211,7 +211,7 @@ export default function BuddyPage() {
             conversationId: endingId,
             timestamp: full.endedAt || new Date().toISOString(),
             moodValue,
-            note: latestUserText || defaultMoodLabel(moodValue),
+            note: latestUserText || getMoodLabel(moodValue, t),
           })
         }
 

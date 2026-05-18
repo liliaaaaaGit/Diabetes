@@ -14,7 +14,13 @@ export interface BuddyMoodRadarDatum {
   value: number
 }
 
-export function BuddyMoodRadar({ data }: { data: BuddyMoodRadarDatum[] }) {
+export function BuddyMoodRadar({
+  data,
+  chartLabel,
+}: {
+  data: BuddyMoodRadarDatum[]
+  chartLabel: string
+}) {
   return (
     <div className="h-[300px] w-full min-h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
@@ -27,7 +33,7 @@ export function BuddyMoodRadar({ data }: { data: BuddyMoodRadarDatum[] }) {
             tickLine={false}
           />
           <Radar
-            name="mood"
+            name={chartLabel}
             dataKey="value"
             stroke="#14b8a6"
             fill="rgb(20, 184, 166)"

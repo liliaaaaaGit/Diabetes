@@ -15,6 +15,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { glucoseValueTextClassMgDl } from "@/lib/glucose-range-style"
+import { resolveMoodDisplayNote } from "@/lib/mood"
 import { cn } from "@/lib/utils"
 
 interface MomentCardProps {
@@ -61,14 +62,6 @@ function formatCarbs(meal: MealEntry): string {
   return `${carbsText}g`
 }
 
-function moodLabel(value: number): string {
-  if (value <= 1) return "Sehr schlecht"
-  if (value === 2) return "Eher schlecht"
-  if (value === 3) return "Ganz okay"
-  if (value === 4) return "Gut"
-  return "Sehr gut"
-}
-
 function Chip({ text }: { text: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
@@ -78,7 +71,7 @@ function Chip({ text }: { text: string }) {
 }
 
 export function MomentCard({ entries }: MomentCardProps) {
-  const { locale } = useTranslation()
+  const { t, locale } = useTranslation()
   const { formatGlucoseWithUnit, targetRange } = useUserPreferences()
   const dateLocale = locale === "en" ? enUS : de
   const sorted = [...entries].sort(
@@ -99,7 +92,7 @@ export function MomentCard({ entries }: MomentCardProps) {
   const anchor = sorted[0]
 
   const mood = moods[0]
-  const moodText = (mood?.note || "").trim() || (mood ? moodLabel(mood.moodValue) : "")
+  const moodText = mood ? resolveMoodDisplayNote(mood.note, mood.moodValue, t) : ""
   const groupStartTime = parseISO(sorted[0].timestamp).getTime()
   const groupEndTime = parseISO(sorted[sorted.length - 1].timestamp).getTime()
   const groupSpanMinutes = (groupEndTime - groupStartTime) / (1000 * 60)
@@ -145,7 +138,7 @@ export function MomentCard({ entries }: MomentCardProps) {
         <div className="mb-2 flex items-start justify-between">
           {isMoodCard ? (
             <div>
-              <p className="text-xs text-gray-400">Stimmung</p>
+              <p className="text-xs text-gray-400">{t("logbook.mood")}</p>
               <div className="mt-1 flex items-center gap-2">
                 <p className="text-[15px] font-medium text-slate-800">{moodText}</p>
                 <div className="flex items-center gap-[3px]">

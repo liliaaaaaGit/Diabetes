@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
 import { parseISO, subDays, isAfter } from "date-fns"
 import { cn } from "@/lib/utils"
+import { getMoodLabel } from "@/lib/mood"
 
 interface MoodSummaryProps {
   entries: MoodEntry[]
@@ -18,14 +19,6 @@ const moodEmojis: Record<number, string> = {
   3: "😐",
   4: "🙂",
   5: "😊",
-}
-
-const moodLabels: Record<number, string> = {
-  1: "Sehr schlecht",
-  2: "Schlecht",
-  3: "Neutral",
-  4: "Gut",
-  5: "Sehr gut",
 }
 
 export function MoodSummary({ entries, days }: MoodSummaryProps) {
@@ -90,7 +83,7 @@ export function MoodSummary({ entries, days }: MoodSummaryProps) {
           <p className="text-xs text-slate-600 mb-1">{t("insights.mostCommonMood")}</p>
           <div className="text-2xl mb-1">{moodEmojis[parseInt(mostCommonMood)]}</div>
           <p className="text-xs text-slate-700">
-            {moodLabels[parseInt(mostCommonMood)]}
+            {getMoodLabel(parseInt(mostCommonMood), t)}
           </p>
         </CardContent>
       </Card>
@@ -131,7 +124,7 @@ export function MoodSummary({ entries, days }: MoodSummaryProps) {
               {thisWeekAvg > 0 ? thisWeekAvg.toFixed(1) : "-"}
             </span>
           </div>
-          <p className="text-xs text-slate-500">Ø Stimmung</p>
+          <p className="text-xs text-slate-500">{t("insights.avgMoodShort")}</p>
         </CardContent>
       </Card>
     </div>

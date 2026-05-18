@@ -37,8 +37,8 @@ import { Badge } from "@/components/ui/badge"
 const ENTRY_TYPES: EntryType[] = ["glucose", "insulin", "meal", "activity", "mood"]
 
 const MOOD_EMOJIS: { value: MoodValue; emoji: string; labelKey: string }[] = [
-  { value: 1, emoji: "😫", labelKey: "logbook.moodVeryBad" },
-  { value: 2, emoji: "😕", labelKey: "logbook.moodBad" },
+  { value: 1, emoji: "😫", labelKey: "logbook.moodWorst" },
+  { value: 2, emoji: "😕", labelKey: "logbook.moodNotGood" },
   { value: 3, emoji: "😐", labelKey: "logbook.moodNeutral" },
   { value: 4, emoji: "🙂", labelKey: "logbook.moodGood" },
   { value: 5, emoji: "😄", labelKey: "logbook.moodGreat" },
