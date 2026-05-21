@@ -69,7 +69,7 @@ export function PrivacyPolicyContentEn() {
           the image and analysis prompt.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.4 Conversation data (Diabetes Buddy):</strong> Your
+          <strong className="font-semibold text-slate-900">4.4 Conversation data (Gluco):</strong> Your
           messages to the AI chatbot, the chatbot&apos;s replies, AI-generated conversation summaries, AI-generated
           emotion analyses.
         </p>
@@ -90,8 +90,8 @@ export function PrivacyPolicyContentEn() {
       <section className="space-y-4">
         <h2 className="text-base font-semibold text-slate-900">5. Use of artificial intelligence</h2>
         <p>
-          <strong className="font-semibold text-slate-900">5.1 Diabetes Buddy (chatbot):</strong> The Diabetes Buddy
-          is an AI-supported chatbot for emotional self-management. It follows cognitive-behavioural therapy (CBT)
+          <strong className="font-semibold text-slate-900">5.1 Gluco (chatbot):</strong> Gluco is an AI-supported
+          chatbot for emotional self-management. It follows cognitive-behavioural therapy (CBT)
           approaches. It is not a therapist, not a doctor, and not a medical device. Its answers may be wrong.
         </p>
         <p>
@@ -104,7 +104,7 @@ export function PrivacyPolicyContentEn() {
         </p>
         <p>
           <strong className="font-semibold text-slate-900">5.3 Mood analysis and profiling:</strong> Free-text mood
-          entries are automatically converted to a numeric value (1–5). Conversations with the Buddy are analysed
+          entries are automatically converted to a numeric value (1–5). Conversations with Gluco are analysed
           emotionally after they end. This processing constitutes profiling within the meaning of Art. 4(4) GDPR.
           However, no automated decision with legal or similarly significant effect within the meaning of Art. 22
           GDPR takes place.

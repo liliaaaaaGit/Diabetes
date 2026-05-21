@@ -38,8 +38,8 @@
       "intro": "Many people with diabetes use several apps in parallel — sensor app, logbook, insulin tracker, nutrition app. How do you rate GlucoCompanion in this context?"
     },
     "D": {
-      "title": "Diabetes Buddy",
-      "intro": "The Diabetes Buddy is an AI-supported chatbot you can talk to about daily life with diabetes. Please rate the following statements."
+      "title": "Gluco",
+      "intro": "Gluco is an AI-supported chatbot you can talk to about daily life with diabetes. Please rate the following statements."
     },
     "E": {
       "title": "Mood & insights",
@@ -82,11 +82,11 @@
     "c9": "GlucoCompanion could replace or complement several of my current diabetes apps.",
     "c10": "A single app for glucose tracking, logbook, and emotional exchange would noticeably simplify my daily diabetes routine.",
     "c11": "If GlucoCompanion could also show sensor data (e.g. FreeStyle Libre, Dexcom), the app would be useful for me in everyday life.",
-    "d12": "The Diabetes Buddy responded empathetically to my concerns.",
-    "d13": "I could imagine talking to the Diabetes Buddy about frustrations or worries related to my diabetes.",
+    "d12": "Gluco responded empathetically to my concerns.",
+    "d13": "I could imagine talking to Gluco about frustrations or worries related to my diabetes.",
     "d14": "The Buddy clearly keeps the role of an emotional companion and does not give medical dosing recommendations.",
     "d15": "It was clear to me that the Buddy's answers come from AI and may not be error-free.",
-    "d16": "An empathetic AI companion like the Diabetes Buddy would be a useful addition to existing diabetes apps.",
+    "d16": "An empathetic AI companion like Gluco would be a useful addition to existing diabetes apps.",
     "e17": "The mood–glucose correlation made a new connection visible to me.",
     "e18": "The AI interpretations in Insights are understandable and plausible.",
     "e19": "The app encourages me to pay more attention to my mood in connection with my diabetes.",

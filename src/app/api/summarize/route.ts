@@ -10,7 +10,7 @@ const SUMMARY_PROMPT = `WICHTIG (höchste Priorität):
 Für deutsche Titel und Zusammenfassungen: IMMER grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung (Substantive groß, Satzanfänge groß, „ich“ klein). NIEMALS den gesamten Titel oder die gesamte Zusammenfassung nur in Kleinbuchstaben schreiben.
 Für englische Ausgabe: normale englische Großschreibung (Satzanfänge, „I“ groß).
 
-You summarize a chat between a user and a diabetes companion (Buddy) for a research app.
+You summarize a chat between a user and Gluco, an empathetic diabetes companion, for a research app.
 
 Focus on what the USER shared: feelings, worries, wins, relationships, diabetes-related stress — not on rehashing the assistant's advice.
 

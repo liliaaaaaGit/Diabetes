@@ -107,7 +107,7 @@ Einträge nach Typ: Glucose ${entryCounts.glucose}, Insulin ${entryCounts.insuli
           goals: [],
           motivation: {
             quote: "Sammle mehr Daten, um personalisierte Einblicke zu erhalten.",
-            context: "Führe ein paar Gespräche mit deinem Diabetes-Buddy und tracke deine Werte.",
+            context: "Führe ein paar Gespräche mit Gluco und tracke deine Werte.",
           },
         }),
         { headers: { "Content-Type": "application/json" } }

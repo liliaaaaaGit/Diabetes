@@ -41,8 +41,8 @@
       "intro": "Viele Menschen mit Diabetes nutzen mehrere Apps parallel — Sensor-App, Tagebuch, Insulin-Tracker, Ernährungs-App. Wie beurteilen Sie GlucoCompanion in diesem Kontext?"
     },
     "D": {
-      "title": "Diabetes-Buddy",
-      "intro": "Der Diabetes-Buddy ist ein KI-gestützter Chatbot, mit dem Sie über Ihren Alltag mit Diabetes sprechen können. Bitte beurteilen Sie die folgenden Aussagen."
+      "title": "Gluco",
+      "intro": "Gluco ist ein KI-gestützter Chatbot, mit dem Sie über Ihren Alltag mit Diabetes sprechen können. Bitte beurteilen Sie die folgenden Aussagen."
     },
     "E": {
       "title": "Stimmung & Einblicke",
@@ -88,11 +88,11 @@
     "c9": "GlucoCompanion könnte mehrere meiner aktuell genutzten Diabetes-Apps ersetzen oder ergänzen.",
     "c10": "Eine einzige App für Blutzucker-Tracking, Tagebuch und emotionalen Austausch würde meinen Diabetes-Alltag spürbar einfacher machen.",
     "c11": "Wenn GlucoCompanion zusätzlich Sensor-Daten (z. B. FreeStyle Libre, Dexcom) anzeigen könnte, wäre die App für mich im Alltag brauchbar.",
-    "d12": "Der Diabetes-Buddy reagierte einfühlsam auf meine Anliegen.",
-    "d13": "Ich könnte mir vorstellen, mit dem Diabetes-Buddy auch über Frustrationen oder Sorgen rund um meinen Diabetes zu sprechen.",
+    "d12": "Gluco reagierte einfühlsam auf meine Anliegen.",
+    "d13": "Ich könnte mir vorstellen, mit Gluco auch über Frustrationen oder Sorgen rund um meinen Diabetes zu sprechen.",
     "d14": "Der Buddy hält klar die Rolle als emotionaler Begleiter ein und gibt keine medizinischen Dosierungs-Empfehlungen.",
     "d15": "Es war für mich erkennbar, dass die Antworten des Buddys von einer KI stammen und nicht fehlerfrei sind.",
-    "d16": "Ein empathischer KI-Begleiter wie der Diabetes-Buddy wäre eine sinnvolle Ergänzung zu bestehenden Diabetes-Apps.",
+    "d16": "Ein empathischer KI-Begleiter wie Gluco wäre eine sinnvolle Ergänzung zu bestehenden Diabetes-Apps.",
     "e17": "Die Stimmung-Blutzucker-Korrelation hat mir einen für mich neuen Zusammenhang sichtbar gemacht.",
     "e18": "Die KI-Einordnungen im Bereich Einblicke sind verständlich und nachvollziehbar.",
     "e19": "Die App regt mich an, meine Stimmung im Zusammenhang mit meinem Diabetes bewusster wahrzunehmen.",

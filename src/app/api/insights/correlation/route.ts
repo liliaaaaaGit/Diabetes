@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
   const userPrompt = `Zeitraum: letzte ${periodLabel}.
 Zielbereich Blutzucker: ${targetMinMgDl}–${targetMaxMgDl} mg/dL.
-Datenbasis: ${glucoseReadings} Blutzuckermessungen, ${moodEntries} Stimmungseinträge im Tagebuch, ${convWithEmotion} abgeschlossene Buddy-Gespräche mit Stimmungsanalyse, ${daysWithBoth} Tage mit sowohl Blutzucker- als auch Stimmungswert.
+Datenbasis: ${glucoseReadings} Blutzuckermessungen, ${moodEntries} Stimmungseinträge im Tagebuch, ${convWithEmotion} abgeschlossene Gluco-Gespräche mit Stimmungsanalyse, ${daysWithBoth} Tage mit sowohl Blutzucker- als auch Stimmungswert.
 
 Erstellen Sie die Einordnung (3–5 Sätze, Sie-Form). Nennen Sie mindestens ein konkretes Detail aus den Tagesdaten (Datum, Wochentag, Werte). Vermeiden Sie generische Formulierungen ohne Datenbezug.
 

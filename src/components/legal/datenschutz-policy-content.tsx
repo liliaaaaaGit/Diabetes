@@ -73,7 +73,7 @@ export function DatenschutzPolicyContent() {
           der Analyse-Prompt.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.4 Gesprächsdaten (Diabetes-Buddy):</strong> Ihre
+          <strong className="font-semibold text-slate-900">4.4 Gesprächsdaten (Gluco):</strong> Ihre
           Nachrichten an den KI-Chatbot, Antworten des Chatbots, KI-generierte Gesprächszusammenfassungen,
           KI-generierte Emotionsanalysen.
         </p>
@@ -95,8 +95,8 @@ export function DatenschutzPolicyContent() {
       <section className="space-y-4">
         <h2 className="text-base font-semibold text-slate-900">5. Einsatz von Künstlicher Intelligenz</h2>
         <p>
-          <strong className="font-semibold text-slate-900">5.1 Diabetes-Buddy (Chatbot):</strong> Der
-          Diabetes-Buddy ist ein KI-gestützter Chatbot für emotionales Selbstmanagement. Er orientiert sich an
+          <strong className="font-semibold text-slate-900">5.1 Gluco (Chatbot):</strong> Gluco ist ein
+          KI-gestützter Chatbot für emotionales Selbstmanagement. Er orientiert sich an
           Ansätzen der kognitiven Verhaltenstherapie (CBT). Er ist kein Therapeut, kein Arzt und kein
           Medizinprodukt. Seine Antworten können fehlerhaft sein.
         </p>
@@ -112,7 +112,7 @@ export function DatenschutzPolicyContent() {
         <p>
           <strong className="font-semibold text-slate-900">5.3 Stimmungsanalyse und Profiling:</strong>{" "}
           Freitext-Stimmungseinträge werden automatisch in einen numerischen Wert (1–5) umgewandelt. Gespräche
-          mit dem Buddy werden nach Beendigung emotional analysiert. Diese Verarbeitungen stellen Profiling im
+          mit Gluco werden nach Beendigung emotional analysiert. Diese Verarbeitungen stellen Profiling im
           Sinne von Art. 4 Nr. 4 DSGVO dar. Es findet jedoch keine automatisierte Entscheidung mit rechtlicher
           oder ähnlich erheblicher Wirkung im Sinne von Art. 22 DSGVO statt.
         </p>
