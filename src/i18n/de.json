@@ -336,8 +336,6 @@
   },
   "insights": {
     "title": "Einblicke",
-    "glucoseTrendTitle": "Blutzucker-Verlauf",
-    "moodTrendTitle": "Stimmung-Verlauf",
     "tirBlockTitle": "Blutzucker im Überblick",
     "avgGlucoseLargeLabel": "Durchschnitt (Zeitraum)",
     "tirBandHint": "Einzelwerte im grünen Balken: {{range}} (Time in Range).",

@@ -336,8 +336,6 @@
   },
   "insights": {
     "title": "Insights",
-    "glucoseTrendTitle": "Glucose trend",
-    "moodTrendTitle": "Mood trend",
     "tirBlockTitle": "Glucose overview",
     "avgGlucoseLargeLabel": "Period average",
     "tirBandHint": "Values in the green segment: {{range}} (time in range).",
