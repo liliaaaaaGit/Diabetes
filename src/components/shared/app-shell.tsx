@@ -19,10 +19,7 @@ interface AppShellProps {
 export function AppShell({ children, title, actions, mainClassName }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   return (
-    <GuidedTourGate
-      onOpenMobileNav={() => setMobileMenuOpen(true)}
-      onCloseMobileNav={() => setMobileMenuOpen(false)}
-    >
+    <GuidedTourGate>
     <div className="min-h-screen overflow-x-hidden bg-slate-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">

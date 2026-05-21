@@ -1,37 +1,27 @@
 "use client"
 
-import { useCallback, useEffect, useLayoutEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useToast } from "@/hooks/use-toast"
+import { useGuidedTour } from "@/contexts/guided-tour-context"
 import { cn } from "@/lib/utils"
 import {
-  GUIDED_TOUR_SPOTLIGHT_PADDING,
-  GUIDED_TOUR_STEPS,
-  type GuidedTourPlacement,
-} from "@/lib/guided-tour-steps"
+  TOUR_PHASE_COUNT,
+  TOUR_PHASE_ROUTES,
+  TOUR_PHASES,
+  routeMatchesPhase,
+} from "@/lib/guided-tour-phases"
 
-const MOBILE_BREAKPOINT = 768
 const OVERLAY_Z = 9999
-
-type Rect = {
-  top: number
-  left: number
-  width: number
-  height: number
-}
-
-interface GuidedTourProps {
-  onComplete: () => void
-  onOpenMobileNav?: () => void
-  onCloseMobileNav?: () => void
-}
+const CARD_Z = 10000
+const FADE_MS = 300
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(false)
   useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const mq = window.matchMedia("(max-width: 767px)")
     const update = () => setMobile(mq.matches)
     update()
     mq.addEventListener("change", update)
@@ -40,224 +30,115 @@ function useIsMobile() {
   return mobile
 }
 
-function getTargetRect(selector: string): Rect | null {
-  const nodes = document.querySelectorAll(selector)
-  for (const el of nodes) {
-    const r = el.getBoundingClientRect()
-    if (r.width > 0 && r.height > 0) {
-      return { top: r.top, left: r.left, width: r.width, height: r.height }
-    }
-  }
-  return null
+interface GuidedTourProps {
+  onComplete: () => void
 }
 
-function computeTooltipStyle(
-  rect: Rect | null,
-  placement: GuidedTourPlacement,
-  isMobile: boolean
-): { style: React.CSSProperties; arrowClass: string } {
-  const pad = 12
-  const maxW = isMobile ? "calc(100vw - 32px)" : "280px"
-
-  if (!rect || placement === "center") {
-    return {
-      style: {
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        maxWidth: maxW,
-        zIndex: OVERLAY_Z + 2,
-      },
-      arrowClass: "hidden",
-    }
-  }
-
-  const effectivePlacement = isMobile ? "bottom" : placement
-  const spotlightBottom = rect.top + rect.height + GUIDED_TOUR_SPOTLIGHT_PADDING
-  const spotlightTop = rect.top - GUIDED_TOUR_SPOTLIGHT_PADDING
-  const spotlightLeft = rect.left - GUIDED_TOUR_SPOTLIGHT_PADDING
-  const spotlightRight = rect.left + rect.width + GUIDED_TOUR_SPOTLIGHT_PADDING
-  const centerX = rect.left + rect.width / 2
-
-  const clampLeft = () => Math.max(16, Math.min(centerX - 140, window.innerWidth - 296))
-
-  if (effectivePlacement === "top") {
-    return {
-      style: {
-        position: "fixed",
-        top: spotlightTop - pad,
-        left: clampLeft(),
-        transform: "translateY(-100%)",
-        maxWidth: maxW,
-        zIndex: OVERLAY_Z + 2,
-      },
-      arrowClass:
-        "top-full left-1/2 -translate-x-1/2 border-l-transparent border-r-transparent border-t-white border-b-transparent",
-    }
-  }
-
-  if (effectivePlacement === "right") {
-    return {
-      style: {
-        position: "fixed",
-        top: rect.top + rect.height / 2,
-        left: spotlightRight + pad,
-        transform: "translateY(-50%)",
-        maxWidth: maxW,
-        zIndex: OVERLAY_Z + 2,
-      },
-      arrowClass:
-        "right-full top-1/2 -translate-y-1/2 border-t-transparent border-b-transparent border-r-white border-l-transparent",
-    }
-  }
-
-  if (effectivePlacement === "left") {
-    return {
-      style: {
-        position: "fixed",
-        top: rect.top + rect.height / 2,
-        left: Math.max(16, spotlightLeft - 280 - pad),
-        transform: "translateY(-50%)",
-        maxWidth: maxW,
-        zIndex: OVERLAY_Z + 2,
-      },
-      arrowClass:
-        "left-full top-1/2 -translate-y-1/2 border-t-transparent border-b-transparent border-l-white border-r-transparent",
-    }
-  }
-
-  return {
-    style: {
-      position: "fixed",
-      top: spotlightBottom + pad,
-      left: clampLeft(),
-      maxWidth: maxW,
-      zIndex: OVERLAY_Z + 2,
-    },
-    arrowClass:
-      "bottom-full left-1/2 -translate-x-1/2 border-l-transparent border-r-transparent border-b-white border-t-transparent",
-  }
-}
-
-export function GuidedTour({ onComplete, onOpenMobileNav, onCloseMobileNav }: GuidedTourProps) {
+export function GuidedTour({ onComplete }: GuidedTourProps) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const router = useRouter()
+  const pathname = usePathname()
+  const { isActive, tourPhase, setTourPhase, endTour } = useGuidedTour()
   const isMobile = useIsMobile()
-  const [stepIndex, setStepIndex] = useState(0)
-  const [visible, setVisible] = useState(false)
-  const [targetRect, setTargetRect] = useState<Rect | null>(null)
+
+  const [cardVisible, setCardVisible] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  const step = GUIDED_TOUR_STEPS[stepIndex]
-  const total = GUIDED_TOUR_STEPS.length
-  const isWelcome = step.placement === "center" || !step.target
-  const isLast = stepIndex === total - 1
+  const phase = TOUR_PHASES[tourPhase]
+  const routeReady = routeMatchesPhase(pathname, tourPhase)
+  const progressPct = tourPhase <= 0 ? 0 : (tourPhase / (TOUR_PHASE_COUNT - 1)) * 100
 
-  const finish = useCallback(async () => {
+  const persistComplete = useCallback(async () => {
+    const res = await fetch("/api/user/onboarding", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ onboarding_completed: true }),
+    })
+    if (!res.ok) throw new Error("save_failed")
+  }, [])
+
+  const closeTour = useCallback(async () => {
+    setCardVisible(false)
+    endTour()
+    onComplete()
+    router.refresh()
+  }, [endTour, onComplete, router])
+
+  const skip = useCallback(async () => {
     if (saving) return
     setSaving(true)
-    onCloseMobileNav?.()
     try {
-      const res = await fetch("/api/user/onboarding", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ onboarding_completed: true }),
-      })
-      if (!res.ok) throw new Error("save_failed")
-      setVisible(false)
-      onComplete()
-      router.refresh()
+      await persistComplete()
+      await closeTour()
     } catch {
       toast({ title: t("onboarding.saveFailed"), variant: "destructive" })
       setSaving(false)
     }
-  }, [onCloseMobileNav, onComplete, router, saving, t, toast])
+  }, [closeTour, persistComplete, saving, t, toast])
 
-  const goNext = () => {
-    if (isLast) void finish()
-    else setStepIndex((i) => i + 1)
-  }
+  const goToPhase = useCallback(
+    async (nextPhase: number, options?: { completeFirst?: boolean }) => {
+      if (saving || !phase) return
+      setSaving(true)
+      setCardVisible(false)
 
-  const updateRect = useCallback(() => {
-    if (!step.target) {
-      setTargetRect(null)
-      return
-    }
-    setTargetRect(getTargetRect(step.target))
-  }, [step.target])
+      await new Promise((r) => setTimeout(r, 200))
 
-  useEffect(() => {
-    router.replace("/")
-  }, [router])
+      try {
+        if (options?.completeFirst) {
+          await persistComplete()
+        }
 
-  useLayoutEffect(() => {
-    setVisible(false)
-    let cancelled = false
+        const nextRoute = TOUR_PHASE_ROUTES[nextPhase]
+        if (nextRoute) {
+          router.push(nextRoute)
+        }
+        setTourPhase(nextPhase)
 
-    const run = async () => {
-      if (step.openMobileNav && isMobile) {
-        onOpenMobileNav?.()
-        await new Promise((r) => setTimeout(r, 350))
-      } else if (!step.openMobileNav) {
-        onCloseMobileNav?.()
+        await new Promise((r) => setTimeout(r, FADE_MS))
+      } catch {
+        toast({ title: t("onboarding.saveFailed"), variant: "destructive" })
+        setSaving(false)
+        return
       }
 
-      if (step.target) {
-        const el = document.querySelector(step.target)
-        el?.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" })
-        await new Promise((r) => setTimeout(r, 320))
-      }
-
-      if (!cancelled) {
-        updateRect()
-        setVisible(true)
-      }
-    }
-
-    void run()
-    return () => {
-      cancelled = true
-    }
-  }, [stepIndex, step.target, step.openMobileNav, isMobile, onOpenMobileNav, onCloseMobileNav, updateRect])
-
-  useEffect(() => {
-    if (!step.target) return
-    const onResize = () => updateRect()
-    window.addEventListener("resize", onResize)
-    window.addEventListener("scroll", onResize, true)
-    return () => {
-      window.removeEventListener("resize", onResize)
-      window.removeEventListener("scroll", onResize, true)
-    }
-  }, [step.target, updateRect])
-
-  const primaryLabel = step.primaryKey
-    ? t(step.primaryKey)
-    : isLast
-      ? t("onboarding.discoverApp")
-      : t("onboarding.next")
-
-  const { style: tooltipStyle, arrowClass } = computeTooltipStyle(
-    targetRect,
-    step.placement ?? "bottom",
-    isMobile
+      setSaving(false)
+    },
+    [persistComplete, phase, router, saving, setTourPhase, t, toast]
   )
 
-  const spotlight =
-    targetRect && !isWelcome
-      ? {
-          top: targetRect.top - GUIDED_TOUR_SPOTLIGHT_PADDING,
-          left: targetRect.left - GUIDED_TOUR_SPOTLIGHT_PADDING,
-          width: targetRect.width + GUIDED_TOUR_SPOTLIGHT_PADDING * 2,
-          height: targetRect.height + GUIDED_TOUR_SPOTLIGHT_PADDING * 2,
-        }
-      : null
+  const handlePrimary = () => {
+    if (!phase || saving) return
 
-  const dim = visible ? 0.6 : 0
-  const dimBg = "rgba(0, 0, 0, 0.6)"
+    if (tourPhase >= TOUR_PHASE_COUNT - 1) {
+      void closeTour()
+      return
+    }
+
+    const next = tourPhase + 1
+    void goToPhase(next, { completeFirst: phase.completeOnboardingOnPrimary })
+  }
+
+  useEffect(() => {
+    if (!isActive) {
+      setCardVisible(false)
+      return
+    }
+    const expected = TOUR_PHASE_ROUTES[tourPhase]
+    if (expected && pathname !== expected) {
+      router.replace(expected)
+      setCardVisible(false)
+      return
+    }
+    const tId = window.setTimeout(() => setCardVisible(true), routeReady ? 80 : FADE_MS)
+    return () => window.clearTimeout(tId)
+  }, [isActive, tourPhase, pathname, routeReady, router])
+
+  if (!isActive || !phase || !routeReady) {
+    return null
+  }
 
   return (
     <div
@@ -265,118 +146,85 @@ export function GuidedTour({ onComplete, onOpenMobileNav, onCloseMobileNav }: Gu
       style={{ zIndex: OVERLAY_Z }}
       role="dialog"
       aria-modal="true"
-      aria-label={t("onboarding.welcomeTitle")}
+      aria-label={t(phase.titleKey)}
     >
-      {isWelcome ? (
-        <div
-          className="pointer-events-auto absolute inset-0 transition-opacity duration-300"
-          style={{ backgroundColor: dimBg, opacity: dim }}
-          aria-hidden
-        />
-      ) : spotlight ? (
-        <>
-          <div
-            className="pointer-events-auto fixed left-0 right-0 top-0 transition-opacity duration-300"
-            style={{ height: spotlight.top, backgroundColor: dimBg, opacity: dim }}
-            aria-hidden
-          />
-          <div
-            className="pointer-events-auto fixed left-0 transition-opacity duration-300"
-            style={{
-              top: spotlight.top,
-              width: spotlight.left,
-              height: spotlight.height,
-              backgroundColor: dimBg,
-              opacity: dim,
-            }}
-            aria-hidden
-          />
-          <div
-            className="pointer-events-auto fixed bottom-0 right-0 transition-opacity duration-300"
-            style={{
-              top: spotlight.top,
-              left: spotlight.left + spotlight.width,
-              backgroundColor: dimBg,
-              opacity: dim,
-            }}
-            aria-hidden
-          />
-          <div
-            className="pointer-events-auto fixed bottom-0 left-0 right-0 transition-opacity duration-300"
-            style={{
-              top: spotlight.top + spotlight.height,
-              backgroundColor: dimBg,
-              opacity: dim,
-            }}
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute rounded-lg ring-2 ring-white/90 transition-all duration-300 ease-out"
-            style={{
-              top: spotlight.top,
-              left: spotlight.left,
-              width: spotlight.width,
-              height: spotlight.height,
-              opacity: visible ? 1 : 0,
-            }}
-            aria-hidden
-          />
-        </>
-      ) : null}
+      <div
+        className={cn(
+          "pointer-events-auto absolute inset-0 bg-black/50 transition-opacity ease-out",
+          cardVisible ? "opacity-100 duration-300" : "opacity-0 duration-200"
+        )}
+        aria-hidden
+        onClick={(e) => e.preventDefault()}
+      />
 
       <div
         className={cn(
-          "pointer-events-auto rounded-xl bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-opacity duration-300 sm:p-5",
-          visible ? "opacity-100" : "opacity-0"
+          "pointer-events-auto fixed left-1/2 w-[min(100%,calc(100vw-32px))] max-w-[400px] min-w-[320px] -translate-x-1/2 transition-all ease-out",
+          isMobile ? "top-[45%] -translate-y-[45%]" : "top-1/2 -translate-y-1/2",
+          cardVisible ? "scale-100 opacity-100 duration-300" : "scale-95 opacity-0 duration-200"
         )}
-        style={tooltipStyle}
+        style={{ zIndex: CARD_Z }}
       >
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-slate-900">{t(step.titleKey)}</h2>
+        <div className="rounded-2xl bg-white px-7 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] sm:px-7 sm:py-6">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <h2 className="text-xl font-semibold leading-snug text-slate-900">{t(phase.titleKey)}</h2>
+            <button
+              type="button"
+              onClick={() => void skip()}
+              disabled={saving}
+              className="shrink-0 text-[13px] text-slate-500 hover:text-slate-700 disabled:opacity-50"
+            >
+              {t("onboarding.skip")}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => void finish()}
-            disabled={saving}
-            className="shrink-0 text-sm text-slate-500 hover:text-slate-700 disabled:opacity-50"
-          >
-            {t("onboarding.skip")}
-          </button>
-        </div>
-        <p className="text-sm leading-relaxed text-slate-600">{t(step.descriptionKey)}</p>
 
-        <div
-          className={cn(
-            "absolute h-0 w-0 border-[6px]",
-            arrowClass
-          )}
-          aria-hidden
-        />
+          <p className="text-[15px] leading-normal text-[#666]">{t(phase.bodyKey)}</p>
 
-        <div className="mt-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2" aria-label={t("onboarding.progress")}>
-            {GUIDED_TOUR_STEPS.map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  "h-2 rounded-full transition-all",
-                  i === stepIndex ? "w-6 bg-teal-500" : "w-2 bg-slate-300"
-                )}
-              />
-            ))}
-            <span className="ml-1 text-xs text-slate-500 tabular-nums">
-              {t("onboarding.stepOf", { current: stepIndex + 1, total })}
-            </span>
+          {phase.hintKey ? (
+            <p className="mt-3 text-[14px] leading-normal text-slate-500">{t(phase.hintKey)}</p>
+          ) : null}
+
+          {phase.features && phase.features.length > 0 ? (
+            <ul className="mt-5 flex flex-col gap-2">
+              {phase.features.map((item) => {
+                const Icon = item.icon
+                return (
+                  <li key={item.textKey} className="flex items-center gap-2.5">
+                    <Icon className="h-5 w-5 shrink-0 text-teal-600" strokeWidth={1.75} aria-hidden />
+                    <span className="text-sm leading-snug text-slate-700 sm:text-[14px]">
+                      {t(item.textKey)}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null}
+
+          <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-3 sm:max-w-[60%]">
+              <div className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-teal-500 transition-all duration-300 ease-out"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <span className="shrink-0 text-xs tabular-nums text-slate-500">
+                {t("onboarding.stepOf", { current: tourPhase + 1, total: TOUR_PHASE_COUNT })}
+              </span>
+            </div>
+
+            <Button
+              type="button"
+              onClick={handlePrimary}
+              disabled={saving}
+              className={cn(
+                "h-auto rounded-[10px] bg-teal-500 px-6 py-2.5 text-[15px] font-semibold text-white hover:bg-teal-600",
+                "w-full sm:w-auto sm:shrink-0"
+              )}
+            >
+              {saving ? t("common.loading") : t(phase.primaryKey)}
+            </Button>
           </div>
-          <Button
-            type="button"
-            onClick={goNext}
-            disabled={saving}
-            className="rounded-lg bg-teal-500 px-5 font-semibold text-white hover:bg-teal-600"
-          >
-            {saving ? t("common.loading") : primaryLabel}
-          </Button>
         </div>
       </div>
     </div>

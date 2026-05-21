@@ -2,19 +2,18 @@
 
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
+import { GuidedTourProvider } from "@/contexts/guided-tour-context"
 import { GuidedTour } from "@/components/guided-tour/guided-tour"
 
 const SKIP_PATH_PREFIXES = ["/login", "/register", "/consent", "/access", "/onboarding"]
 
 interface GuidedTourGateProps {
   children: React.ReactNode
-  onOpenMobileNav?: () => void
-  onCloseMobileNav?: () => void
 }
 
-export function GuidedTourGate({ children, onOpenMobileNav, onCloseMobileNav }: GuidedTourGateProps) {
+export function GuidedTourGate({ children }: GuidedTourGateProps) {
   const pathname = usePathname()
-  const [active, setActive] = useState(false)
+  const [tourActive, setTourActive] = useState(false)
   const [checked, setChecked] = useState(false)
 
   const skip = SKIP_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
@@ -22,7 +21,7 @@ export function GuidedTourGate({ children, onOpenMobileNav, onCloseMobileNav }: 
   useEffect(() => {
     if (skip) {
       setChecked(true)
-      setActive(false)
+      setTourActive(false)
       return
     }
 
@@ -33,7 +32,7 @@ export function GuidedTourGate({ children, onOpenMobileNav, onCloseMobileNav }: 
         if (!res.ok) return
         const data = (await res.json()) as { onboarding_completed?: boolean }
         if (!cancelled && !data.onboarding_completed) {
-          setActive(true)
+          setTourActive(true)
         }
       } finally {
         if (!cancelled) setChecked(true)
@@ -45,16 +44,14 @@ export function GuidedTourGate({ children, onOpenMobileNav, onCloseMobileNav }: 
     }
   }, [skip, pathname])
 
+  if (!checked) {
+    return <>{children}</>
+  }
+
   return (
-    <>
+    <GuidedTourProvider active={tourActive}>
       {children}
-      {checked && active ? (
-        <GuidedTour
-          onComplete={() => setActive(false)}
-          onOpenMobileNav={onOpenMobileNav}
-          onCloseMobileNav={onCloseMobileNav}
-        />
-      ) : null}
-    </>
+      {tourActive ? <GuidedTour onComplete={() => setTourActive(false)} /> : null}
+    </GuidedTourProvider>
   )
 }
