@@ -7,6 +7,7 @@ import { GlucoseSafetyProvider } from "@/contexts/glucose-safety-context"
 import { PwaRegister } from "@/components/pwa-register"
 import { MobileFormEnhancements } from "@/components/shared/mobile-form-enhancements"
 import { Toaster } from "@/components/ui/toaster"
+import { GuidedTourGate } from "@/components/guided-tour/guided-tour-gate"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -43,7 +44,7 @@ export default function RootLayout({
         <LanguageProvider>
           <UserPreferencesProvider>
             <GlucoseSafetyProvider>
-              {children}
+              <GuidedTourGate>{children}</GuidedTourGate>
               <MobileFormEnhancements />
               <PwaRegister />
               <Toaster />

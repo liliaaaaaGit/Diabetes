@@ -4,11 +4,28 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react"
+import { TOUR_PHASE_COUNT } from "@/lib/guided-tour-phases"
+
+export const TOUR_PHASE_STORAGE_KEY = "gc_tour_phase"
+
+function readStoredPhase(): number {
+  if (typeof window === "undefined") return 0
+  const raw = sessionStorage.getItem(TOUR_PHASE_STORAGE_KEY)
+  if (raw == null) return 0
+  const n = Number.parseInt(raw, 10)
+  if (!Number.isFinite(n) || n < 0 || n >= TOUR_PHASE_COUNT) return 0
+  return n
+}
+
+export function clearTourPhaseStorage() {
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem(TOUR_PHASE_STORAGE_KEY)
+  }
+}
 
 type GuidedTourContextValue = {
   isActive: boolean
@@ -28,18 +45,23 @@ export function GuidedTourProvider({
   /** Controlled from gate: true while onboarding tour should run */
   active?: boolean
 }) {
-  const [tourPhase, setTourPhase] = useState(0)
+  const [tourPhase, setTourPhaseState] = useState(() => (active ? readStoredPhase() : 0))
 
-  useEffect(() => {
-    if (active) setTourPhase(0)
-  }, [active])
-
-  const startTour = useCallback(() => {
-    setTourPhase(0)
+  const setTourPhase = useCallback((phase: number) => {
+    setTourPhaseState(phase)
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(TOUR_PHASE_STORAGE_KEY, String(phase))
+    }
   }, [])
 
-  const endTour = useCallback(() => {
+  const startTour = useCallback(() => {
+    clearTourPhaseStorage()
     setTourPhase(0)
+  }, [setTourPhase])
+
+  const endTour = useCallback(() => {
+    clearTourPhaseStorage()
+    setTourPhaseState(0)
   }, [])
 
   const value = useMemo(

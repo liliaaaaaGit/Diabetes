@@ -42,7 +42,7 @@ export function GuidedTourGate({ children }: GuidedTourGateProps) {
     return () => {
       cancelled = true
     }
-  }, [skip, pathname])
+  }, [skip])
 
   if (!checked) {
     return <>{children}</>

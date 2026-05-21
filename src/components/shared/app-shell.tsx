@@ -6,7 +6,6 @@ import { SidebarMobile } from "./sidebar-mobile"
 import { Header } from "./header"
 import { cn } from "@/lib/utils"
 import { AppFooter } from "@/components/shared/app-footer"
-import { GuidedTourGate } from "@/components/guided-tour/guided-tour-gate"
 
 interface AppShellProps {
   children: React.ReactNode
@@ -19,7 +18,6 @@ interface AppShellProps {
 export function AppShell({ children, title, actions, mainClassName }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   return (
-    <GuidedTourGate>
     <div className="min-h-screen overflow-x-hidden bg-slate-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
@@ -62,6 +60,5 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
 
       <AppFooter />
     </div>
-    </GuidedTourGate>
   )
 }
