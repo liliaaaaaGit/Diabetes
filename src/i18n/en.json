@@ -336,7 +336,8 @@
   },
   "insights": {
     "title": "Insights",
-    "subtitle": "Glucose, mood, and a short AI summary for the period you select.",
+    "glucoseTrendTitle": "Glucose trend",
+    "moodTrendTitle": "Mood trend",
     "tirBlockTitle": "Glucose overview",
     "avgGlucoseLargeLabel": "Period average",
     "tirBandHint": "Values in the green segment: {{range}} (time in range).",

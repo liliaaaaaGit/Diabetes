@@ -336,7 +336,8 @@
   },
   "insights": {
     "title": "Einblicke",
-    "subtitle": "Blutzucker, Stimmung und eine kurze KI-Einordnung – alles im gewählten Zeitraum.",
+    "glucoseTrendTitle": "Blutzucker-Verlauf",
+    "moodTrendTitle": "Stimmung-Verlauf",
     "tirBlockTitle": "Blutzucker im Überblick",
     "avgGlucoseLargeLabel": "Durchschnitt (Zeitraum)",
     "tirBandHint": "Einzelwerte im grünen Balken: {{range}} (Time in Range).",

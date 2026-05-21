@@ -4,39 +4,27 @@ import { useEffect, useState } from "react"
 import {
   ComposedChart,
   Line,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { Card, CardContent } from "@/components/ui/card"
-import { InsightsPeriodTabs } from "@/components/insights/insights-period-tabs"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { formatGlucose, glucoseChartScale, mgDlToMmolL } from "@/lib/glucose-units"
 import type { DailyMoodGlucosePoint, InsightsTimeRangeKey } from "@/lib/insights-aggregate"
+import { InsightsChartFrame, InsightsChartScrollArea } from "@/components/insights/insights-chart-frame"
 
 const GLUCOSE_STROKE = "#0d9488"
-const GLUCOSE_FILL = "#14b8a6"
 const MOOD_STROKE = "#7c3aed"
-const MOOD_FILL = "#a78bfa"
 
 interface InsightsMoodGlucoseChartProps {
   data: DailyMoodGlucosePoint[]
   timeRange: InsightsTimeRangeKey
-  onTimeRangeChange: (v: InsightsTimeRangeKey) => void
-  /** Hide period tabs when the page already shows them above the chart. */
-  hidePeriodTabs?: boolean
 }
 
-export function InsightsMoodGlucoseChart({
-  data,
-  timeRange,
-  onTimeRangeChange,
-  hidePeriodTabs = false,
-}: InsightsMoodGlucoseChartProps) {
+export function InsightsMoodGlucoseChart({ data, timeRange }: InsightsMoodGlucoseChartProps) {
   const { t } = useTranslation()
   const { displayUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
   const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
@@ -85,33 +73,27 @@ export function InsightsMoodGlucoseChart({
   }, [timeRange, targetMinMgDl, targetMaxMgDl])
 
   return (
-    <Card className="rounded-xl border-teal-100 bg-white shadow-sm w-full">
-      <CardContent className="p-5 md:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 mb-6">
-          <div className="min-w-0 flex-1">
-            <h2 className="mobile-section-title mb-1">{t("insights.moodGlucoseTitle")}</h2>
-            <p className="text-sm leading-relaxed text-slate-600">{t("insights.moodGlucoseSubtitle")}</p>
-          </div>
-          {!hidePeriodTabs && (
-            <InsightsPeriodTabs
-              value={timeRange}
-              onValueChange={onTimeRangeChange}
-              size="compact"
-              className="shrink-0 w-full sm:w-auto"
-            />
+    <InsightsChartFrame
+      title={t("insights.moodGlucoseTitle")}
+      footer={
+        <div className="rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3">
+          <p className="text-xs font-medium text-teal-900/80 mb-2">{t("insights.correlationTitle")}</p>
+          {summaryLoading ? (
+            <p className="text-sm text-slate-600">{t("insights.correlationLoading")}</p>
+          ) : (
+            <p className="text-sm text-slate-800 leading-relaxed">{summary ?? t("insights.correlationFallback")}</p>
           )}
+          <p className="text-[11px] text-slate-500 mt-2">{t("insights.correlationDisclaimer")}</p>
         </div>
-
-        {!hasAnySignal ? (
-          <p className="text-sm text-slate-500 text-center py-10">{t("insights.chartNoData")}</p>
-        ) : (
-          <div className="w-full -mx-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]">
-            <div
-              className="h-[320px] md:h-[380px]"
-              style={{ minWidth: Math.max(300, chartRows.length * 36) }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartRows} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+      }
+    >
+      {!hasAnySignal ? (
+        <p className="text-sm text-slate-500 text-center py-10">{t("insights.chartNoData")}</p>
+      ) : (
+        <>
+          <InsightsChartScrollArea pointCount={chartRows.length} heightClass="h-[320px] md:h-[380px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartRows} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#57534e" }} interval="preserveStartEnd" />
                 <YAxis
@@ -130,74 +112,66 @@ export function InsightsMoodGlucoseChart({
                 />
                 <Tooltip
                   contentStyle={{ borderRadius: 8, borderColor: "#e2e8f0", fontSize: 12 }}
-                  formatter={(value, _name, item) => {
-                    const key = (item as { dataKey?: string })?.dataKey
-                    const num = typeof value === "number" ? value : undefined
-                    if (key === "avgGlucose") {
-                      const row = (item as { payload?: { avgGlucoseMgDl?: number | null } })?.payload
-                      const mg = row?.avgGlucoseMgDl
-                      return [
-                        mg != null ? `${formatGlucose(mg, displayUnit)} ${unitSuffix}` : "—",
-                        t("insights.legendGlucose").replace(/\s*\(.*\)$/, ""),
-                      ]
-                    }
-                    if (key === "mood") {
-                      return [num != null ? String(num) : "—", t("insights.legendMood")]
-                    }
-                    return [value, _name] as [string, string]
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null
+                    const seen = new Set<string>()
+                    const rows = payload.filter((entry) => {
+                      const key = String(entry.dataKey ?? "")
+                      if (!key || seen.has(key)) return false
+                      seen.add(key)
+                      return true
+                    })
+                    return (
+                      <div className="rounded-md border border-slate-200 bg-white px-2.5 py-2 text-xs shadow-sm">
+                        <p className="font-medium text-slate-700 mb-1">{label}</p>
+                        {rows.map((entry) => {
+                          const key = String(entry.dataKey ?? "")
+                          const num = typeof entry.value === "number" ? entry.value : undefined
+                          if (key === "avgGlucose") {
+                            const mg = (entry.payload as { avgGlucoseMgDl?: number | null })?.avgGlucoseMgDl
+                            return (
+                              <p key={key} className="text-slate-900 tabular-nums">
+                                {t("insights.legendGlucose").replace(/\s*\(.*\)$/, "")}:{" "}
+                                {mg != null ? `${formatGlucose(mg, displayUnit)} ${unitSuffix}` : "—"}
+                              </p>
+                            )
+                          }
+                          if (key === "mood") {
+                            return (
+                              <p key={key} className="text-slate-900 tabular-nums">
+                                {t("insights.legendMood")}: {num != null ? String(num) : "—"}
+                              </p>
+                            )
+                          }
+                          return null
+                        })}
+                      </div>
+                    )
                   }}
-                />
-                <Area
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="avgGlucose"
-                  name={t("insights.legendGlucose")}
-                  legendType="none"
-                  fill={GLUCOSE_FILL}
-                  fillOpacity={0.18}
-                  stroke="none"
-                  connectNulls
                 />
                 <Line
                   yAxisId="left"
                   type="monotone"
                   dataKey="avgGlucose"
-                  name={t("insights.legendGlucose")}
                   stroke={GLUCOSE_STROKE}
                   strokeWidth={2.5}
                   dot={{ r: 3, fill: GLUCOSE_STROKE }}
                   activeDot={{ r: 5 }}
                   connectNulls
                 />
-                <Area
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="mood"
-                  name={t("insights.legendMood")}
-                  legendType="none"
-                  fill={MOOD_FILL}
-                  fillOpacity={0.12}
-                  stroke="none"
-                  connectNulls
-                />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="mood"
-                  name={t("insights.legendMood")}
                   stroke={MOOD_STROKE}
                   strokeWidth={2.5}
                   dot={{ r: 3, fill: MOOD_STROKE }}
                   activeDot={{ r: 5 }}
                   connectNulls
                 />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {hasAnySignal ? (
+              </ComposedChart>
+            </ResponsiveContainer>
+          </InsightsChartScrollArea>
           <div className="mt-3 flex flex-col items-stretch gap-2 text-sm text-slate-700 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-6">
             <span className="inline-flex items-center gap-2">
               <span className="h-3 w-8 shrink-0 rounded-full bg-[#0d9488]" aria-hidden />
@@ -208,18 +182,8 @@ export function InsightsMoodGlucoseChart({
               <span className="leading-relaxed">{t("insights.legendMood")}</span>
             </span>
           </div>
-        ) : null}
-
-        <div className="mt-6 rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3">
-          <p className="text-xs font-medium text-teal-900/80 mb-2">{t("insights.correlationTitle")}</p>
-          {summaryLoading ? (
-            <p className="text-sm text-slate-600">{t("insights.correlationLoading")}</p>
-          ) : (
-            <p className="text-sm text-slate-800 leading-relaxed">{summary ?? t("insights.correlationFallback")}</p>
-          )}
-          <p className="text-[11px] text-slate-500 mt-2">{t("insights.correlationDisclaimer")}</p>
-        </div>
-      </CardContent>
-    </Card>
+        </>
+      )}
+    </InsightsChartFrame>
   )
 }

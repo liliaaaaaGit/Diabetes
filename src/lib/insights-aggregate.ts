@@ -51,11 +51,14 @@ function dayKeyFromIso(iso: string): string {
   return iso.slice(0, 10)
 }
 
+export type DailyMoodMode = "correlation" | "daily"
+
 export function buildDailyMoodGlucosePoints(
   range: { from: Date; to: Date },
   entries: Entry[],
   conversations: Conversation[],
-  locale: "de" | "en" = "de"
+  locale: "de" | "en" = "de",
+  moodMode: DailyMoodMode = "correlation"
 ): DailyMoodGlucosePoint[] {
   const dateLocale = locale === "de" ? de : enUS
   const start = startOfDay(range.from)
@@ -95,15 +98,14 @@ export function buildDailyMoodGlucosePoints(
         ? Math.round((moodVals.reduce((a, b) => a + b, 0) / moodVals.length) * 10) / 10
         : null
 
-    if (moodFromDay != null) {
-      lastKnownMood = moodFromDay
+    let mood: number | null
+    if (moodMode === "daily") {
+      mood = moodFromDay
+    } else {
+      // Correlation view: mood on glucose days; carry forward last known mood when missing
+      if (moodFromDay != null) lastKnownMood = moodFromDay
+      mood = dayGlucose.length > 0 ? (moodFromDay ?? lastKnownMood) : null
     }
-
-    // Correlation view:
-    // - mood only on days that have glucose
-    // - no hardcoded neutral fallback
-    // - if mood is missing on a glucose day, carry forward last known mood
-    const mood = dayGlucose.length > 0 ? (moodFromDay ?? lastKnownMood) : null
 
     return { dateKey: key, label, avgGlucose, mood }
   })
