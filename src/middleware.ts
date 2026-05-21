@@ -6,8 +6,6 @@ export function middleware(request: NextRequest) {
   const hasAccess = request.cookies.has("gc_access")
   const hasUser = request.cookies.has("gc_user_id")
   const hasConsent = request.cookies.has("gc_consent")
-  const hasOnboarding = request.cookies.has("gc_onboarding")
-
   if (pathname === "/access") {
     return NextResponse.next()
   }
@@ -47,28 +45,13 @@ export function middleware(request: NextRequest) {
       return redirectLogin()
     }
     if (hasConsent) {
-      if (hasOnboarding) {
-        return NextResponse.redirect(new URL("/", request.url))
-      }
-      return NextResponse.redirect(new URL("/onboarding", request.url))
+      return NextResponse.redirect(new URL("/", request.url))
     }
     return NextResponse.next()
   }
 
   if (pathname === "/onboarding") {
-    if (!hasAccess) {
-      return redirectAccess()
-    }
-    if (!hasUser) {
-      return redirectLogin()
-    }
-    if (!hasConsent) {
-      return redirectConsent()
-    }
-    if (hasOnboarding) {
-      return NextResponse.redirect(new URL("/", request.url))
-    }
-    return NextResponse.next()
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
   if (!hasAccess) {
@@ -90,16 +73,6 @@ export function middleware(request: NextRequest) {
       return NextResponse.json({ error: "consent_required" }, { status: 403 })
     }
     return redirectConsent()
-  }
-
-  if (!hasOnboarding) {
-    if (pathname.startsWith("/api/user/onboarding")) {
-      return NextResponse.next()
-    }
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "onboarding_required" }, { status: 403 })
-    }
-    return NextResponse.redirect(new URL("/onboarding", request.url))
   }
 
   return NextResponse.next()

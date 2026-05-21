@@ -83,6 +83,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                data-tour={["logbook", "buddy", "insights"].includes(item.key) ? `nav-${item.key}` : undefined}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative min-h-[44px]",
                   isActive

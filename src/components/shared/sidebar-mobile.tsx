@@ -61,6 +61,8 @@ export function SidebarMobile({ open, onOpenChange }: SidebarMobileProps) {
               return (
                 <button
                   key={item.href}
+                  type="button"
+                  data-tour={["logbook", "buddy", "insights"].includes(item.key) ? `nav-${item.key}` : undefined}
                   onClick={() => handleLinkClick(item.href)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative min-h-[44px]",

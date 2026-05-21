@@ -269,6 +269,7 @@ export default function DashboardPage() {
       <Button
         onClick={handleQuickLog}
         size="icon"
+        data-tour="add-entry"
         className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-50 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6 md:h-16 md:w-16"
       >
         <Plus className="h-6 w-6 md:h-7 md:w-7" />
