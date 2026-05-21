@@ -26,7 +26,7 @@ export default function ConsentPage() {
       const data = (await res.json()) as { success?: boolean; error?: string }
 
       if (data.success) {
-        router.push("/")
+        router.push("/onboarding")
         router.refresh()
         return
       }

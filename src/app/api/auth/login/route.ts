@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { supabaseServer as supabase } from "@/lib/supabase-server"
+import { setOnboardingCookie } from "@/lib/onboarding-cookie"
 import bcrypt from "bcryptjs"
 
 export const runtime = "nodejs"
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     // Find user
     const { data: user, error: findError } = await supabase
       .from("users")
-      .select("id, pseudonym, pin_hash, failed_login_attempts, locked_until, consent_given")
+      .select("id, pseudonym, pin_hash, failed_login_attempts, locked_until, consent_given, onboarding_completed")
       .eq("pseudonym", pseudonym.trim())
       .maybeSingle()
 
@@ -109,6 +110,12 @@ export async function POST(req: NextRequest) {
       })
     } else {
       cookieStore.delete("gc_consent")
+    }
+
+    if (user.onboarding_completed) {
+      setOnboardingCookie(cookieStore)
+    } else {
+      cookieStore.delete("gc_onboarding")
     }
 
     return NextResponse.json({ success: true })

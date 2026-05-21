@@ -554,5 +554,21 @@
     "moodChartEmpty": "No mood entries in this time range.",
     "moodSummaryEmpty": "No mood entries in this time range.",
     "buddyStartChatDesc": "Start a chat with Gluco."
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "progress": "Tour progress",
+    "slide1Title": "Welcome to GlucoCompanion!",
+    "slide1Body": "Great to have you here. GlucoCompanion helps you better understand life with diabetes — with a logbook, insights, and your personal companion Gluco.",
+    "slide1Cta": "Let's go",
+    "slide2Title": "Your logbook",
+    "slide2Body": "Track glucose, meals, insulin, and mood — quickly and in one place.",
+    "slide3Title": "Gluco – Your diabetes buddy",
+    "slide3Body": "Tell Gluco how you're doing. Gluco listens, asks questions, and helps you spot patterns in your day-to-day life.",
+    "slide4Title": "Your insights",
+    "slide4Body": "Follow your glucose and mood over time. Spot connections and celebrate your progress.",
+    "slide4Cta": "Explore the app",
+    "saveFailed": "Could not save onboarding status. Please try again."
   }
 }

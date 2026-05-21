@@ -7,6 +7,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT;
 -- consent_given wird nach Registrierung auf true gesetzt, sobald der Nutzer den Consent-Screen bestätigt (API /api/auth/consent).
 ALTER TABLE users ADD COLUMN IF NOT EXISTS consent_given BOOLEAN DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS consent_date TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN NOT NULL DEFAULT false;
 -- Bestandsnutzer mit bereits gesetztem consent_date: optional schema-backfill-consent-existing-users.sql ausführen.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;

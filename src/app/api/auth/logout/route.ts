@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
     cookieStore.delete("gc_user_id")
     cookieStore.delete("gc_pseudonym")
     cookieStore.delete("gc_consent")
+    cookieStore.delete("gc_onboarding")
 
     return NextResponse.json({ success: true })
   } catch (error) {

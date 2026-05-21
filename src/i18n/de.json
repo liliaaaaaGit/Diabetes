@@ -554,5 +554,21 @@
     "moodChartEmpty": "Keine Stimmungseinträge in diesem Zeitraum.",
     "moodSummaryEmpty": "Noch keine Stimmungseinträge in diesem Zeitraum.",
     "buddyStartChatDesc": "Starte ein Gespräch mit Gluco."
+  },
+  "onboarding": {
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "progress": "Tour-Fortschritt",
+    "slide1Title": "Willkommen bei GlucoCompanion!",
+    "slide1Body": "Schön, dass du da bist. GlucoCompanion hilft dir, deinen Diabetes-Alltag besser zu verstehen – mit Tagebuch, Einblicken und deinem persönlichen Begleiter Gluco.",
+    "slide1Cta": "Los geht's",
+    "slide2Title": "Dein Tagebuch",
+    "slide2Body": "Halte Blutzucker, Mahlzeiten, Insulin und Stimmung fest – schnell und unkompliziert. Alles an einem Ort.",
+    "slide3Title": "Gluco – Dein Diabetes Buddy",
+    "slide3Body": "Erzähl Gluco, wie es dir geht. Er hört zu, fragt nach und hilft dir, Muster in deinem Alltag zu erkennen.",
+    "slide4Title": "Deine Einblicke",
+    "slide4Body": "Verfolge deine Blutzuckerwerte und Stimmung über die Zeit. Erkenne Zusammenhänge und feiere deine Fortschritte.",
+    "slide4Cta": "App entdecken",
+    "saveFailed": "Onboarding konnte nicht gespeichert werden. Bitte erneut versuchen."
   }
 }
