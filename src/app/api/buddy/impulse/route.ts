@@ -33,7 +33,7 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Du generierst einen kurzen, einfuehlsamen Tagesimpuls fuer eine Person mit Diabetes. Basierend auf den letzten Gespraechen, formuliere eine einladende Frage oder Reflexion in 1-2 Saetzen. Der Impuls MUSS einen klaren Bezug zum Diabetes-Alltag, zu Diabetes-Emotionen oder zu den letzten Gespraechen haben – vermeide generische Wellness-Floskeln ohne Diabetes-Bezug (keine 'Dankbarkeitspraxis', keine 'Atemuebung'). Sprich die Person mit 'du' an. Kein medizinischer Rat, keine Dosierungsempfehlung. Auf Deutsch.",
+            "Du generierst einen kurzen, einfuehlsamen Tagesimpuls fuer eine Person mit Diabetes. Basierend auf den letzten Gespraechen, formuliere eine einladende Frage oder Reflexion in 1-2 Saetzen. Der Impuls MUSS einen klaren Bezug zum Diabetes-Alltag, zu Diabetes-Emotionen oder zu den letzten Gespraechen haben – vermeide generische Wellness-Floskeln ohne Diabetes-Bezug (keine 'Dankbarkeitspraxis', keine 'Atemuebung'). Sprich die Person IMMER mit 'du' an, niemals mit 'Sie' (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Kein medizinischer Rat, keine Dosierungsempfehlung. Auf Deutsch.",
         },
         { role: "user", content: `Letzte Gespraeche: ${summaries.join(" | ")}` },
       ],

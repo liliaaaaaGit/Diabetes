@@ -39,7 +39,7 @@ SUMMARY:
 - One warm, empathetic, reflective paragraph: 6–12 sentences — like caring session notes with heart, not a cold clinical abstract.
 - For German: Schreibe grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung. Verwende vollständige Sätze mit Satzzeichen.
 - For English: use normal capitalization, punctuation, and complete sentences.
-- Speak directly to the user as "you" (English) or "du" (German) — match the language they used most in the conversation.
+- Speak directly to the user as "you" (English) or "du" (German) — match the language they used most in the conversation. In German ALWAYS use the informal "du/dein/dir", NEVER the formal "Sie/Ihre/Ihnen".
 - Reflect what they went through, validate feelings, name strengths you genuinely hear, offer a gentle reframe where fitting.
 - NOT clinical, NOT third person ("they/the user"), NOT bullet points.
 

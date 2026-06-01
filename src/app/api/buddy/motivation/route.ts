@@ -42,7 +42,7 @@ export async function GET() {
             "2. Gute Beispiele: 'Ein hoher Wert nach dem Essen ist kein Versagen – es ist ein Datenpunkt, aus dem du lernen kannst.' / 'Manchmal hilft ein Spaziergang nach dem Essen nicht nur dem Zucker, sondern auch dem Kopf.' " +
             "3. Schlechte Beispiele (zu generisch, KEIN Diabetes-Bezug, vermeide sie): 'Fuehre eine Dankbarkeitspraxis ein.' / 'Nimm dir 5 Minuten fuer eine Atemuebung.' / 'Du bist gut genug, so wie du bist.' " +
             "4. Anti-Perfektionismus, aber immer rund um Diabetes gerahmt, nicht ums Leben allgemein. " +
-            "Kein Kitsch, kein medizinischer Rat, keine Insulin- oder Dosierungsempfehlung. Authentisch und warm. 1-2 Saetze. Auf Deutsch. Antworte als JSON: { quote: string }",
+            "Kein Kitsch, kein medizinischer Rat, keine Insulin- oder Dosierungsempfehlung. Authentisch und warm. 1-2 Saetze. Auf Deutsch. Sprich die Person IMMER mit Du an, niemals mit Sie (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Antworte als JSON: { quote: string }",
         },
         { role: "user", content: `Themen der letzten Gespraeche: ${tags.join(", ")}` },
       ],

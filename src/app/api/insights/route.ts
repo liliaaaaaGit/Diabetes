@@ -43,6 +43,7 @@ WICHTIGE REGELN:
 - Goals müssen sanft und reflexiv sein, KEINE medizinischen Ziele
 - Motivation muss sich auf tatsächlich besprochene Themen beziehen
 - Alle Texte auf Deutsch
+- Sprich die Person IMMER mit Du an, niemals mit Sie. Verwende: du, dein, deine, deinen, deinem, dir. Verwende NIE: Sie, Ihre, Ihren, Ihrem, Ihnen.
 - Wenn zu wenig Daten: sage das ehrlich ("Noch zu wenig Daten für zuverlässige Muster")`
 
 export async function POST(req: NextRequest) {

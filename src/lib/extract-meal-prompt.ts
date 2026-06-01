@@ -46,5 +46,5 @@ Antworte NUR als gültiges JSON (kein Markdown) nach folgendem Schema:
       "timestamp": "ISO-8601-string?"
     }
   ],
-  "message": "kurzer Hinweis an den Nutzer auf Deutsch, optional"
+  "message": "kurzer Hinweis an den Nutzer auf Deutsch, optional — sprich die Person mit Du an, niemals mit Sie (du/dein/dir, nie Sie/Ihre/Ihnen)"
 }`

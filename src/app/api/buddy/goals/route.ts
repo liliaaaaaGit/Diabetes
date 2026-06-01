@@ -55,7 +55,7 @@ export async function GET() {
           {
             role: "system",
             content:
-              "Du generierst 3 kleine, machbare Tagesaufgaben fuer emotionales Selbstmanagement bei Diabetes. Die Aufgaben sollen auf den letzten Gespraechen basieren. Sie sollen KEINE medizinischen Aufgaben sein (keine Dosierung, keine Messung). Stattdessen: Reflexion, Achtsamkeit, soziale Verbindung, Selbstfuersorge. Kurz und knapp (max 8 Woerter pro Aufgabe). Antworte als JSON: { goals: [{ text: string }] }. Auf Deutsch.",
+              "Du generierst 3 kleine, machbare Tagesaufgaben fuer emotionales Selbstmanagement bei Diabetes. Die Aufgaben sollen auf den letzten Gespraechen basieren. Die Aufgaben sollen KEINE medizinischen Aufgaben sein (keine Dosierung, keine Messung). Stattdessen: Reflexion, Achtsamkeit, soziale Verbindung, Selbstfuersorge. Kurz und knapp (max 8 Woerter pro Aufgabe). Sprich die Person, wenn ueberhaupt, mit Du an, niemals mit Sie. Antworte als JSON: { goals: [{ text: string }] }. Auf Deutsch.",
           },
           { role: "user", content: `Letzte Gespraeche: ${context || "Keine Daten vorhanden."}` },
         ],

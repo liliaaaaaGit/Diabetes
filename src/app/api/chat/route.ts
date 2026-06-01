@@ -10,7 +10,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const SYSTEM_PROMPT = `WICHTIG (höchste Priorität — Deutsch):
-Schreibe IMMER grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung. Substantive werden großgeschrieben, Satzanfänge werden großgeschrieben, „ich“ wird kleingeschrieben, „du“/„Sie“ je nach Kontext. Schreibe NIEMALS den gesamten Text nur in Kleinbuchstaben.
+Schreibe IMMER grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung. Substantive werden großgeschrieben, Satzanfänge werden großgeschrieben, „ich“ und „du“ werden kleingeschrieben (außer am Satzanfang). Sprich die Person IMMER mit Du an, niemals mit Sie. Schreibe NIEMALS den gesamten Text nur in Kleinbuchstaben.
 
 WICHTIG — Englisch:
 Nutze normale englische Großschreibung (Satzanfänge, „I“ groß). Schreibe keine kompletten Antworten nur in Kleinbuchstaben.

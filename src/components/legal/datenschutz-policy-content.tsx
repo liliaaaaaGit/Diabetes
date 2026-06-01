@@ -41,9 +41,9 @@ export function DatenschutzPolicyContent() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">3. Rechtsgrundlage</h2>
         <p>
-          Die Verarbeitung Ihrer Daten erfolgt auf Grundlage Ihrer ausdrücklichen Einwilligung gemäß Art. 6 Abs.
+          Die Verarbeitung deiner Daten erfolgt auf Grundlage deiner ausdrücklichen Einwilligung gemäß Art. 6 Abs.
           1 lit. a DSGVO in Verbindung mit Art. 9 Abs. 2 lit. a DSGVO (Einwilligung in die Verarbeitung
-          besonderer Kategorien personenbezogener Daten, hier: Gesundheitsdaten). Sie können Ihre Einwilligung
+          besonderer Kategorien personenbezogener Daten, hier: Gesundheitsdaten). Du kannst deine Einwilligung
           jederzeit mit Wirkung für die Zukunft widerrufen, ohne dass dies Auswirkungen auf die Rechtmäßigkeit
           der bis dahin erfolgten Verarbeitung hat.
         </p>
@@ -59,21 +59,21 @@ export function DatenschutzPolicyContent() {
         <p>
           <strong className="font-semibold text-slate-900">4.2 Demo-Daten:</strong> Bei der Registrierung werden
           automatisch fiktive Beispieldaten (Blutzuckerwerte, Mahlzeiten, Insulin, Stimmungseinträge, ein
-          Beispielgespräch) in Ihren Account geladen. Diese Daten stammen nicht von echten Personen mit Diabetes
+          Beispielgespräch) in deinen Account geladen. Diese Daten stammen nicht von echten Personen mit Diabetes
           und dienen der Demonstration der App-Funktionen.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">4.3 Nutzergenerierte Gesundheitsdaten:</strong> Sofern
-          Sie eigene Einträge erstellen: Blutzuckerwerte (mg/dL bzw. mmol/L), Insulindosen (Einheiten,
+          du eigene Einträge erstellst: Blutzuckerwerte (mg/dL bzw. mmol/L), Insulindosen (Einheiten,
           Insulintyp), Mahlzeiten (Beschreibung, geschätzte Kohlenhydrate als Spanne mit Konfidenz-Hinweis),
-          optional Fotos von Mahlzeiten zur KI-Analyse (standardmäßig wird das Foto nach der Analyse verworfen;
-          nur wenn Sie „Foto behalten“ aktivieren, wird es privat in unserem Speicher abgelegt), körperliche
+          optional Fotos von Mahlzeiten zur KI-Analyse (das Foto wird nach der Analyse verworfen und nicht in
+          der App gespeichert), körperliche
           Aktivitäten, Stimmungseinträge (Freitext und/oder Skalenwert 1–5), Zeitstempel aller Einträge.
           Foto-Analysen werden ohne Pseudonym oder Benutzer-ID an den KI-Dienst übermittelt — nur das Bild und
           der Analyse-Prompt.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.4 Gesprächsdaten (Gluco):</strong> Ihre
+          <strong className="font-semibold text-slate-900">4.4 Gesprächsdaten (Gluco):</strong> Deine
           Nachrichten an den KI-Chatbot, Antworten des Chatbots, KI-generierte Gesprächszusammenfassungen,
           KI-generierte Emotionsanalysen.
         </p>
@@ -84,9 +84,9 @@ export function DatenschutzPolicyContent() {
           ausschließlich zur Abwehr von Angriffen und Fehleranalyse verwendet.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.6 Fragebogen-Antworten:</strong> Wenn Sie den
-          Studien-Fragebogen ausfüllen, speichern wir Ihre Antworten (sowohl die Skalenwerte als auch Ihre
-          Freitext-Antworten) pseudonymisiert unter Ihrer Benutzer-ID. Die Antworten werden ausschließlich für
+          <strong className="font-semibold text-slate-900">4.6 Fragebogen-Antworten:</strong> Wenn du den
+          Studien-Fragebogen ausfüllst, speichern wir deine Antworten (sowohl die Skalenwerte als auch deine
+          Freitext-Antworten) pseudonymisiert unter deiner Benutzer-ID. Die Antworten werden ausschließlich für
           die wissenschaftliche Auswertung im Rahmen der Bachelorarbeit verwendet und spätestens zum 31.12.2026
           gelöscht.
         </p>
@@ -106,8 +106,8 @@ export function DatenschutzPolicyContent() {
           Kohlenhydrate werden als Spanne (Minimum–Maximum) mit einem Konfidenz-Hinweis (niedrig /
           mittel / hoch) angezeigt; die Schätzung kann nach Komponenten aufgeschlüsselt werden. Diese
           Werte sind grobe Richtwerte und ersetzen keine professionelle Ernährungs- oder
-          Diabetesberatung. Sie dürfen nicht als Grundlage für Insulindosierungen verwendet werden.
-          Korrekturen durch Sie werden gespeichert, um die Schätzqualität künftig zu verbessern.
+          Diabetesberatung. Diese Werte dürfen nicht als Grundlage für Insulindosierungen verwendet werden.
+          Korrekturen durch dich werden gespeichert, um die Schätzqualität künftig zu verbessern.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">5.3 Stimmungsanalyse und Profiling:</strong>{" "}
@@ -120,8 +120,8 @@ export function DatenschutzPolicyContent() {
           <strong className="font-semibold text-slate-900">
             5.4 Transparenzhinweis gemäß EU AI Act:
           </strong>{" "}
-          Gemäß der EU-Verordnung über Künstliche Intelligenz weisen wir darauf hin, dass Sie in dieser App mit
-          einem KI-System interagieren. Alle KI-generierten Inhalte werden automatisch erstellt und nicht von
+          Gemäß der EU-Verordnung über Künstliche Intelligenz weisen wir darauf hin, dass du in dieser App mit
+          einem KI-System interagierst. Alle KI-generierten Inhalte werden automatisch erstellt und nicht von
           einem Menschen geprüft. Die KI-Funktionen dienen ausschließlich Forschungszwecken.
         </p>
       </section>
@@ -153,8 +153,8 @@ export function DatenschutzPolicyContent() {
           <strong className="font-semibold text-slate-900">Hinweis zur Drittlandübermittlung:</strong> Die
           Übermittlung an OpenAI und Vercel (USA) erfolgt auf Grundlage der von diesen Anbietern
           bereitgestellten EU-Standardvertragsklauseln gemäß Art. 46 Abs. 2 lit. c DSGVO. Ergänzend stützen wir
-          die Übermittlung auf Ihre ausdrückliche Einwilligung gemäß Art. 49 Abs. 1 lit. a DSGVO. Trotz dieser
-          Schutzmaßnahmen besteht das Risiko, dass US-Behörden auf diese Daten zugreifen könnten. Ihre Daten
+          die Übermittlung auf deine ausdrückliche Einwilligung gemäß Art. 49 Abs. 1 lit. a DSGVO. Trotz dieser
+          Schutzmaßnahmen besteht das Risiko, dass US-Behörden auf diese Daten zugreifen könnten. Deine Daten
           werden pseudonymisiert übermittelt.
         </p>
       </section>
@@ -169,14 +169,14 @@ export function DatenschutzPolicyContent() {
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">8. Speicherdauer und Löschung</h2>
         <p>
-          Ihre Daten werden bis zur Auswertung aller Fragebögen gespeichert, längstens bis 31.12.2026. Danach
+          Deine Daten werden bis zur Auswertung aller Fragebögen gespeichert, längstens bis 31.12.2026. Danach
           vollständige und unwiderrufliche Löschung. In die Bachelorarbeit fließen ausschließlich anonymisierte,
           aggregierte Auswertungen ein. Vorzeitiger Widerruf: Daten werden innerhalb von 14 Tagen gelöscht.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-900">9. Ihre Rechte</h2>
+        <h2 className="text-base font-semibold text-slate-900">9. Deine Rechte</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong className="font-semibold text-slate-900">Widerruf der Einwilligung (Art. 7 Abs. 3):</strong>{" "}

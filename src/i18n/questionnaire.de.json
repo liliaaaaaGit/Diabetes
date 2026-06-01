@@ -1,5 +1,5 @@
 {
-  "intro": "Vielen Dank, dass Sie sich Zeit für diesen Fragebogen nehmen. Er dauert etwa 10 Minuten. Es gibt keine richtigen oder falschen Antworten — uns interessiert Ihre persönliche Einschätzung.",
+  "intro": "Vielen Dank, dass du dir Zeit für diesen Fragebogen nimmst. Er dauert etwa 10 Minuten. Es gibt keine richtigen oder falschen Antworten — uns interessiert deine persönliche Einschätzung.",
   "progress": "Schritt {{current}} von {{total}}",
   "back": "Zurück",
   "next": "Weiter",
@@ -7,25 +7,25 @@
   "saving": "Wird gespeichert…",
   "saveError": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
   "submitConfirmTitle": "Fragebogen absenden?",
-  "submitConfirmBody": "Sie haben {{answered}} von {{total}} Fragen beantwortet. Trotzdem absenden?",
+  "submitConfirmBody": "Du hast {{answered}} von {{total}} Fragen beantwortet. Trotzdem absenden?",
   "submitConfirmYes": "Ja, absenden",
   "submitConfirmNo": "Noch bearbeiten",
   "resumeTitle": "Fragebogen fortsetzen?",
-  "resumeBody": "Sie hatten den Fragebogen pausiert. Möchten Sie bei Schritt {{section}} fortfahren?",
+  "resumeBody": "Du hattest den Fragebogen pausiert. Möchtest du bei Schritt {{section}} fortfahren?",
   "resumeYes": "Fortsetzen",
   "resumeNo": "Von vorne beginnen",
   "completedTitle": "Bereits abgeschlossen",
-  "completedBody": "Sie haben den Fragebogen bereits abgeschlossen. Vielen Dank! Möchten Sie Ihre Antworten ergänzen oder überarbeiten?",
+  "completedBody": "Du hast den Fragebogen bereits abgeschlossen. Vielen Dank! Möchtest du deine Antworten ergänzen oder überarbeiten?",
   "completedEdit": "Antworten überarbeiten",
   "completedViewThanks": "Danke-Ansicht anzeigen",
   "thankYouTitle": "Vielen Dank!",
-  "thankYouBody": "Ihre Antworten werden gemeinsam mit denen aller anderen Teilnehmenden anonymisiert ausgewertet. Spätestens nach Abschluss der Studie werden Ihre Daten vollständig gelöscht.",
-  "thankYouHint": "Sie können den Fragebogen jederzeit erneut öffnen, falls Sie etwas ergänzen möchten.",
+  "thankYouBody": "Deine Antworten werden gemeinsam mit denen aller anderen Teilnehmenden anonymisiert ausgewertet. Spätestens nach Abschluss der Studie werden deine Daten vollständig gelöscht.",
+  "thankYouHint": "Du kannst den Fragebogen jederzeit erneut öffnen, falls du etwas ergänzen möchtest.",
   "toInsights": "Zur Übersicht",
   "reopen": "Antworten erneut öffnen",
   "likertMin": "trifft gar nicht zu",
   "likertMax": "trifft voll zu",
-  "ueqHint": "Klicken Sie das Feld an, das am ehesten Ihrem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen.",
+  "ueqHint": "Klicke das Feld an, das am ehesten deinem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen.",
   "charCount": "{{count}} / {{max}} Zeichen",
   "sections": {
     "A": {
@@ -34,19 +34,19 @@
     },
     "B": {
       "title": "Allgemeine Bedienbarkeit",
-      "intro": "Bitte beurteilen Sie GlucoCompanion auf den folgenden Skalen. Klicken Sie das Feld an, das am ehesten Ihrem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen."
+      "intro": "Bitte beurteile GlucoCompanion auf den folgenden Skalen. Klicke das Feld an, das am ehesten deinem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen."
     },
     "C": {
       "title": "App-Konsolidierung",
-      "intro": "Viele Menschen mit Diabetes nutzen mehrere Apps parallel — Sensor-App, Tagebuch, Insulin-Tracker, Ernährungs-App. Wie beurteilen Sie GlucoCompanion in diesem Kontext?"
+      "intro": "Viele Menschen mit Diabetes nutzen mehrere Apps parallel — Sensor-App, Tagebuch, Insulin-Tracker, Ernährungs-App. Wie beurteilst du GlucoCompanion in diesem Kontext?"
     },
     "D": {
       "title": "Gluco",
-      "intro": "Gluco ist ein KI-gestützter Chatbot, mit dem Sie über Ihren Alltag mit Diabetes sprechen können. Bitte beurteilen Sie die folgenden Aussagen."
+      "intro": "Gluco ist ein KI-gestützter Chatbot, mit dem du über deinen Alltag mit Diabetes sprechen kannst. Bitte beurteile die folgenden Aussagen."
     },
     "E": {
       "title": "Stimmung & Einblicke",
-      "intro": "GlucoCompanion verbindet Ihre Blutzuckerwerte mit Ihren Stimmungseinträgen und liefert daraus Einblicke. Außerdem können Sie Einträge als freien Text eingeben, die die KI in strukturierte Daten umwandelt."
+      "intro": "GlucoCompanion verbindet deine Blutzuckerwerte mit deinen Stimmungseinträgen und liefert daraus Einblicke. Außerdem kannst du Einträge als freien Text eingeben, die die KI in strukturierte Daten umwandelt."
     },
     "F": {
       "title": "Vertrauen & Datenschutz",
@@ -58,17 +58,17 @@
     },
     "H": {
       "title": "Offene Fragen",
-      "intro": "Zum Schluss würden wir gern Ihre eigenen Worte hören. Ihre Antworten helfen uns am meisten, die App weiterzuentwickeln."
+      "intro": "Zum Schluss würden wir gern deine eigenen Worte hören. Deine Antworten helfen uns am meisten, die App weiterzuentwickeln."
     }
   },
   "items": {
-    "a1": "Wie alt sind Sie?",
+    "a1": "Wie alt bist du?",
     "a1unit": "Jahre",
-    "a2": "Welche Form von Diabetes haben Sie?",
-    "a3": "Seit wie vielen Jahren haben Sie Diabetes?",
+    "a2": "Welche Form von Diabetes hast du?",
+    "a3": "Seit wie vielen Jahren hast du Diabetes?",
     "a3unit": "Jahre",
-    "a4": "Welche Therapieform nutzen Sie hauptsächlich?",
-    "a5": "Wie viele digitale Diabetes-Tools (Apps, Sensor-Apps, Tagebücher) nutzen Sie aktuell regelmäßig?",
+    "a4": "Welche Therapieform nutzt du hauptsächlich?",
+    "a5": "Wie viele digitale Diabetes-Tools (Apps, Sensor-Apps, Tagebücher) nutzt du aktuell regelmäßig?",
     "b1_left": "behindernd",
     "b1_right": "unterstützend",
     "b2_left": "kompliziert",
@@ -103,9 +103,9 @@
     "f24": "Die Hinweise zu Datenschutz und KI sind verständlich formuliert.",
     "g25": "Ich könnte mir vorstellen, GlucoCompanion über die Studie hinaus weiter zu nutzen, wenn die App verfügbar wäre.",
     "g26": "Ich würde GlucoCompanion anderen Menschen mit Diabetes empfehlen.",
-    "h27": "Was hat Ihnen an GlucoCompanion am besten gefallen?",
-    "h28": "Was hat Sie an der App gestört oder was haben Sie vermisst?",
-    "h29": "Wenn Sie eine einzige Funktion verändern oder hinzufügen könnten — welche wäre das?"
+    "h27": "Was hat dir an GlucoCompanion am besten gefallen?",
+    "h28": "Was hat dich an der App gestört oder was hast du vermisst?",
+    "h29": "Wenn du eine einzige Funktion verändern oder hinzufügen könntest — welche wäre das?"
   },
   "options": {
     "diabetes_typ1": "Typ 1",

@@ -37,7 +37,7 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Du schreibst fuer eine Diabetes-Begleit-App. Erzeuge EIN kurzes, personalisiertes Zitat oder einen Impuls in genau 2 bis 3 Saetzen, das sich auf die Themen und Gefuehle aus den letzten Gespraechs-Zusammenfassungen bezieht. Warm, ermutigend, empathisch — kein medizinischer Rat, kein Kitsch, keine Floskeln wie 'du schaffst das'. Grammatikalisch korrektes Deutsch mit korrekter Gross- und Kleinschreibung. Antworte nur als JSON: { \"quote\": string }",
+            "Du schreibst fuer eine Diabetes-Begleit-App. Erzeuge EIN kurzes, personalisiertes Zitat oder einen Impuls in genau 2 bis 3 Saetzen, das sich auf die Themen und Gefuehle aus den letzten Gespraechs-Zusammenfassungen bezieht. Warm, ermutigend, empathisch — kein medizinischer Rat, kein Kitsch, keine Floskeln wie 'du schaffst das'. Grammatikalisch korrektes Deutsch mit korrekter Gross- und Kleinschreibung. Sprich die Person IMMER mit Du an, niemals mit Sie (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Antworte nur als JSON: { \"quote\": string }",
         },
         {
           role: "user",
