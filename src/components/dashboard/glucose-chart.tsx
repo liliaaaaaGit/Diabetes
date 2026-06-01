@@ -106,6 +106,19 @@ export function GlucoseChart({
   // between two points is proportional to the real time elapsed between them.
   const xDomain: [number, number] = [cutoffDate.getTime(), now.getTime()]
 
+  // Scale the dot size to how many points are on screen. A handful of manual
+  // readings look best as clear dots; a dense CGM trace (96/day) would just
+  // turn into overlapping blobs, so we shrink (or drop) the dots there.
+  const pointCount = chartData.length
+  const dotConfig =
+    pointCount > 300
+      ? (false as const)
+      : pointCount > 60
+        ? { fill: "#14B8A6", r: 1.6, strokeWidth: 0 }
+        : pointCount > 24
+          ? { fill: "#14B8A6", r: 2.5, stroke: "#ffffff", strokeWidth: 1 }
+          : { fill: "#14B8A6", r: 4, stroke: "#ffffff", strokeWidth: 1.5 }
+
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: (typeof chartData)[0] }[] }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
@@ -230,8 +243,8 @@ export function GlucoseChart({
                 dataKey="value"
                 stroke="#0D9488"
                 strokeWidth={2}
-                dot={{ fill: "#14B8A6", r: 5, stroke: "#ffffff", strokeWidth: 2 }}
-                activeDot={{ r: 7, stroke: "#ffffff", strokeWidth: 2 }}
+                dot={dotConfig}
+                activeDot={{ r: 6, stroke: "#ffffff", strokeWidth: 2 }}
                 connectNulls={false}
                 isAnimationActive={false}
               />
