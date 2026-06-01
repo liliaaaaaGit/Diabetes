@@ -72,6 +72,9 @@ export default function LogbookPage() {
     ;(["glucose", "insulin", "meal", "activity", "mood"] as EntryType[]).forEach((type) => {
       c[type] = events.filter((e) => e.type === type).length
     })
+    // The Blutzucker tab shows the full day's glucose curve (CGM + manual),
+    // so its badge counts every glucose reading, not just manual events.
+    c.glucose = dayEntries.filter((e) => e.type === "glucose").length
     return c
   }, [dayEntries])
 
@@ -174,26 +177,30 @@ export default function LogbookPage() {
       }
     >
       <div className="space-y-4 w-full">
+        {/* 1. Calendar first: pick the day before doing anything else. */}
+        <LogbookWeekCalendar
+          selectedDate={selectedDate}
+          onSelectDate={(date) => {
+            setDidAutoSelectDate(true)
+            setSelectedDate(date)
+          }}
+          onShiftWeek={handleShiftWeek}
+          onGoToday={() => {
+            setDidAutoSelectDate(true)
+            setSelectedDate(startOfDay(new Date()))
+          }}
+          entries={entries}
+        />
+
+        {/* 2. AI entry input: add an entry for the selected day. */}
         <AiQuickInput
           onManualFallback={() => setIsModalOpen(true)}
           onRefetch={refetch}
           onNavigateToDate={handleNavigateToDate}
         />
 
-        <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 space-y-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">
-          <LogbookWeekCalendar
-            selectedDate={selectedDate}
-            onSelectDate={(date) => {
-              setDidAutoSelectDate(true)
-              setSelectedDate(date)
-            }}
-            onShiftWeek={handleShiftWeek}
-            onGoToday={() => {
-              setDidAutoSelectDate(true)
-              setSelectedDate(startOfDay(new Date()))
-            }}
-            entries={entries}
-          />
+        {/* 3. Filter tabs (sticky) sit directly above the entry list. */}
+        <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">
           <FilterTabs
             activeFilter={activeFilter}
             counts={counts}

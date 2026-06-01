@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import type { Entry, EntryType, GlucoseEntry, InsulinEntry, MealEntry } from "@/lib/types"
 import { EntryList } from "./entry-list"
+import { BgDayChart } from "./bg-day-chart"
 import { EmptyState } from "@/components/shared/empty-state"
 import { BookOpen } from "lucide-react"
 import { useTranslation } from "@/hooks/useTranslation"
@@ -56,6 +57,23 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay, onMealUpda
   }, [entriesForDay, filteredEntries.length])
 
   const dateTitle = format(selectedDate, "EEEE, d. MMMM yyyy", { locale: dateLocale })
+
+  // Blutzucker tab: a dense CGM trace (up to 96 readings/day) is useless as a
+  // list of cards, so we show the day's glucose curve instead — the same chart
+  // as the Dashboard, scoped to the selected day.
+  if (filter === "glucose") {
+    const glucoseForDay = entriesForDay.filter(
+      (e) => e.type === "glucose"
+    ) as GlucoseEntry[]
+    return (
+      <div className="space-y-3 w-full">
+        <div className="border-b-[0.5px] border-slate-200 pb-[10px] mb-[14px]">
+          <p className="text-[15px] font-medium text-slate-900">{dateTitle}</p>
+        </div>
+        <BgDayChart date={selectedDate} entries={glucoseForDay} />
+      </div>
+    )
+  }
 
   if (filteredEntries.length === 0) {
     const allEmpty = filter === "all" && entriesForDay.length === 0
