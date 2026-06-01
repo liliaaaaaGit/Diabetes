@@ -398,7 +398,7 @@ export function LogbookUnifiedEntryCard({
 
           {showProteinFatHint && (
             <div className="mt-3 flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2">
-              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-500" aria-hidden />
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
               <p className="text-[12px] leading-snug text-slate-500">
                 {t("logbook.proteinFatHint")}
               </p>

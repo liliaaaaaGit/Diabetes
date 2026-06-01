@@ -50,10 +50,18 @@ export function parsePhotoAnalysisResponse(raw: unknown): PhotoAnalysisResult {
     return { is_food: false }
   }
 
+  // Prefer the single best-guess value the AI now returns; fall back to a
+  // legacy min/max range (both fields end up equal when a single value is given).
   let khMin = Number(o.kh_min)
   let khMax = Number(o.kh_max)
-  if (!Number.isFinite(khMin) && Number.isFinite(khMax)) khMin = khMax
-  if (!Number.isFinite(khMax) && Number.isFinite(khMin)) khMax = khMin
+  const khSingle = Number(o.kh_g)
+  if (Number.isFinite(khSingle)) {
+    khMin = khSingle
+    khMax = khSingle
+  } else {
+    if (!Number.isFinite(khMin) && Number.isFinite(khMax)) khMin = khMax
+    if (!Number.isFinite(khMax) && Number.isFinite(khMin)) khMax = khMin
+  }
 
   if (!Number.isFinite(khMin) || !Number.isFinite(khMax)) {
     return { is_food: false }

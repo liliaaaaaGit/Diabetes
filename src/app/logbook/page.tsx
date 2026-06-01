@@ -8,7 +8,6 @@ import { LogbookWeekCalendar } from "@/components/logbook/logbook-week-calendar"
 import { LogbookDayView } from "@/components/logbook/logbook-day-view"
 import { ManualEntryModal } from "@/components/logbook/manual-entry-modal"
 import { AiQuickInput } from "@/components/logbook/ai-quick-input"
-import { HypoQuickButton } from "@/components/logbook/hypo-quick-button"
 import { MealTemplatesSection } from "@/components/logbook/meal-templates-section"
 import { useTranslation } from "@/hooks/useTranslation"
 import { Plus } from "lucide-react"
@@ -164,10 +163,6 @@ export default function LogbookPage() {
           onManualFallback={() => setIsModalOpen(true)}
           onRefetch={refetch}
         />
-
-        <div className="flex justify-end">
-          <HypoQuickButton onSave={handleQuickSave} />
-        </div>
 
         <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 space-y-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">
           <LogbookWeekCalendar

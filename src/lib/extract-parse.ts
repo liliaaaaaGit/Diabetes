@@ -89,16 +89,23 @@ export function parseExtractResponse(
     if (type === "meal") {
       const description = String(o.description ?? "").trim()
       if (!description) continue
-      let khMin = Number(o.kh_min)
-      let khMax = Number(o.kh_max)
-      if (!Number.isFinite(khMin) && Number.isFinite(khMax)) khMin = khMax
-      if (!Number.isFinite(khMax) && Number.isFinite(khMin)) khMax = khMin
-      if (!Number.isFinite(khMin) || !Number.isFinite(khMax)) continue
-      khMin = clampKh(khMin)
-      khMax = clampKh(Math.max(khMin, khMax))
+      // Prefer the single value the AI now returns; fall back to a legacy range.
+      const khSingle = Number(o.kh_g)
+      let midpoint: number
+      if (Number.isFinite(khSingle)) {
+        midpoint = clampKh(khSingle)
+      } else {
+        let khMin = Number(o.kh_min)
+        let khMax = Number(o.kh_max)
+        if (!Number.isFinite(khMin) && Number.isFinite(khMax)) khMin = khMax
+        if (!Number.isFinite(khMax) && Number.isFinite(khMin)) khMax = khMin
+        if (!Number.isFinite(khMin) || !Number.isFinite(khMax)) continue
+        khMin = clampKh(khMin)
+        khMax = clampKh(Math.max(khMin, khMax))
+        midpoint = Math.round((khMin + khMax) / 2)
+      }
       const confidence = parseConfidence(o.confidence)
       const components = normalizeComponents(o.components)
-      const midpoint = Math.round((khMin + khMax) / 2)
 
       entries.push({
         type: "meal",
@@ -109,9 +116,8 @@ export function parseExtractResponse(
         data: {
           type: "meal",
           description,
+          // Single best-guess value (shown as "~N g KH"); we no longer keep a range.
           carbsGrams: midpoint,
-          carbsMinGrams: khMin,
-          carbsMaxGrams: khMax,
           carbsConfidence: confidence,
           components,
           fatProteinNote:

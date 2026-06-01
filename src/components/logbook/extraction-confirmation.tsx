@@ -205,9 +205,10 @@ export function ExtractionConfirmation({
     if (type === "meal") {
       const description = String(data.description ?? "")
       if (!description.trim()) return null
+      // Single carb value only — no min/max range is stored anymore.
       const min = data.carbsMinGrams != null ? Number(data.carbsMinGrams) : undefined
       const max = data.carbsMaxGrams != null ? Number(data.carbsMaxGrams) : undefined
-      const midpoint =
+      const carbsGrams =
         data.carbsGrams != null
           ? Number(data.carbsGrams)
           : min != null && max != null
@@ -220,9 +221,7 @@ export function ExtractionConfirmation({
         note,
         conversationId,
         description,
-        carbsGrams: midpoint,
-        carbsMinGrams: min,
-        carbsMaxGrams: max,
+        carbsGrams,
         carbsConfidence: data.carbsConfidence as MealEntry["carbsConfidence"],
         components: data.components as MealEntry["components"],
         fatProteinNote: data.fatProteinNote as string | undefined,
@@ -417,34 +416,20 @@ export function ExtractionConfirmation({
             />
           </div>
           <div>
-            <Label className="text-xs text-slate-500">{t("logbook.khMin")}</Label>
+            <Label className="text-xs text-slate-500">{t("logbook.carbsLabel")} (g)</Label>
             <Input
               type="number"
               inputMode="decimal"
               className="mt-1"
-              value={(entry.data as MealEntry).carbsMinGrams ?? ""}
+              value={(entry.data as MealEntry).carbsGrams ?? ""}
               onChange={(e) => {
-                const min = e.target.value ? Number(e.target.value) : undefined
-                const max = (entry.data as MealEntry).carbsMaxGrams
-                const mid =
-                  min != null && max != null ? Math.round((min + max) / 2) : min ?? max
-                updateEntryData(idx, { carbsMinGrams: min, carbsMaxGrams: max, carbsGrams: mid })
-              }}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-slate-500">{t("logbook.khMax")}</Label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              className="mt-1"
-              value={(entry.data as MealEntry).carbsMaxGrams ?? ""}
-              onChange={(e) => {
-                const max = e.target.value ? Number(e.target.value) : undefined
-                const min = (entry.data as MealEntry).carbsMinGrams
-                const mid =
-                  min != null && max != null ? Math.round((min + max) / 2) : min ?? max
-                updateEntryData(idx, { carbsMinGrams: min, carbsMaxGrams: max, carbsGrams: mid })
+                const value = e.target.value ? Number(e.target.value) : undefined
+                // Single value only — clear any legacy range so "~N g" shows.
+                updateEntryData(idx, {
+                  carbsGrams: value,
+                  carbsMinGrams: undefined,
+                  carbsMaxGrams: undefined,
+                })
               }}
             />
           </div>

@@ -18,13 +18,6 @@ export function formatCarbsGrams(grams: number, locale: "de" | "en" = "de"): str
   return locale === "en" ? `${n} g carbs` : `${n} g KH`
 }
 
-function formatCarbsRange(min: number, max: number, locale: "de" | "en"): string {
-  const a = min % 1 === 0 ? Math.round(min) : min
-  const b = max % 1 === 0 ? Math.round(max) : max
-  if (a === b) return formatCarbsGrams(a, locale)
-  return locale === "en" ? `${a}–${b} g carbs` : `${a}–${b} g KH`
-}
-
 /** True for AI-produced carb estimates (free-text or photo). */
 function isAiCarbEstimate(meal: MealEntry): boolean {
   return (
@@ -35,24 +28,12 @@ function isAiCarbEstimate(meal: MealEntry): boolean {
 }
 
 /**
- * Derive a sensible ±band (rounded to 5 g) around a single AI midpoint so that
- * AI estimates are always shown as a range — never as a false-precision point.
- */
-function deriveRange(grams: number): [number, number] {
-  const delta = Math.max(5, Math.round(grams * 0.1))
-  const round5 = (n: number) => Math.max(0, Math.round(n / 5) * 5)
-  let lo = round5(grams - delta)
-  let hi = round5(grams + delta)
-  if (hi <= lo) hi = lo + 5
-  return [lo, hi]
-}
-
-/**
- * Carb label rules (P2.4):
- *  - user-corrected value → exact point (the user typed it)
- *  - manual entry → exact point
- *  - AI estimate with a stored range → that range
- *  - AI estimate with only a midpoint → a derived range (no false precision)
+ * Carb label rules:
+ *  - user-corrected value → exact value (the user typed it)
+ *  - manual entry → exact value
+ *  - AI estimate → a single best-guess value prefixed with "~" (e.g. "~85 g KH").
+ *    A range would be redundant next to the "Sicherheit:" indicator and forces
+ *    the user to pick between two numbers, so we always show one value.
  */
 export function formatMealCarbsLabel(
   meal: MealEntry,
@@ -62,21 +43,17 @@ export function formatMealCarbsLabel(
     return formatCarbsGrams(meal.userCorrectedKh, locale)
   }
 
-  const min = meal.carbsMinGrams
-  const max = meal.carbsMaxGrams
-  if (min != null && max != null) {
-    return formatCarbsRange(min, max, locale)
+  // Single value: stored midpoint (or the midpoint of a legacy min/max range).
+  const value = mealCarbsMidpoint(meal)
+  if (value == null) return null
+
+  if (isAiCarbEstimate(meal)) {
+    if (value < 0) return null
+    // "~" signals an estimate, not an exact measurement.
+    return `~${formatCarbsGrams(value, locale)}`
   }
 
-  if (meal.carbsGrams != null && meal.carbsGrams > 0) {
-    if (isAiCarbEstimate(meal)) {
-      const [lo, hi] = deriveRange(meal.carbsGrams)
-      return formatCarbsRange(lo, hi, locale)
-    }
-    // Manual entry: show the exact value the user typed.
-    return formatCarbsGrams(meal.carbsGrams, locale)
-  }
-
+  if (value > 0) return formatCarbsGrams(value, locale)
   return null
 }
 
@@ -113,27 +90,36 @@ export function confidenceLabelKey(confidence?: CarbConfidence): string {
 const PROTEIN_FAT_KEYWORDS = [
   "fleisch",
   "huhn",
-  "hähnchen",
+  "hähnchen", // also matches "hähnchenbrust"
   "haehnchen",
   "hühn",
   "steak",
+  "rind",
+  "schwein",
   "lachs",
   "fisch",
+  "thunfisch",
   "käse",
   "kaese",
   "ei", // matches "ei", "eier"
+  "omelette",
   "nuss",
   "nüsse",
   "nuesse",
   "erdnuss",
+  "mandel", // matches "mandeln"
   "avocado",
   "speck",
   "bacon",
   "wurst",
   "salami",
+  "schinken",
   "schnitzel",
   "burger",
-  "thunfisch",
+  "quark", // matches "magerquark"
+  "joghurt", // matches "griechischer joghurt"
+  "tofu",
+  "pute", // matches "putenbrust"
 ]
 
 /** Threshold below which carbs count as "low/zero" for the protein/fat hint. */

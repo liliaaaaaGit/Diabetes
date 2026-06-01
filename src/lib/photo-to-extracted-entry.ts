@@ -36,9 +36,8 @@ export function photoAnalysisToExtractedEntry(
     data: {
       type: "meal",
       description: result.description,
+      // Single best-guess value (shown as "~N g KH"); we no longer keep a range.
       carbsGrams: midpoint,
-      carbsMinGrams: khMin,
-      carbsMaxGrams: khMax,
       carbsConfidence: result.confidence,
       components: result.components,
       fatProteinNote: result.fat_protein_note,
