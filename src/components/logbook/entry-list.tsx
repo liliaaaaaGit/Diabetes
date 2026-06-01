@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import type { Entry, EntryType } from "@/lib/types"
 import { parseISO } from "date-fns"
 import { LogbookUnifiedEntryCard } from "./logbook-unified-entry-card"
+import { isLogbookEvent } from "@/lib/cgm"
 
 /** Entries this close together (minutes) belong to the same "moment". */
 const GROUP_WINDOW_MINUTES = 90
@@ -93,7 +94,14 @@ interface EntryListProps {
 }
 
 export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
-  const groupedEntries = useMemo(() => buildGroups(entries).reverse(), [entries])
+  // The continuous CGM stream lives in the chart, not the list. We group only
+  // "events" (meals, insulin, activity, mood, manual fingersticks). The full
+  // set (incl. CGM) is still handed to each card so meal episodes can read the
+  // pre-meal and ~2h postprandial values from the stream.
+  const groupedEntries = useMemo(
+    () => buildGroups(entries.filter(isLogbookEvent)).reverse(),
+    [entries]
+  )
 
   const visibleGroups = useMemo(() => {
     if (filter === "all") return groupedEntries

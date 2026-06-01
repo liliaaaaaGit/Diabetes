@@ -257,6 +257,7 @@
     "episodeBefore": "Vorher",
     "episodeMeal": "Mahlzeit",
     "episodeAfter": "Nachher",
+    "episodeAfterWindow": "≈ 2 h danach",
     "episodeDifference": "Differenz",
     "contextLabel": "Kontext",
     "notePlaceholder": "Notiz hinzufügen (z.B. Restaurant, KH unterschätzt, Stress)",

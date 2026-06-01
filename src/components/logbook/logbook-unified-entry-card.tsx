@@ -91,8 +91,17 @@ export function LogbookUnifiedEntryCard({
   const showPhotoDisclaimer = mealList.some(isPhotoMealEstimate)
   const showProteinFatHint = mealList.some(isHighProteinFatLowCarb)
 
+  // Full glucose stream of the day (CGM + manual), used to read the pre-meal
+  // and ~2h postprandial values for a meal episode. The list itself never
+  // renders these CGM rows (that's the chart's job).
+  const glucoseStream = (dayEntries.filter((e) => e.type === "glucose") as GlucoseEntry[]).sort(
+    (a, b) => tsOf(a) - tsOf(b)
+  )
+
   const isMoodCard = entries.length === 1 && entries[0].type === "mood"
-  const isMealEpisode = mealList.length >= 1 && glucoseList.length >= 1
+  // A meal always renders as an episode (Vorher → Mahlzeit → Nachher); the
+  // glucose values come from the stream, not from rows inside this group.
+  const isMealEpisode = mealList.length >= 1
 
   /** Glucose value pill (color-coded with the calmer palette). */
   const glucoseValue = (g: GlucoseEntry) => {
@@ -111,14 +120,33 @@ export function LogbookUnifiedEntryCard({
   }
 
   // ---- Meal episode: Vorher → Mahlzeit → Nachher ------------------------
+  // Clinically meaningful timing:
+  //  - "Vorher" = the reading just before the meal (≤ 60 min before)
+  //  - "Nachher" = the postprandial value ~2 h after the meal (window 90–210 min,
+  //    picking the reading closest to +120 min), since the rise happens AFTER
+  //    the meal, not at +15 min.
+  const PRE_WINDOW_MS = 60 * 60000
+  const POST_TARGET_MS = 120 * 60000
+  const POST_MIN_MS = 90 * 60000
+  const POST_MAX_MS = 210 * 60000
+
   const renderEpisode = () => {
     const mealTime = Math.min(...mealList.map(tsOf))
-    const before = glucoseList
-      .filter((g) => tsOf(g) <= mealTime)
-      .sort((a, b) => tsOf(b) - tsOf(a))[0] // closest before
-    const after = glucoseList
-      .filter((g) => tsOf(g) > mealTime)
-      .sort((a, b) => tsOf(a) - tsOf(b))[0] // closest after
+
+    const before = glucoseStream
+      .filter((g) => tsOf(g) <= mealTime && mealTime - tsOf(g) <= PRE_WINDOW_MS)
+      .sort((a, b) => tsOf(b) - tsOf(a))[0] // closest before the meal
+
+    const after = glucoseStream
+      .filter((g) => {
+        const d = tsOf(g) - mealTime
+        return d >= POST_MIN_MS && d <= POST_MAX_MS
+      })
+      .sort(
+        (a, b) =>
+          Math.abs(tsOf(a) - (mealTime + POST_TARGET_MS)) -
+          Math.abs(tsOf(b) - (mealTime + POST_TARGET_MS))
+      )[0] // closest to +2 h (postprandial)
 
     const primaryMeal = mealList[0]
     const carbsLabel = formatMealCarbsLabel(primaryMeal, loc) ?? primaryMeal.description
@@ -181,7 +209,9 @@ export function LogbookUnifiedEntryCard({
               <span className="text-slate-300">—</span>
             )}
             {after ? (
-              <span className="text-[11px] text-slate-400">{fmtTime(after.timestamp)}</span>
+              <span className="text-[11px] text-slate-400">
+                {fmtTime(after.timestamp)} · {t("logbook.episodeAfterWindow")}
+              </span>
             ) : null}
           </div>
         </div>

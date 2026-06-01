@@ -257,6 +257,7 @@
     "episodeBefore": "Before",
     "episodeMeal": "Meal",
     "episodeAfter": "After",
+    "episodeAfterWindow": "≈ 2 h later",
     "episodeDifference": "Difference",
     "contextLabel": "Context",
     "notePlaceholder": "Add a note (e.g. restaurant, carbs underestimated, stress)",

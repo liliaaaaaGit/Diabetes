@@ -20,6 +20,7 @@ import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
 import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucose-form"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
+import { isLogbookEvent } from "@/lib/cgm"
 import { addDays, isSameDay, parseISO, startOfDay } from "date-fns"
 
 export default function LogbookPage() {
@@ -62,11 +63,14 @@ export default function LogbookPage() {
   }, [entries, selectedDate])
 
   const counts = useMemo(() => {
+    // Counts mirror the list, which shows events only (the dense CGM stream
+    // lives in the chart, not the logbook list).
+    const events = dayEntries.filter(isLogbookEvent)
     const c: Record<string, number> = {
-      all: dayEntries.length,
+      all: events.length,
     }
     ;(["glucose", "insulin", "meal", "activity", "mood"] as EntryType[]).forEach((type) => {
-      c[type] = dayEntries.filter((e) => e.type === type).length
+      c[type] = events.filter((e) => e.type === type).length
     })
     return c
   }, [dayEntries])
