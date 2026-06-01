@@ -7,6 +7,7 @@ import {
   createEntry,
   deleteConversation,
   deleteConversationsWithoutUserMessages,
+  deleteEntry,
   endConversation,
   getConversation,
   getConversationStats,
@@ -17,12 +18,15 @@ import {
   searchConversations,
   updateConversationSummary,
   updateConversationTitle,
+  updateEntryNote,
   updateGoalProgress,
 } from "@/lib/db"
 import type { ConversationEmotions, ConversationTag, Entry, Message, NewEntry } from "@/lib/types"
 
 type ClientDbRequest =
   | { op: "createEntry"; entry: NewEntry | Entry }
+  | { op: "deleteEntry"; entryId: string }
+  | { op: "updateEntryNote"; entryId: string; note: string }
   | { op: "getConversations" }
   | { op: "getConversation"; conversationId: string }
   | { op: "createConversation" }
@@ -65,6 +69,11 @@ export async function POST(req: Request) {
     switch (body.op) {
       case "createEntry":
         return NextResponse.json(await createEntry(userId, body.entry))
+      case "deleteEntry":
+        await deleteEntry(body.entryId, userId)
+        return NextResponse.json({ ok: true })
+      case "updateEntryNote":
+        return NextResponse.json(await updateEntryNote(body.entryId, userId, body.note))
       case "getConversations":
         return NextResponse.json(await getConversations(userId))
       case "getConversation":

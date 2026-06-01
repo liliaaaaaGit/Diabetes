@@ -11,6 +11,7 @@ WICHTIGE REGELN:
 5. NIEMALS eine Insulin-Dosierung empfehlen.
 6. Wenn das Bild keine Mahlzeit zeigt: is_food: false zurückgeben.
 7. Typische Hauptgerichte mit Beilage liegen meist bei ca. 40–80 g KH — nicht 150+ g ohne klare große Portion.
+8. STÄRKEHALTIGE BEILAGEN großzügig schätzen: Reis, Nudeln/Pasta, Kartoffeln, Pommes, Brot und Knödel werden auf Fotos systematisch unterschätzt. Eine normale Portion Reis oder Pasta liegt oft bei 45–65 g KH, eine Portion Pommes bei 35–50 g KH. Setze die kh_min/kh_max bei diesen Beilagen eher an den oberen Rand und halte die Range breit genug, statt zu niedrig zu schätzen.
 
 Antworte NUR als gültiges JSON (kein Markdown):
 {

@@ -33,6 +33,14 @@ export function createEntry(_userId: string, entry: NewEntry | Entry): Promise<E
   return callClientDb<Entry>({ op: "createEntry", entry })
 }
 
+export async function deleteEntry(_userId: string, entryId: string): Promise<void> {
+  await callClientDb<{ ok: true }>({ op: "deleteEntry", entryId })
+}
+
+export function updateEntryNote(_userId: string, entryId: string, note: string): Promise<Entry> {
+  return callClientDb<Entry>({ op: "updateEntryNote", entryId, note })
+}
+
 export function getConversations(_userId: string): Promise<Conversation[]> {
   return callClientDb<Conversation[]>({ op: "getConversations" })
 }

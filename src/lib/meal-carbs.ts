@@ -18,6 +18,42 @@ export function formatCarbsGrams(grams: number, locale: "de" | "en" = "de"): str
   return locale === "en" ? `${n} g carbs` : `${n} g KH`
 }
 
+function formatCarbsRange(min: number, max: number, locale: "de" | "en"): string {
+  const a = min % 1 === 0 ? Math.round(min) : min
+  const b = max % 1 === 0 ? Math.round(max) : max
+  if (a === b) return formatCarbsGrams(a, locale)
+  return locale === "en" ? `${a}–${b} g carbs` : `${a}–${b} g KH`
+}
+
+/** True for AI-produced carb estimates (free-text or photo). */
+function isAiCarbEstimate(meal: MealEntry): boolean {
+  return (
+    meal.mealSource === "freetext_ai" ||
+    meal.mealSource === "photo_ai" ||
+    meal.estimated === true
+  )
+}
+
+/**
+ * Derive a sensible ±band (rounded to 5 g) around a single AI midpoint so that
+ * AI estimates are always shown as a range — never as a false-precision point.
+ */
+function deriveRange(grams: number): [number, number] {
+  const delta = Math.max(5, Math.round(grams * 0.1))
+  const round5 = (n: number) => Math.max(0, Math.round(n / 5) * 5)
+  let lo = round5(grams - delta)
+  let hi = round5(grams + delta)
+  if (hi <= lo) hi = lo + 5
+  return [lo, hi]
+}
+
+/**
+ * Carb label rules (P2.4):
+ *  - user-corrected value → exact point (the user typed it)
+ *  - manual entry → exact point
+ *  - AI estimate with a stored range → that range
+ *  - AI estimate with only a midpoint → a derived range (no false precision)
+ */
 export function formatMealCarbsLabel(
   meal: MealEntry,
   locale: "de" | "en" = "de"
@@ -25,17 +61,22 @@ export function formatMealCarbsLabel(
   if (meal.userCorrectedKh != null) {
     return formatCarbsGrams(meal.userCorrectedKh, locale)
   }
+
   const min = meal.carbsMinGrams
   const max = meal.carbsMaxGrams
   if (min != null && max != null) {
-    const a = min % 1 === 0 ? Math.round(min) : min
-    const b = max % 1 === 0 ? Math.round(max) : max
-    if (a === b) return formatCarbsGrams(a, locale)
-    return locale === "en" ? `${a}–${b} g carbs` : `${a}–${b} g KH`
+    return formatCarbsRange(min, max, locale)
   }
+
   if (meal.carbsGrams != null && meal.carbsGrams > 0) {
+    if (isAiCarbEstimate(meal)) {
+      const [lo, hi] = deriveRange(meal.carbsGrams)
+      return formatCarbsRange(lo, hi, locale)
+    }
+    // Manual entry: show the exact value the user typed.
     return formatCarbsGrams(meal.carbsGrams, locale)
   }
+
   return null
 }
 

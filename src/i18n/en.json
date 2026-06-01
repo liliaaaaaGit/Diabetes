@@ -256,7 +256,18 @@
     "episodeMeal": "Meal",
     "episodeAfter": "After",
     "episodeDifference": "Difference",
-    "contextLabel": "Context"
+    "contextLabel": "Context",
+    "hypoButton": "Treated hypo",
+    "hypoHint": "Fast-acting carbs – just tap.",
+    "hypoTreatment": "Hypo treatment",
+    "notePlaceholder": "Add a note (e.g. restaurant, carbs underestimated, stress)",
+    "saveNote": "Save note",
+    "noteSaved": "Note saved",
+    "noteSaveFailed": "Could not save note.",
+    "deleteEntry": "Delete entry",
+    "deleteConfirm": "Really delete this entry?",
+    "entryDeleted": "Entry deleted",
+    "entryDeleteFailed": "Could not delete entry."
   },
   "buddy": {
     "chat": "Chat",

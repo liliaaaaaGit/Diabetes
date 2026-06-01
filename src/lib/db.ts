@@ -102,6 +102,22 @@ export async function deleteEntry(entryId: string, userId: string): Promise<void
   if (error) throw error
 }
 
+/** Update only the free-text note on an entry (stored on the base `entries` row). */
+export async function updateEntryNote(
+  entryId: string,
+  userId: string,
+  note: string
+): Promise<Entry> {
+  const trimmed = note.trim()
+  const { error } = await supabase
+    .from("entries")
+    .update({ note: trimmed || null })
+    .eq("id", entryId)
+    .eq("user_id", userId)
+  if (error) throw error
+  return getEntryById(entryId, userId)
+}
+
 async function getEntryById(entryId: string, userId: string): Promise<Entry> {
   const { data: baseRows, error: baseError } = await supabase
     .from("entries")

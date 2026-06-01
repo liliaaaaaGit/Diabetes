@@ -256,7 +256,18 @@
     "episodeMeal": "Mahlzeit",
     "episodeAfter": "Nachher",
     "episodeDifference": "Differenz",
-    "contextLabel": "Kontext"
+    "contextLabel": "Kontext",
+    "hypoButton": "Hypo behandelt",
+    "hypoHint": "Schnelle Kohlenhydrate – einfach antippen.",
+    "hypoTreatment": "Hypo-Behandlung",
+    "notePlaceholder": "Notiz hinzufügen (z.B. Restaurant, KH unterschätzt, Stress)",
+    "saveNote": "Notiz speichern",
+    "noteSaved": "Notiz gespeichert",
+    "noteSaveFailed": "Notiz konnte nicht gespeichert werden.",
+    "deleteEntry": "Eintrag löschen",
+    "deleteConfirm": "Diesen Eintrag wirklich löschen?",
+    "entryDeleted": "Eintrag gelöscht",
+    "entryDeleteFailed": "Eintrag konnte nicht gelöscht werden."
   },
   "buddy": {
     "chat": "Chat",

@@ -41,6 +41,7 @@ import {
 import { getMoodLabel } from "@/lib/mood"
 import { MealConfidenceBadge } from "@/components/logbook/meal-confidence-badge"
 import { MealDetailSheet } from "@/components/logbook/meal-detail-sheet"
+import { EntryDetailSheet } from "@/components/logbook/entry-detail-sheet"
 
 const moodIcons: Record<number, LucideIcon> = {
   1: Annoyed,
@@ -72,16 +73,13 @@ export function LogbookUnifiedEntryCard({
   const { formatGlucoseWithUnit, targetRange, unitSuffix, mgDlToDisplayValue } =
     useUserPreferences()
   const dateLocale = loc === "de" ? de : enUS
-  const [expanded, setExpanded] = useState(false)
   const [mealDetail, setMealDetail] = useState<MealEntry | null>(null)
+  const [entryDetail, setEntryDetail] = useState<Entry | null>(null)
 
   const sorted = [...entries].sort((a, b) => tsOf(a) - tsOf(b))
   const anchor = sorted[0]
   const fmtTime = (iso: string) => format(parseISO(iso), "HH:mm", { locale: dateLocale })
   const timeLabel = fmtTime(anchor.timestamp)
-
-  const notes = sorted.map((e) => e.note).filter(Boolean) as string[]
-  const noteText = notes.join("\n\n")
 
   const glucoseList = sorted.filter((e) => e.type === "glucose") as GlucoseEntry[]
   const insulinList = sorted.filter((e) => e.type === "insulin") as InsulinEntry[]
@@ -143,7 +141,13 @@ export function LogbookUnifiedEntryCard({
             <span className="text-[11px] uppercase tracking-wide text-slate-400">
               {t("logbook.episodeBefore")}
             </span>
-            {before ? glucoseValue(before) : <span className="text-slate-300">—</span>}
+            {before ? (
+              <button type="button" onClick={() => setEntryDetail(before)}>
+                {glucoseValue(before)}
+              </button>
+            ) : (
+              <span className="text-slate-300">—</span>
+            )}
             {before ? (
               <span className="text-[11px] text-slate-400">{fmtTime(before.timestamp)}</span>
             ) : null}
@@ -169,7 +173,13 @@ export function LogbookUnifiedEntryCard({
             <span className="text-[11px] uppercase tracking-wide text-slate-400">
               {t("logbook.episodeAfter")}
             </span>
-            {after ? glucoseValue(after) : <span className="text-slate-300">—</span>}
+            {after ? (
+              <button type="button" onClick={() => setEntryDetail(after)}>
+                {glucoseValue(after)}
+              </button>
+            ) : (
+              <span className="text-slate-300">—</span>
+            )}
             {after ? (
               <span className="text-[11px] text-slate-400">{fmtTime(after.timestamp)}</span>
             ) : null}
@@ -180,7 +190,12 @@ export function LogbookUnifiedEntryCard({
         {insulinList.length > 0 && (
           <div className="mt-3 flex flex-col gap-1">
             {insulinList.map((ins) => (
-              <div key={ins.id} className="flex items-center gap-2 text-sm">
+              <button
+                key={ins.id}
+                type="button"
+                onClick={() => setEntryDetail(ins)}
+                className="flex items-center gap-2 text-left text-sm"
+              >
                 <Syringe className={rowIconClass} aria-hidden strokeWidth={2} />
                 <span className="font-semibold text-slate-900 tabular-nums">
                   {formatInsulin(ins.dose, loc)} {t("logbook.insulinUnitsAbbrev")}
@@ -189,7 +204,7 @@ export function LogbookUnifiedEntryCard({
                   <span className="text-slate-500">{ins.insulinName}</span>
                 ) : null}
                 <span className="text-[11px] text-slate-400">({fmtTime(ins.timestamp)})</span>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -249,7 +264,11 @@ export function LogbookUnifiedEntryCard({
 
     return (
       <div className="mt-1">
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setEntryDetail(mood)}
+          className="flex w-full items-center gap-2 text-left"
+        >
           <MoodIcon
             className={moodIconClass}
             aria-hidden
@@ -260,7 +279,7 @@ export function LogbookUnifiedEntryCard({
           <span className="font-medium text-slate-900">
             {getMoodLabel(mood.moodValue, t)}
           </span>
-        </div>
+        </button>
 
         {mood.note ? (
           <p className="mt-1 text-sm text-slate-600 whitespace-pre-wrap break-words">
@@ -291,25 +310,22 @@ export function LogbookUnifiedEntryCard({
   }
 
   // ---- Flat list (isolated entries) -------------------------------------
+  // Each row is tappable → opens the matching detail sheet (note / delete /
+  // meal correction).
+  const rowButtonClass =
+    "flex w-full items-center gap-2 text-left text-base min-h-[44px] -mx-1 px-1 rounded-lg hover:bg-slate-50"
+
   const renderFlat = () => (
-    <div
-      className="mt-2 flex flex-col gap-2"
-      onClick={() => setExpanded(!expanded)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") setExpanded(!expanded)
-      }}
-      role="button"
-      tabIndex={0}
-    >
+    <div className="mt-2 flex flex-col gap-2">
       {glucoseList.map((g) => (
-        <div key={g.id} className="flex items-center gap-2 text-base">
+        <button key={g.id} type="button" className={rowButtonClass} onClick={() => setEntryDetail(g)}>
           <Droplet className={rowIconClass} aria-hidden strokeWidth={2} />
           {glucoseValue(g)}
-        </div>
+        </button>
       ))}
 
       {insulinList.map((ins) => (
-        <div key={ins.id} className="flex items-center gap-2 text-base flex-wrap">
+        <button key={ins.id} type="button" className={rowButtonClass} onClick={() => setEntryDetail(ins)}>
           <Syringe className={rowIconClass} aria-hidden strokeWidth={2} />
           <span className="font-semibold text-slate-900 tabular-nums">
             {formatInsulin(ins.dose, loc)} {t("logbook.insulinUnitsAbbrev")}
@@ -317,22 +333,14 @@ export function LogbookUnifiedEntryCard({
           {ins.insulinName ? (
             <span className="text-sm text-slate-500">{ins.insulinName}</span>
           ) : null}
-        </div>
+        </button>
       ))}
 
       {mealList.map((m) => {
         const carbsLabel = formatMealCarbsLabel(m, loc)
         if (!carbsLabel && !m.description) return null
         return (
-          <button
-            key={m.id}
-            type="button"
-            className="flex w-full items-center gap-2 text-left text-base min-h-[44px] -mx-1 px-1 rounded-lg hover:bg-slate-50"
-            onClick={(e) => {
-              e.stopPropagation()
-              setMealDetail(m)
-            }}
-          >
+          <button key={m.id} type="button" className={rowButtonClass} onClick={() => setMealDetail(m)}>
             <UtensilsCrossed className={rowIconClass} aria-hidden strokeWidth={2} />
             <span className="font-semibold text-slate-900 flex-1 min-w-0 truncate">
               {carbsLabel ?? m.description}
@@ -343,18 +351,18 @@ export function LogbookUnifiedEntryCard({
       })}
 
       {activityList.map((a) => (
-        <div key={a.id} className="flex items-center gap-2 text-base">
+        <button key={a.id} type="button" className={rowButtonClass} onClick={() => setEntryDetail(a)}>
           <Activity className={rowIconClass} aria-hidden strokeWidth={2} />
           <span className="font-medium text-slate-900">
             {a.activityType} · {a.durationMinutes} {t("units.minutes")}
           </span>
-        </div>
+        </button>
       ))}
 
       {moodList.map((m) => {
         const MoodIcon = moodIcons[m.moodValue] ?? Meh
         return (
-          <div key={m.id} className="flex items-center gap-2 text-base">
+          <button key={m.id} type="button" className={rowButtonClass} onClick={() => setEntryDetail(m)}>
             <MoodIcon
               className={moodIconClass}
               aria-hidden
@@ -362,7 +370,7 @@ export function LogbookUnifiedEntryCard({
               fill="none"
               stroke="currentColor"
             />
-          </div>
+          </button>
         )
       })}
     </div>
@@ -396,12 +404,6 @@ export function LogbookUnifiedEntryCard({
               </p>
             </div>
           )}
-
-          {!isMoodCard && noteText && expanded ? (
-            <div className="mt-3 border-t border-slate-100 pt-2 text-sm text-slate-600 whitespace-pre-wrap break-words">
-              {noteText}
-            </div>
-          ) : null}
         </CardContent>
       </Card>
 
@@ -412,6 +414,16 @@ export function LogbookUnifiedEntryCard({
         onCorrected={() => {
           onMealUpdated?.()
           setMealDetail(null)
+        }}
+      />
+
+      <EntryDetailSheet
+        entry={entryDetail}
+        open={entryDetail != null}
+        onOpenChange={(open) => !open && setEntryDetail(null)}
+        onChanged={() => {
+          onMealUpdated?.()
+          setEntryDetail(null)
         }}
       />
     </>
