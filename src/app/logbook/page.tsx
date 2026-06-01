@@ -157,7 +157,7 @@ export default function LogbookPage() {
   return (
     <AppShell
       title={t("pages.logbook")}
-      mainClassName="max-w-none w-full px-4 md:px-6 py-4 md:py-6"
+      mainClassName="max-w-none w-full px-4 md:px-6 pt-4 md:pt-6 pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-14"
       actions={
         <>
           <Button
