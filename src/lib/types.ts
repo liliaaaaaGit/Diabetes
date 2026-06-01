@@ -108,6 +108,11 @@ export interface ExtractedEntry {
    * Omit or null = use "now" when saving (typically "today" for the user).
    */
   entryDate?: string | null
+  /**
+   * Time of day this fact belongs to (HH:mm, 24h), if the text/photo implied one.
+   * Omit or null = default to the current time when saving (editable in the UI).
+   */
+  entryTime?: string | null
 }
 
 /** Theme tag stored with each summarized conversation (emoji + short label). */

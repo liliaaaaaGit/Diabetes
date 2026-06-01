@@ -186,6 +186,8 @@
     "estimatedCarbsHint": "(geschaetzt)",
     "extractionDetectedEntries": "Erkannte Einträge",
     "entryDateLabel": "Eintragsdatum",
+    "entryTimeLabel": "Uhrzeit",
+    "mealTypeLabel": "Mahlzeit",
     "unsure": "Unsicher",
     "discard": "Verwerfen",
     "insulinNote": "Insulindaten werden nur dokumentiert, nicht bewertet.",

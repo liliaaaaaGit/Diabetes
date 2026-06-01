@@ -41,10 +41,21 @@ export default function LogbookPage() {
     )[0]
 
     if (latestEntry) {
-      setSelectedDate(startOfDay(parseISO(latestEntry.timestamp)))
+      const latestDay = startOfDay(parseISO(latestEntry.timestamp))
+      const today = startOfDay(new Date())
+      // Never open on a future day (mock data can extend past today).
+      setSelectedDate(latestDay.getTime() > today.getTime() ? today : latestDay)
     }
     setDidAutoSelectDate(true)
   }, [didAutoSelectDate, entries, loading])
+
+  // After an AI/photo save, jump to the day the entry landed on so it's visible.
+  const handleNavigateToDate = useCallback((ymd: string) => {
+    const d = parseISO(ymd)
+    if (Number.isNaN(d.getTime())) return
+    setDidAutoSelectDate(true)
+    setSelectedDate(startOfDay(d))
+  }, [])
 
   const dayEntries = useMemo(() => {
     return entries.filter((e) => isSameDay(parseISO(e.timestamp), selectedDate))
@@ -162,6 +173,7 @@ export default function LogbookPage() {
         <AiQuickInput
           onManualFallback={() => setIsModalOpen(true)}
           onRefetch={refetch}
+          onNavigateToDate={handleNavigateToDate}
         />
 
         <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 space-y-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">

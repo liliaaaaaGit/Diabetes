@@ -65,7 +65,7 @@ export function PhotoMealPanels() {
           photoWarning={photo.photoWarning}
           mealSource="photo_ai"
           source="manual"
-          onSaveEntry={photo.saveWithOptionalPhoto}
+          onSaveEntry={photo.savePhotoMeal}
           onSaveResult={photo.onPhotoSaveResult}
           onDiscard={photo.resetPhoto}
         />
@@ -88,15 +88,6 @@ export function PhotoMealPanels() {
           <X className="h-4 w-4" />
         </button>
       </div>
-      <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={photo.keepPhoto}
-          onChange={(e) => photo.setKeepPhoto(e.target.checked)}
-          className="h-4 w-4 rounded border-slate-300"
-        />
-        {t("logbook.photoKeepCheckbox")}
-      </label>
       <Button
         type="button"
         className="w-full min-h-[44px] bg-teal-600 hover:bg-teal-700"

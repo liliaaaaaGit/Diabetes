@@ -86,6 +86,15 @@ export function parseExtractResponse(
         ? o.timestamp.slice(0, 10)
         : todayYmd
 
+    // Keep the time-of-day if the model returned one (local "...THH:mm").
+    // Undefined = the confirmation UI will default to the current time.
+    const entryTime =
+      typeof o.timestamp === "string" &&
+      o.timestamp.includes("T") &&
+      o.timestamp.length >= 16
+        ? o.timestamp.slice(11, 16)
+        : undefined
+
     if (type === "meal") {
       const description = String(o.description ?? "").trim()
       if (!description) continue
@@ -111,6 +120,7 @@ export function parseExtractResponse(
         type: "meal",
         sourceText,
         entryDate,
+        entryTime,
         confidence: confidenceToScore(confidence),
         included: true,
         data: {
@@ -139,6 +149,7 @@ export function parseExtractResponse(
         type: "glucose",
         sourceText,
         entryDate,
+        entryTime,
         confidence: 0.85,
         included: true,
         data: {
@@ -158,6 +169,7 @@ export function parseExtractResponse(
         type: "insulin",
         sourceText,
         entryDate,
+        entryTime,
         confidence: 0.85,
         included: true,
         data: {
@@ -177,6 +189,7 @@ export function parseExtractResponse(
         type: "activity",
         sourceText,
         entryDate,
+        entryTime,
         confidence: 0.8,
         included: true,
         data: {
@@ -194,6 +207,7 @@ export function parseExtractResponse(
         type: "mood",
         sourceText,
         entryDate,
+        entryTime,
         confidence: 0.75,
         included: true,
         data: { type: "mood", moodValue: parseMoodValue(o.moodValue) },

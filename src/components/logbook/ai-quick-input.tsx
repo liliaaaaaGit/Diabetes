@@ -19,12 +19,15 @@ interface AiQuickInputProps {
   onManualFallback: () => void
   isDisabled?: boolean
   onRefetch?: () => void
+  /** Jump the logbook to a given day (YYYY-MM-DD) after a save, so the new entry is visible. */
+  onNavigateToDate?: (ymd: string) => void
 }
 
 export function AiQuickInput({
   onManualFallback,
   isDisabled = false,
   onRefetch,
+  onNavigateToDate,
 }: AiQuickInputProps) {
   const { t } = useTranslation()
   const { toast } = useToast()
@@ -58,6 +61,7 @@ export function AiQuickInput({
         body: JSON.stringify({
           text: payloadText,
           todayYmd: format(new Date(), "yyyy-MM-dd"),
+          nowIso: new Date().toISOString(),
         }),
       })
       if (!res.ok) {
@@ -98,7 +102,7 @@ export function AiQuickInput({
   }
 
   return (
-    <PhotoMealProvider onRefetch={onRefetch}>
+    <PhotoMealProvider onRefetch={onRefetch} onNavigateToDate={onNavigateToDate}>
     <div className="sticky top-16 z-20 bg-slate-50/90 backdrop-blur pt-3 pb-2 px-0">
       <div className="mx-auto max-w-3xl md:max-w-7xl px-0">
         <p className="mb-2 px-1 text-xs leading-snug text-slate-600 sm:px-0">
@@ -193,8 +197,9 @@ export function AiQuickInput({
               if (!userId) throw new Error("Not signed in")
               await createEntry(userId, entry)
             }}
-            onSaveResult={({ saved, failed }) => {
+            onSaveResult={({ saved, failed, dates }) => {
               if (saved > 0) {
+                if (dates && dates[0]) onNavigateToDate?.(dates[0])
                 onRefetch?.()
               }
               if (failed === 0 && saved > 0) {

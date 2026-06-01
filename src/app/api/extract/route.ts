@@ -18,12 +18,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ code: "openai_missing" }, { status: 503 })
     }
 
-    const body = (await req.json()) as { text?: string; todayYmd?: string }
+    const body = (await req.json()) as { text?: string; todayYmd?: string; nowIso?: string }
     const text = typeof body.text === "string" ? body.text.trim().slice(0, 500) : ""
     const todayYmd =
       typeof body.todayYmd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.todayYmd)
         ? body.todayYmd
         : new Date().toISOString().slice(0, 10)
+    const nowLabel =
+      typeof body.nowIso === "string" && body.nowIso.length >= 16
+        ? body.nowIso.slice(0, 16).replace("T", " ")
+        : todayYmd
 
     if (!text) {
       return NextResponse.json({ entries: [], message: "" })
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
         { role: "system", content: EXTRACT_SYSTEM_PROMPT },
         {
           role: "user",
-          content: `Heutiges Datum (YYYY-MM-DD): ${todayYmd}\n\nFreitext:\n${text}`,
+          content: `Heutiges Datum (YYYY-MM-DD): ${todayYmd}\nAktuelle lokale Zeit (YYYY-MM-DD HH:mm): ${nowLabel}\n\nFreitext:\n${text}`,
         },
       ],
     })

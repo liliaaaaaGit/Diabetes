@@ -23,9 +23,8 @@ import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseToMgDl } from "@/lib/glucose-units"
 import { formatInsulin, roundInsulinDose } from "@/lib/insulin-format"
 import type { GlucoseUnit } from "@/lib/types"
-import { format, parse } from "date-fns"
-import { de as deLocale, enUS } from "date-fns/locale"
-import { isValidDateYmd, timestampForEntryDate } from "@/lib/entry-timestamp"
+import { format } from "date-fns"
+import { isValidDateYmd, isValidTimeHhmm, timestampForEntryDateTime } from "@/lib/entry-timestamp"
 import { useToast } from "@/hooks/use-toast"
 import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
 import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucose-form"
@@ -57,8 +56,12 @@ type ExtractionConfirmationProps = {
   aiMessage: string
   title?: string
   onSaveEntry: (entry: NewEntry) => Promise<void>
-  /** Called after attempting all saves; parent can clear UI when failed === 0 and saved > 0. */
-  onSaveResult?: (result: { saved: number; failed: number }) => void
+  /**
+   * Called after attempting all saves; parent can clear UI when failed === 0 and saved > 0.
+   * `dates` holds the YYYY-MM-DD day(s) the entries were saved on, so the parent can
+   * navigate the logbook to that day and show the new entry.
+   */
+  onSaveResult?: (result: { saved: number; failed: number; dates: string[] }) => void
   onDiscard: () => void
   source?: "manual" | "conversation"
   conversationId?: string
@@ -141,8 +144,20 @@ export function ExtractionConfirmation({
   const [entries, setEntries] = useState<ExtractedEntry[]>(extractedEntries)
   const [saving, setSaving] = useState(false)
 
+  // Fill in sensible, editable defaults for date + time:
+  // - date: the AI-extracted day, else today
+  // - time: the AI-extracted time, else the current time
   useEffect(() => {
-    setEntries(extractedEntries)
+    const now = new Date()
+    const todayYmd = format(now, "yyyy-MM-dd")
+    const nowHhmm = format(now, "HH:mm")
+    setEntries(
+      extractedEntries.map((e) => ({
+        ...e,
+        entryDate: e.entryDate && isValidDateYmd(e.entryDate) ? e.entryDate : todayYmd,
+        entryTime: e.entryTime && isValidTimeHhmm(e.entryTime) ? e.entryTime : nowHhmm,
+      }))
+    )
   }, [extractedEntries])
 
   const computed: Row[] = useMemo(() => {
@@ -164,12 +179,17 @@ export function ExtractionConfirmation({
     )
   }
 
+  // Patches the entry's date/time (stored at the top level, not inside `data`).
+  const updateEntryMeta = (idx: number, patch: Partial<ExtractedEntry>) => {
+    setEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))
+  }
+
   const buildNewEntryFromExtracted = (entry: ExtractedEntry): NewEntry | null => {
     const data = entry.data as Record<string, unknown>
     const type = resolveEntryType(entry)
     if (!type) return null
 
-    const timestamp = timestampForEntryDate(entry.entryDate)
+    const timestamp = timestampForEntryDateTime(entry.entryDate, entry.entryTime)
     const note = entry.sourceText
 
     if (type === "glucose") {
@@ -274,6 +294,7 @@ export function ExtractionConfirmation({
     setSaving(true)
     let saved = 0
     let failed = 0
+    const dates: string[] = []
 
     for (const ne of newEntries) {
       try {
@@ -282,6 +303,9 @@ export function ExtractionConfirmation({
         if (ne.type === "glucose") {
           triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
         }
+        // Local calendar day this entry landed on (so the parent can show it).
+        const localDay = format(new Date(ne.timestamp), "yyyy-MM-dd")
+        if (!dates.includes(localDay)) dates.push(localDay)
         saved += 1
       } catch {
         failed += 1
@@ -305,7 +329,7 @@ export function ExtractionConfirmation({
       })
     }
 
-    onSaveResult?.({ saved, failed })
+    onSaveResult?.({ saved, failed, dates })
   }
 
   const renderMiniForm = (entry: Row, idx: number) => {
@@ -405,7 +429,7 @@ export function ExtractionConfirmation({
 
     if (type === "meal") {
       return (
-        <div className="grid grid-cols-2 gap-3 mt-3">
+        <div className="grid grid-cols-2 gap-3 mt-3 items-end">
           <div className="col-span-2">
             <Textarea
               value={(entry.data as MealEntry).description ?? ""}
@@ -415,12 +439,11 @@ export function ExtractionConfirmation({
               rows={1}
             />
           </div>
-          <div>
-            <Label className="text-xs text-slate-500">{t("logbook.carbsLabel")} (g)</Label>
+          <div className="flex flex-col">
+            <Label className="text-xs text-slate-500 mb-1">{t("logbook.carbsLabel")} (g)</Label>
             <Input
               type="number"
               inputMode="decimal"
-              className="mt-1"
               value={(entry.data as MealEntry).carbsGrams ?? ""}
               onChange={(e) => {
                 const value = e.target.value ? Number(e.target.value) : undefined
@@ -433,7 +456,8 @@ export function ExtractionConfirmation({
               }}
             />
           </div>
-          <div>
+          <div className="flex flex-col">
+            <Label className="text-xs text-slate-500 mb-1">{t("logbook.mealTypeLabel")}</Label>
             <Select
               value={(entry.data as MealEntry).mealType ?? "lunch"}
               onValueChange={(v) => updateEntryData(idx, { mealType: v })}
@@ -624,16 +648,6 @@ export function ExtractionConfirmation({
                     {entry.resolvedType ? getTypeLabel(t, entry.resolvedType) : t("logbook.entry")}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">{entry.sourceText}</p>
-                  {entry.entryDate && isValidDateYmd(entry.entryDate) ? (
-                    <p className="text-xs text-teal-700 font-medium mt-1">
-                      {t("logbook.entryDateLabel")}:{" "}
-                      {format(
-                        parse(entry.entryDate, "yyyy-MM-dd", new Date()),
-                        "PPP",
-                        { locale: locale === "en" ? enUS : deLocale }
-                      )}
-                    </p>
-                  ) : null}
                   {renderValueHint(entry)}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -674,6 +688,31 @@ export function ExtractionConfirmation({
               </div>
 
               {renderMiniForm(entry, idx)}
+
+              {/* Auto-filled but editable date + time, so the user can correct
+                  "two hours ago" or "yesterday" before saving. */}
+              <div className="mt-3 grid grid-cols-2 gap-3 items-end">
+                <div className="flex flex-col">
+                  <Label className="text-xs text-slate-500 mb-1">
+                    {t("logbook.entryDateLabel")}
+                  </Label>
+                  <Input
+                    type="date"
+                    value={entry.entryDate ?? ""}
+                    onChange={(e) => updateEntryMeta(idx, { entryDate: e.target.value })}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <Label className="text-xs text-slate-500 mb-1">
+                    {t("logbook.entryTimeLabel")}
+                  </Label>
+                  <Input
+                    type="time"
+                    value={entry.entryTime ?? ""}
+                    onChange={(e) => updateEntryMeta(idx, { entryTime: e.target.value })}
+                  />
+                </div>
+              </div>
 
               {/* One unified confidence indicator per AI suggestion card. */}
               <div className="mt-2 flex justify-end">

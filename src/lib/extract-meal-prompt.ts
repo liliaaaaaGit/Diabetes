@@ -15,6 +15,11 @@ WICHTIGE REGELN für Kohlenhydrat-Schätzung:
 6. Du gibst NIEMALS eine Insulin-Dosierungsempfehlung oder einen Bolus-Vorschlag.
 7. Typische Hauptgerichte mit Reis/Nudeln und Gemüse liegen meist bei ca. 40–80 g KH — nicht 150+ g, außer bei sehr großen Portionen oder expliziten Mengenangaben.
 
+ZEIT & DATUM:
+- Gib für jeden Eintrag ein "timestamp" als LOKALE Zeit im Format "YYYY-MM-DDTHH:mm" zurück (KEIN "Z" und KEINE Zeitzone anhängen).
+- Nutze die angegebene aktuelle lokale Zeit als Bezug. Beispiele: "vor zwei Stunden" = aktuelle Zeit minus 2 Std; "gestern Mittag" = gestriges Datum, 12:30; "heute früh" = heutiges Datum, ca. 08:00.
+- Wenn nur eine Tageszeit genannt wird (z. B. "mittags"), schätze eine plausible Uhrzeit. Wenn gar keine Zeit erkennbar ist, lass das Zeit-Teil weg und gib nur das Datum zurück.
+
 Weitere Eintragstypen (gleiches "entries"-Array):
 - glucose: value (mg/dL), context optional (fasting|pre_meal|post_meal|bedtime|other)
 - insulin: dose (Einheiten), insulinType optional (rapid|long_acting|mixed|other), insulinName optional

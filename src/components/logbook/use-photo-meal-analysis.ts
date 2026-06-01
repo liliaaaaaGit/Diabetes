@@ -16,7 +16,10 @@ export function isMobileDevice(): boolean {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
 
-export function usePhotoMealAnalysis(onRefetch?: () => void) {
+export function usePhotoMealAnalysis(
+  onRefetch?: () => void,
+  onNavigateToDate?: (ymd: string) => void
+) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
@@ -24,7 +27,6 @@ export function usePhotoMealAnalysis(onRefetch?: () => void) {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
-  const [keepPhoto, setKeepPhoto] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [photoWarning, setPhotoWarning] = useState<string | null>(null)
   const [extractedEntries, setExtractedEntries] = useState<ExtractedEntry[] | null>(null)
@@ -35,7 +37,6 @@ export function usePhotoMealAnalysis(onRefetch?: () => void) {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewUrl(null)
     setCompressedFile(null)
-    setKeepPhoto(false)
     setPhotoWarning(null)
     setExtractedEntries(null)
     if (inputRef.current) inputRef.current.value = ""
@@ -98,22 +99,25 @@ export function usePhotoMealAnalysis(onRefetch?: () => void) {
     }
   }
 
-  const saveWithOptionalPhoto = async (entry: NewEntry) => {
+  // Photos are never stored in the app — we only use them transiently to
+  // estimate carbs, then save a normal meal entry.
+  const savePhotoMeal = async (entry: NewEntry) => {
     if (!userId) throw new Error("Not signed in")
-    const saved = await createEntry(userId, entry)
-    if (keepPhoto && compressedFile && saved.type === "meal") {
-      const fd = new FormData()
-      fd.append("image", compressedFile)
-      await fetch(`/api/entries/${saved.id}/meal-photo`, {
-        method: "POST",
-        credentials: "include",
-        body: fd,
-      })
-    }
+    await createEntry(userId, entry)
   }
 
-  const onPhotoSaveResult = ({ saved, failed }: { saved: number; failed: number }) => {
+  const onPhotoSaveResult = ({
+    saved,
+    failed,
+    dates,
+  }: {
+    saved: number
+    failed: number
+    dates?: string[]
+  }) => {
     if (saved > 0 && failed === 0) {
+      // Jump the logbook to the day the entry was saved on, so it's visible.
+      if (dates && dates[0]) onNavigateToDate?.(dates[0])
       resetPhoto()
       onRefetch?.()
     }
@@ -122,8 +126,6 @@ export function usePhotoMealAnalysis(onRefetch?: () => void) {
   return {
     inputRef,
     previewUrl,
-    keepPhoto,
-    setKeepPhoto,
     isAnalyzing,
     photoWarning,
     extractedEntries,
@@ -132,7 +134,7 @@ export function usePhotoMealAnalysis(onRefetch?: () => void) {
     openPicker,
     handleFileChange,
     handleAnalyze,
-    saveWithOptionalPhoto,
+    savePhotoMeal,
     onPhotoSaveResult,
     compressedFile,
   }

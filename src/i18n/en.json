@@ -186,6 +186,8 @@
     "estimatedCarbsHint": "(estimated)",
     "extractionDetectedEntries": "Recognized Entries",
     "entryDateLabel": "Entry date",
+    "entryTimeLabel": "Time",
+    "mealTypeLabel": "Meal",
     "unsure": "Uncertain",
     "discard": "Discard",
     "insulinNote": "Insulin data is only documented, not evaluated.",

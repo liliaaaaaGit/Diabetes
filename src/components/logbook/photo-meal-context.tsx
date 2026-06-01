@@ -10,11 +10,13 @@ const PhotoMealContext = createContext<PhotoMealContextValue | null>(null)
 export function PhotoMealProvider({
   children,
   onRefetch,
+  onNavigateToDate,
 }: {
   children: ReactNode
   onRefetch?: () => void
+  onNavigateToDate?: (ymd: string) => void
 }) {
-  const value = usePhotoMealAnalysis(onRefetch)
+  const value = usePhotoMealAnalysis(onRefetch, onNavigateToDate)
   return <PhotoMealContext.Provider value={value}>{children}</PhotoMealContext.Provider>
 }
 
