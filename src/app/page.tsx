@@ -19,7 +19,7 @@ import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucos
 import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel, resolveMoodDisplayNote } from "@/lib/mood"
-import type { Entry, GlucoseContext, GlucoseEntry, MoodEntry } from "@/lib/types"
+import type { Entry, GlucoseContext, GlucoseEntry, MoodEntry, NewEntry } from "@/lib/types"
 import { formatDistanceToNow, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
@@ -225,6 +225,32 @@ export default function DashboardPage() {
     setIsModalOpen(true)
   }
 
+  // Fast manual path: write each filled field as its own entry, no AI.
+  const handleQuickSave = async (newEntries: NewEntry[]) => {
+    if (!userId) return
+    let saved = 0
+    for (const ne of newEntries) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        await createEntry(userId, ne)
+        if (ne.type === "glucose") {
+          triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
+        }
+        saved += 1
+      } catch (e) {
+        toast({
+          title: t("logbook.entrySaved"),
+          description: e instanceof Error ? e.message : undefined,
+          variant: "destructive",
+        })
+      }
+    }
+    if (saved > 0) {
+      await Promise.all([refetchStats(), refetchGlucose(), refetchMood()])
+      toast({ title: t("logbook.aiSaveSuccess", { count: saved }) })
+    }
+  }
+
   const handleSaveEntry = async (entry: Entry) => {
     try {
       if (!userId) return
@@ -370,6 +396,7 @@ export default function DashboardPage() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveEntry}
+        onQuickSave={handleQuickSave}
       />
     </AppShell>
   )

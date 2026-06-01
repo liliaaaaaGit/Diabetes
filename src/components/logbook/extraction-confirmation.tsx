@@ -38,8 +38,9 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { MealConfidenceBadge } from "@/components/logbook/meal-confidence-badge"
-import { formatMealCarbsLabel } from "@/lib/meal-carbs"
+import { ConfidenceIndicator } from "@/components/logbook/meal-confidence-badge"
+import { confidenceLevelFromScore, formatMealCarbsLabel } from "@/lib/meal-carbs"
+import type { CarbConfidence } from "@/lib/types"
 
 const ENTRY_TYPES: EntryType[] = ["glucose", "insulin", "meal", "activity", "mood"]
 
@@ -102,6 +103,19 @@ function getTypeLabel(t: (key: string) => string, type: EntryType) {
 function isMealCarbsEstimated(data: Record<string, unknown>): boolean {
   if (data.estimated === false) return false
   return true
+}
+
+/**
+ * Single confidence level for an AI suggestion card.
+ * For meals we prefer the carb-specific confidence if the AI provided it;
+ * otherwise we derive the level from the overall numeric score.
+ */
+function cardConfidenceLevel(entry: ExtractedEntry & { resolvedType: EntryType | null }): CarbConfidence {
+  const d = entry.data as Record<string, unknown>
+  if (entry.resolvedType === "meal" && typeof d.carbsConfidence === "string") {
+    return d.carbsConfidence as CarbConfidence
+  }
+  return confidenceLevelFromScore(entry.confidence)
 }
 
 type Row = ExtractedEntry & { resolvedType: EntryType | null }
@@ -563,7 +577,6 @@ export function ExtractionConfirmation({
       return (
         <div className="mt-1 flex flex-wrap items-center gap-2">
           {label ? <p className="text-sm text-slate-700">{label}</p> : null}
-          <MealConfidenceBadge confidence={d.carbsConfidence as MealEntry["carbsConfidence"]} />
           {mealEstimated}
         </div>
       )
@@ -662,15 +675,6 @@ export function ExtractionConfirmation({
                         </Badge>
                       ) : null
                     })()}
-                    {entry.confidence < 0.8 ? (
-                      <Badge variant="outline" className="border-yellow-300 text-yellow-700 bg-yellow-50">
-                        {t("logbook.unsure")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-slate-200 text-slate-600">
-                        {Math.round(entry.confidence * 100)}%
-                      </Badge>
-                    )}
                     <Button
                       type="button"
                       variant={entry.included ? "default" : "outline"}
@@ -685,6 +689,11 @@ export function ExtractionConfirmation({
               </div>
 
               {renderMiniForm(entry, idx)}
+
+              {/* One unified confidence indicator per AI suggestion card. */}
+              <div className="mt-2 flex justify-end">
+                <ConfidenceIndicator confidence={cardConfidenceLevel(entry)} />
+              </div>
             </div>
           ))}
         </div>

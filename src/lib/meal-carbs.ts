@@ -39,17 +39,16 @@ export function formatMealCarbsLabel(
   return null
 }
 
-export function confidenceBadgeClass(confidence?: CarbConfidence): string {
-  switch (confidence) {
-    case "high":
-      return "border-emerald-200 bg-emerald-50 text-emerald-800"
-    case "medium":
-      return "border-amber-200 bg-amber-50 text-amber-900"
-    case "low":
-      return "border-slate-200 bg-slate-100 text-slate-600"
-    default:
-      return "border-slate-200 bg-slate-50 text-slate-500"
-  }
+/**
+ * Map a numeric AI confidence score (0..1) to the single three-level scale
+ * used everywhere in the UI. Thresholds (per expert review):
+ *   niedrig = 0–60%, mittel = 60–85%, hoch = 85–100%.
+ */
+export function confidenceLevelFromScore(score: number): CarbConfidence {
+  if (!Number.isFinite(score)) return "medium"
+  if (score >= 0.85) return "high"
+  if (score >= 0.6) return "medium"
+  return "low"
 }
 
 export function confidenceLabelKey(confidence?: CarbConfidence): string {
@@ -63,6 +62,59 @@ export function confidenceLabelKey(confidence?: CarbConfidence): string {
     default:
       return "logbook.confidenceUnknown"
   }
+}
+
+/**
+ * High-protein / high-fat foods that can raise blood glucose with a delay
+ * (the "pizza"/protein effect, 3–5 h later). Used only to show a NEUTRAL
+ * information hint — never a dosing or action suggestion.
+ */
+const PROTEIN_FAT_KEYWORDS = [
+  "fleisch",
+  "huhn",
+  "hähnchen",
+  "haehnchen",
+  "hühn",
+  "steak",
+  "lachs",
+  "fisch",
+  "käse",
+  "kaese",
+  "ei", // matches "ei", "eier"
+  "nuss",
+  "nüsse",
+  "nuesse",
+  "erdnuss",
+  "avocado",
+  "speck",
+  "bacon",
+  "wurst",
+  "salami",
+  "schnitzel",
+  "burger",
+  "thunfisch",
+]
+
+/** Threshold below which carbs count as "low/zero" for the protein/fat hint. */
+const LOW_CARB_THRESHOLD_G = 15
+
+/**
+ * True when a meal looks low-carb but high in protein/fat — the case where a
+ * "0 g carbs, done" reading could be misleading because BG may rise later.
+ */
+export function isHighProteinFatLowCarb(meal: MealEntry): boolean {
+  const carbs = mealCarbsForSum(meal)
+  if (carbs >= LOW_CARB_THRESHOLD_G) return false
+
+  const haystack = [
+    meal.description ?? "",
+    ...(meal.components?.map((c) => c.name) ?? []),
+  ]
+    .join(" ")
+    .toLowerCase()
+
+  if (!haystack.trim()) return false
+  return PROTEIN_FAT_KEYWORDS.some((kw) => haystack.includes(kw))
 }
 
 export function hasAiMealEstimate(meal: MealEntry): boolean {

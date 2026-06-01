@@ -5,53 +5,85 @@ import type { Entry, EntryType } from "@/lib/types"
 import { parseISO } from "date-fns"
 import { LogbookUnifiedEntryCard } from "./logbook-unified-entry-card"
 
+/** Entries this close together (minutes) belong to the same "moment". */
 const GROUP_WINDOW_MINUTES = 90
+/** A follow-up BG after a meal is expected roughly 1.5–3.5 h later. */
+const FOLLOWUP_MIN_MINUTES = 90
+const FOLLOWUP_MAX_MINUTES = 210
 
-function groupEntriesByMoment(entries: Entry[]): Entry[][] {
+const ts = (e: Entry) => parseISO(e.timestamp).getTime()
+
+/**
+ * Group the day's entries into cards.
+ *
+ * 1. Consecutive non-mood entries within 90 min form one "moment" card.
+ * 2. Mood entries are always their own card.
+ * 3. A lone BG measured 90–210 min after a meal gets pulled into that meal's
+ *    card as the "follow-up" reading (so a meal + bolus + later BG show as one
+ *    connected episode).
+ */
+function buildGroups(entries: Entry[]): Entry[][] {
   if (entries.length === 0) return []
 
-  const sorted = [...entries].sort(
-    (a, b) => parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
-  )
+  const sorted = [...entries].sort((a, b) => ts(a) - ts(b))
 
-  const groups: Entry[][] = []
-  let currentGroup: Entry[] = []
+  // Step 1: base clusters by proximity (mood always standalone).
+  const clusters: Entry[][] = []
+  let current: Entry[] = []
   let groupStartTime = 0
 
-  for (let idx = 0; idx < sorted.length; idx += 1) {
-    const entry = sorted[idx]
-
-    // Mood entries are always standalone cards.
+  for (const entry of sorted) {
     if (entry.type === "mood") {
-      if (currentGroup.length > 0) {
-        groups.push(currentGroup)
-        currentGroup = []
+      if (current.length > 0) {
+        clusters.push(current)
+        current = []
       }
-      groups.push([entry])
+      clusters.push([entry])
       continue
     }
 
-    if (currentGroup.length === 0) {
-      currentGroup = [entry]
-      groupStartTime = parseISO(entry.timestamp).getTime()
+    if (current.length === 0) {
+      current = [entry]
+      groupStartTime = ts(entry)
       continue
     }
 
-    const entryTime = parseISO(entry.timestamp).getTime()
-    const diffMinutes = (entryTime - groupStartTime) / (1000 * 60)
-
-    if (diffMinutes <= GROUP_WINDOW_MINUTES) {
-      currentGroup.push(entry)
+    if ((ts(entry) - groupStartTime) / 60000 <= GROUP_WINDOW_MINUTES) {
+      current.push(entry)
       continue
     }
 
-    groups.push(currentGroup)
-    currentGroup = [entry]
-    groupStartTime = entryTime
+    clusters.push(current)
+    current = [entry]
+    groupStartTime = ts(entry)
+  }
+  if (current.length > 0) clusters.push(current)
+
+  // Step 2: attach a lone follow-up BG to the matching meal cluster.
+  const mealClusters = clusters.filter((c) => c.some((e) => e.type === "meal"))
+  const consumed = new Set<Entry[]>()
+
+  for (const mealCluster of mealClusters) {
+    const mealTimes = mealCluster
+      .filter((e) => e.type === "meal")
+      .map((e) => ts(e))
+    const mealTime = Math.min(...mealTimes)
+
+    for (const candidate of clusters) {
+      if (candidate === mealCluster || consumed.has(candidate)) continue
+      // Only a standalone single glucose reading qualifies as a follow-up.
+      if (candidate.length === 1 && candidate[0].type === "glucose") {
+        const diffMin = (ts(candidate[0]) - mealTime) / 60000
+        if (diffMin >= FOLLOWUP_MIN_MINUTES && diffMin <= FOLLOWUP_MAX_MINUTES) {
+          mealCluster.push(candidate[0])
+          consumed.add(candidate)
+          break
+        }
+      }
+    }
   }
 
-  if (currentGroup.length > 0) groups.push(currentGroup)
-  return groups
+  return clusters.filter((c) => !consumed.has(c))
 }
 
 interface EntryListProps {
@@ -61,10 +93,7 @@ interface EntryListProps {
 }
 
 export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
-  const groupedEntries = useMemo(
-    () => groupEntriesByMoment(entries).reverse(),
-    [entries]
-  )
+  const groupedEntries = useMemo(() => buildGroups(entries).reverse(), [entries])
 
   const visibleGroups = useMemo(() => {
     if (filter === "all") return groupedEntries
@@ -80,6 +109,7 @@ export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
         <LogbookUnifiedEntryCard
           key={group.map((entry) => entry.id).join("-")}
           entries={group}
+          dayEntries={entries}
           onMealUpdated={onMealUpdated}
         />
       ))}

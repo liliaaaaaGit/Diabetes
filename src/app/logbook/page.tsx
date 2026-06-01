@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback, useEffect } from "react"
-import { Entry, EntryType } from "@/lib/types"
+import { Entry, EntryType, InsulinEntry, NewEntry } from "@/lib/types"
 import { AppShell } from "@/components/shared/app-shell"
 import { FilterTabs } from "@/components/logbook/filter-tabs"
 import { LogbookWeekCalendar } from "@/components/logbook/logbook-week-calendar"
@@ -67,6 +67,40 @@ export default function LogbookPage() {
     },
     []
   )
+
+  // Most recent bolus (rapid) insulin name, used to pre-fill the quick form.
+  const defaultBolusName = useMemo(() => {
+    const boluses = entries
+      .filter((e): e is InsulinEntry => e.type === "insulin" && e.insulinType === "rapid")
+      .sort((a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime())
+    return boluses[0]?.insulinName || undefined
+  }, [entries])
+
+  // Fast manual path: write each filled field as its own entry, no AI.
+  const handleQuickSave = async (newEntries: NewEntry[]) => {
+    if (!userId) return
+    let saved = 0
+    for (const ne of newEntries) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        await createEntry(userId, ne)
+        if (ne.type === "glucose") {
+          triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
+        }
+        saved += 1
+      } catch (e) {
+        toast({
+          title: t("logbook.entrySaved"),
+          description: e instanceof Error ? e.message : undefined,
+          variant: "destructive",
+        })
+      }
+    }
+    if (saved > 0) {
+      await refetch()
+      toast({ title: t("logbook.aiSaveSuccess", { count: saved }) })
+    }
+  }
 
   const handleSave = (newEntry: Entry) => {
     void (async () => {
@@ -171,6 +205,8 @@ export default function LogbookPage() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        onQuickSave={handleQuickSave}
+        defaultBolusName={defaultBolusName}
       />
     </AppShell>
   )

@@ -1,11 +1,19 @@
 "use client"
 
 import type { CarbConfidence } from "@/lib/types"
-import { confidenceBadgeClass, confidenceLabelKey } from "@/lib/meal-carbs"
+import { confidenceLabelKey } from "@/lib/meal-carbs"
 import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 
-export function MealConfidenceBadge({
+/**
+ * Unified AI-confidence indicator used on every AI suggestion / estimate.
+ *
+ * One vocabulary everywhere: "Sicherheit: niedrig | mittel | hoch".
+ * Always prefixed with the word "Sicherheit:" so it can never be misread as a
+ * value (e.g. the old "hoch" badge next to "0 g KH" looked like a carb amount).
+ * Rendered as small, neutral gray text — no colored pills, no percentages.
+ */
+export function ConfidenceIndicator({
   confidence,
   className,
 }: {
@@ -15,14 +23,11 @@ export function MealConfidenceBadge({
   const { t } = useTranslation()
   if (!confidence) return null
   return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-medium leading-none",
-        confidenceBadgeClass(confidence),
-        className
-      )}
-    >
-      {t(confidenceLabelKey(confidence))}
+    <span className={cn("text-[12px] leading-none text-gray-400", className)}>
+      {t("logbook.confidencePrefix")}: {t(confidenceLabelKey(confidence))}
     </span>
   )
 }
+
+/** Backwards-compatible alias (older imports used MealConfidenceBadge). */
+export const MealConfidenceBadge = ConfidenceIndicator
