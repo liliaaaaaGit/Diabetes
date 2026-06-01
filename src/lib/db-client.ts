@@ -97,8 +97,8 @@ export function searchConversations(_userId: string, query: string): Promise<Con
 
 export function getConversationStats(
   _userId: string
-): Promise<{ total: number; thisMonth: number; avgLength: number }> {
-  return callClientDb<{ total: number; thisMonth: number; avgLength: number }>({
+): Promise<{ total: number; thisMonth: number; thisWeek: number }> {
+  return callClientDb<{ total: number; thisMonth: number; thisWeek: number }>({
     op: "getConversationStats",
   })
 }

@@ -3,6 +3,7 @@
 import { Message } from "@/lib/types"
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { splitBuddySafetyContent, stripChipMarkers } from "@/lib/buddy-message-display"
 import { useTranslation } from "@/hooks/useTranslation"
@@ -47,11 +48,12 @@ export function MessageBubble({ message, showAssistantAvatar = true }: MessageBu
           )}
         >
           {!isUser && safety ? (
-            <div className="mb-3 rounded-lg border-2 border-amber-400/90 bg-amber-50 px-3 py-2.5 text-xs text-amber-950">
-              <p className="font-semibold uppercase tracking-wide text-amber-900">
+            <div className="mb-3 rounded-lg border border-gray-200 border-l-4 border-l-gray-400 bg-gray-100 px-3 py-2.5 text-xs text-gray-700">
+              <p className="flex items-center gap-1.5 font-medium text-gray-800">
+                <Info className="h-3.5 w-3.5 flex-shrink-0 text-gray-500" aria-hidden />
                 {t("buddy.crisis.safetyHeading")}
               </p>
-              <p className="mt-1.5 whitespace-pre-wrap leading-relaxed">{safety}</p>
+              <p className="mt-1.5 whitespace-pre-wrap leading-relaxed text-gray-700">{safety}</p>
             </div>
           ) : null}
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{displayBody}</p>

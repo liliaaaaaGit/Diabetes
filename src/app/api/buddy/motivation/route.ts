@@ -36,7 +36,13 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Generiere einen kurzen, ermutigenden Gedanken des Tages fuer eine Person mit Diabetes. Der Spruch soll sich auf die Themen der letzten Gespraeche beziehen. Kein Kitsch, kein medizinischer Rat. Authentisch und warm. 1-2 Saetze. Auf Deutsch. Antworte als JSON: { quote: string }",
+            "Generiere einen kurzen, ermutigenden Gedanken des Tages fuer eine Person mit Diabetes. " +
+            "REGELN: " +
+            "1. Der Gedanke MUSS einen klaren Bezug zum Diabetes-Alltag, zu Diabetes-Emotionen oder zu den Themen der letzten Gespraeche haben. " +
+            "2. Gute Beispiele: 'Ein hoher Wert nach dem Essen ist kein Versagen – es ist ein Datenpunkt, aus dem du lernen kannst.' / 'Manchmal hilft ein Spaziergang nach dem Essen nicht nur dem Zucker, sondern auch dem Kopf.' " +
+            "3. Schlechte Beispiele (zu generisch, KEIN Diabetes-Bezug, vermeide sie): 'Fuehre eine Dankbarkeitspraxis ein.' / 'Nimm dir 5 Minuten fuer eine Atemuebung.' / 'Du bist gut genug, so wie du bist.' " +
+            "4. Anti-Perfektionismus, aber immer rund um Diabetes gerahmt, nicht ums Leben allgemein. " +
+            "Kein Kitsch, kein medizinischer Rat, keine Insulin- oder Dosierungsempfehlung. Authentisch und warm. 1-2 Saetze. Auf Deutsch. Antworte als JSON: { quote: string }",
         },
         { role: "user", content: `Themen der letzten Gespraeche: ${tags.join(", ")}` },
       ],

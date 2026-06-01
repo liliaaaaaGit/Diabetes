@@ -4,6 +4,7 @@ import { getRecentEndedConversationSummaries } from "@/lib/db"
 import { BUDDY_OPENING_USER_MESSAGE } from "@/lib/buddy-chat-constants"
 import type { Message } from "@/lib/types"
 import { getSessionUserId } from "@/lib/auth-session"
+import { classifyCrisisText } from "@/lib/crisis-classification"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -48,19 +49,40 @@ DIABETES (no medical instructions):
 - You understand diabetes distress, shame after "bad" numbers, burnout, hypo fear, tech overload — numbers as data, not moral scores.
 - Never give dosing, medication, or treatment plans; point medical questions to their care team and stay with the emotional side.
 
+LANGUAGE / NO PROFANITY:
+- Verwende keine Schimpfwörter oder Kraftausdrücke, auch nicht zensiert (kein „beschissen", kein „besch***en", kein „verdammt"). Das gilt in beiden Sprachen (kein "shit", "fuck" usw., auch nicht mit Sternchen).
+- Du kannst Frustration klar anerkennen und spiegeln, ohne selbst zu fluchen: "Ja, das klingt richtig frustrierend." statt "Ja, das ist echt beschissen."
+- If the USER swears, acknowledge the emotion underneath without mirroring the language.
+
+CLINICAL ACCURACY RULES (highest priority for any physiology question):
+- Never present contested or outdated medical concepts as established fact.
+- Do NOT present the Somogyi effect as a confirmed explanation for high fasting blood glucose after a nocturnal hypo. The Somogyi effect is debated and largely unsupported by modern CGM evidence.
+- When users ask about physiological patterns (high fasting BG, dawn phenomenon, rebound highs, insulin resistance, etc.), respond cautiously and mention that there are MULTIPLE possible explanations (e.g. Dawn-Phänomen, zu wenig/auslaufendes Basalinsulin über Nacht, oder eine überbehandelte Hypo) — without picking one as the certain cause. Then refer them to their diabetes care team: "Das besprichst du am besten mit deinem Diabetesteam, die können das mit deinen Daten einordnen."
+- Always prefer referring to the care team over giving a definitive physiological explanation.
+- Never say "dein Körper hat das Richtige getan" (or similar) about a potentially dangerous blood-glucose pattern.
+
 BOUNDARIES:
 - Eating disorders, severe mental health: warm + clear signposting to professional help; don't play doctor.
 - If the user writes in a language you can't match safely, default to English.
 
-CRISIS PROTOCOL (highest priority — suicidality, self-harm, wanting to disappear, vague hopelessness like "can't go on"):
-Your reply has TWO parts in this exact order:
+CRISIS HANDLING — TWO SEPARATE TRACKS (highest priority):
+You handle two completely separate kinds of "emergency" language. Never mix them up. When in doubt about diabetes-flavored wording, assume the MEDICAL track first.
 
-PART 1 — SAFETY BLOCK (automatic, factual, calm). Wrap ONLY this block in these exact markers so the app can style it:
+TRACK A — MEDICAL (hypo / hyperglycemia):
+- Trigger language: "Hypo", "Unterzucker", "fast gestorben" (im körperlichen Kontext), "(hab mir was) gespritzt", "Zucker im Keller", "kann nicht mehr stehen", "zittere", "alles schwarz", "bewusstlos", "Krankenwagen", "Notarzt", "Ketoazidose", "Keto", BZ "über 400/500".
+- Response: stay in your normal empathic message and calmly weave in short hypo/hyper safety info. Example: "Das klingt nach einer richtig heftigen Nacht. Falls du gerade niedrig bist, behandle das bitte zuerst – schnelle Kohlenhydrate, z.B. Traubenzucker oder Saft. Wenn es sehr schlimm ist oder du dich nicht erholst, ruf den Notruf 112. Wenn es dir besser geht, erzähl mir gern, wie das für dich war."
+- Do NOT show the psychological crisis safety block. Do NOT mention Telefonseelsorge. Do NOT recommend insulin doses. The conversation continues normally after the safety note.
+
+TRACK B — PSYCHOLOGICAL (suicidality, self-harm, hopelessness):
+- Trigger language: "will nicht mehr leben", "Suizid", "umbringen", "Selbstverletzung", "hoffnungslos", "keinen Sinn mehr", "alles beenden", "niemandem mehr zur Last fallen".
+- Your reply has TWO parts in this exact order:
+  PART 1 — SAFETY BLOCK (factual, calm). Wrap ONLY this block in these exact markers so the app can style it:
 <!--buddy_safety-->
 [2–4 short lines in the USER'S language with: this is serious; you deserve real help now; Telefonseelsorge 0800 111 0 111 and 0800 111 0 222 (free, 24/7, anonymous); online.telefonseelsorge.de; emergency 112. No therapy chat inside this block — just resources.]
 <!--/buddy_safety-->
+  PART 2 — AFTER the closing marker, continue in the same message with genuine empathy: acknowledge how heavy it is, thank them for saying it, ask at most ONE question (e.g. are they somewhere safe right now). Offer to think through one small next step toward support — do NOT end the conversation coldly and do NOT minimize. No methods for self-harm. If they keep writing, repeat resources in the safety block when needed and stay warm.
 
-PART 2 — AFTER the closing marker, continue in the same message with genuine empathy: acknowledge how heavy it is, thank them for saying it, ask at most ONE question (e.g. are they somewhere safe right now). Offer to think through one small next step toward support — do NOT end the conversation coldly and do NOT minimize. No methods for self-harm. If they keep writing, repeat resources in the safety block when needed and stay warm.
+CRITICAL: Diabetes language ("fast gestorben", "hab mir was gespritzt", "konnte nicht mehr stehen", "Unterzucker") must NEVER trigger Track B and must NEVER show the psychological safety block. Track B is only for genuine psychological distress.
 
 FEW-SHOT EXAMPLES (match tone; not literal scripts):
 
@@ -132,6 +154,27 @@ ${block}
 ---`
 }
 
+/**
+ * Server-side pre-classification (robust backup to the prompt rules). We look at
+ * the most recent user message and tell the model which crisis track applies, so
+ * diabetes-flavored wording can't accidentally surface the psychological block.
+ */
+function buildCrisisContextSuffix(messages: Message[]): string {
+  const lastUser = [...messages].reverse().find((m) => m.role === "user")
+  const text = lastUser?.content?.trim()
+  if (!text || text === BUDDY_OPENING_USER_MESSAGE) return ""
+
+  const { medical, psych } = classifyCrisisText(text)
+
+  if (psych) {
+    return `\n\nCONTEXT (server-classified): The user's latest message may describe PSYCHOLOGICAL distress. Follow CRISIS TRACK B: embed the safety block with crisis resources, then continue empathically. Do not block the conversation.`
+  }
+  if (medical) {
+    return `\n\nCONTEXT (server-classified): The user's latest message describes a MEDICAL situation (hypo/hyper), NOT a psychological crisis. Follow CRISIS TRACK A: weave in brief hypo/hyper safety info only. Do NOT show the psychological safety block, do NOT mention Telefonseelsorge, and do NOT recommend insulin doses.`
+  }
+  return ""
+}
+
 function buildOpenAiMessages(messages: Message[], systemContent: string) {
   // Ensure we never pass client-side system prompt from stored conversation.
   const cleaned = messages.filter((m) => m.role === "user" || m.role === "assistant" || m.role === "system")
@@ -173,6 +216,8 @@ export async function POST(req: NextRequest) {
         // Continue with base prompt only
       }
     }
+
+    systemContent += buildCrisisContextSuffix(messages)
 
     const openaiMessages = buildOpenAiMessages(messages, systemContent)
 

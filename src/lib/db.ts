@@ -754,7 +754,7 @@ export async function getEmotionAverages(userId: string): Promise<ConversationEm
 export async function getConversationStats(userId: string): Promise<{
   total: number
   thisMonth: number
-  avgLength: number
+  thisWeek: number
 }> {
   const conversations = await getConversations(userId)
   const now = new Date()
@@ -763,13 +763,11 @@ export async function getConversationStats(userId: string): Promise<{
     const d = new Date(c.startedAt)
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
-  const avgLength =
-    total > 0
-      ? Math.round(
-          conversations.reduce((acc, c) => acc + (c.messageCount ?? c.messages.length ?? 0), 0) / total
-        )
-      : 0
-  return { total, thisMonth, avgLength }
+  // Conversations started in the last 7 days — a simple "keep using it" metric
+  // that's more meaningful to a patient than average message length.
+  const weekAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000
+  const thisWeek = conversations.filter((c) => new Date(c.startedAt).getTime() >= weekAgo).length
+  return { total, thisMonth, thisWeek }
 }
 
 export async function cleanupEmptyConversations(userId: string): Promise<number> {

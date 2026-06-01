@@ -25,7 +25,7 @@ export function BuddyHomeHero({
   return (
     <div className="flex min-h-0 w-full flex-col justify-between overflow-x-hidden overflow-y-auto">
       <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:gap-3 md:gap-4 lg:items-stretch lg:gap-6 xl:gap-8">
-        <div className="flex min-h-[120px] w-full min-w-0 flex-col items-center justify-center sm:min-h-[130px] sm:w-2/5 lg:min-h-0 lg:w-auto lg:max-w-[min(100%,420px)] lg:shrink-0 lg:items-stretch">
+        <div className="flex min-h-[96px] w-full min-w-0 flex-col items-center justify-center sm:min-h-[110px] sm:w-1/3 lg:min-h-0 lg:w-auto lg:max-w-[min(100%,280px)] lg:shrink-0 lg:items-stretch">
           <div className="relative flex h-full min-h-0 w-full flex-1 items-center justify-center overflow-visible">
             <picture>
               <source
@@ -40,13 +40,13 @@ export function BuddyHomeHero({
                 width={800}
                 height={800}
                 priority
-                className="h-auto w-auto max-h-[150px] max-w-full object-contain object-center min-[480px]:max-h-[170px] md:max-h-[220px] lg:max-h-[min(400px,100%)]"
+                className="h-auto w-auto max-h-[120px] max-w-full object-contain object-center min-[480px]:max-h-[130px] md:max-h-[170px] lg:max-h-[min(260px,100%)]"
               />
             </picture>
           </div>
         </div>
 
-        <div className="relative flex min-h-[120px] w-full min-w-0 flex-1 flex-col self-stretch sm:w-3/5 lg:w-auto">
+        <div className="relative flex min-h-[120px] w-full min-w-0 flex-1 flex-col self-stretch sm:w-2/3 lg:w-auto">
           <div className="flex h-full min-h-0 flex-col justify-center overflow-hidden rounded-lg bg-teal-500/10 p-3 shadow-sm ring-1 ring-teal-500/15 md:px-4 md:py-4 lg:px-5 lg:py-5">
             <span
               className="pointer-events-none absolute left-1.5 top-2 font-serif text-2xl leading-none text-teal-500 md:left-2 md:top-3 md:text-4xl lg:text-4xl"

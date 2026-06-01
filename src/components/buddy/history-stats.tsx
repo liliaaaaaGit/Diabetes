@@ -11,11 +11,11 @@ interface HistoryStatsProps {
 
 export function HistoryStats({ userId, refreshKey = 0 }: HistoryStatsProps) {
   const { t } = useTranslation()
-  const [stats, setStats] = useState({ total: 0, thisMonth: 0, avgLength: 0 })
+  const [stats, setStats] = useState({ total: 0, thisMonth: 0, thisWeek: 0 })
 
   useEffect(() => {
     if (!userId) {
-      setStats({ total: 0, thisMonth: 0, avgLength: 0 })
+      setStats({ total: 0, thisMonth: 0, thisWeek: 0 })
       return
     }
     let cancelled = false
@@ -24,7 +24,7 @@ export function HistoryStats({ userId, refreshKey = 0 }: HistoryStatsProps) {
         const data = await getConversationStats(userId)
         if (!cancelled) setStats(data)
       } catch {
-        if (!cancelled) setStats({ total: 0, thisMonth: 0, avgLength: 0 })
+        if (!cancelled) setStats({ total: 0, thisMonth: 0, thisWeek: 0 })
       }
     })()
     return () => {
@@ -43,9 +43,8 @@ export function HistoryStats({ userId, refreshKey = 0 }: HistoryStatsProps) {
         <p className="mt-1 text-xl font-semibold text-teal-600">{stats.thisMonth}</p>
       </div>
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-        <p className="text-[11px] leading-tight text-slate-500 md:text-sm">{t("buddy.history.avgLength")}</p>
-        <p className="mt-1 text-xl font-semibold text-purple-600">{stats.avgLength}</p>
-        <p className="text-[10px] text-slate-500 md:text-xs">{t("buddy.history.messages")}</p>
+        <p className="text-[11px] leading-tight text-slate-500 md:text-sm">{t("buddy.history.thisWeek")}</p>
+        <p className="mt-1 text-xl font-semibold text-teal-600">{stats.thisWeek}</p>
       </div>
     </div>
   )

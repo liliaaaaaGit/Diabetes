@@ -6,6 +6,7 @@ import { getConversation, addMessage, updateConversationTitle } from "@/lib/db-c
 import { BUDDY_OPENING_USER_MESSAGE } from "@/lib/buddy-chat-constants"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/useTranslation"
+import { isPsychologicalCrisis } from "@/lib/crisis-classification"
 
 type ChatError =
   | { type: "none" }
@@ -17,33 +18,13 @@ const RATE_LIMIT_KEY = "glucoBuddy_rate_timestamps"
 const MAX_MESSAGES = 30
 const WINDOW_MS = 5 * 60 * 1000
 
-const CRISIS_KEYWORDS = [
-  "umbringen",
-  "suizid",
-  "selbstmord",
-  "nicht mehr leben",
-  "aufhören zu leben",
-  "alles beenden",
-  "keinen sinn",
-  "wehtun",
-  "selbst verletzen",
-  "ritzen",
-  "will nicht mehr",
-  "kann nicht mehr",
-  "verschwinden",
-  "tot sein",
-]
-
-function normalizeCrisisText(text: string) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-}
-
+/**
+ * The persistent crisis banner (Telefonseelsorge) belongs to the PSYCHOLOGICAL
+ * track only. Medical/hypo language must never trigger it, so we delegate to the
+ * shared two-track classifier and check the psychological track exclusively.
+ */
 export function detectCrisisKeywords(text: string): boolean {
-  const normalized = normalizeCrisisText(text)
-  return CRISIS_KEYWORDS.some((keyword) => normalized.includes(normalizeCrisisText(keyword)))
+  return isPsychologicalCrisis(text)
 }
 
 function readRateWindow(): number[] {

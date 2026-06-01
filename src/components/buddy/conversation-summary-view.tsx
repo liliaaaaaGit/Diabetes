@@ -3,7 +3,7 @@
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
-import { Bot, MessageSquareText, User } from "lucide-react"
+import { Bot, Info, MessageSquareText, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
 import type { ConversationTag, Message } from "@/lib/types"
@@ -26,9 +26,9 @@ function formatSummaryDate(iso: string, locale: "de" | "en"): string {
   try {
     const d = parseISO(iso)
     if (locale === "de") {
-      return format(d, "EEEE, d. MMMM", { locale: de }).toLowerCase()
+      return format(d, "EEEE, d. MMMM", { locale: de })
     }
-    return format(d, "EEEE, MMMM d", { locale: enUS }).toLowerCase()
+    return format(d, "EEEE, MMMM d", { locale: enUS })
   } catch {
     return ""
   }
@@ -59,13 +59,13 @@ export function ConversationSummaryView({
         <div className="mx-auto w-full max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl">
           <h1
             id="conversation-summary-title"
-            className="text-3xl font-bold lowercase leading-tight tracking-tight text-slate-900 sm:text-4xl"
+            className="text-3xl font-bold leading-tight tracking-tight text-slate-900 sm:text-4xl"
           >
             {title.trim() || t("buddy.chat")}
           </h1>
 
           {dateLabel ? (
-            <p className="mt-3 text-sm lowercase text-slate-500">{dateLabel}</p>
+            <p className="mt-3 text-sm text-slate-500">{dateLabel}</p>
           ) : null}
 
           {tags.length > 0 ? (
@@ -78,7 +78,7 @@ export function ConversationSummaryView({
                   <span className="text-base leading-none" aria-hidden>
                     {tag.emoji}
                   </span>
-                  <span className="lowercase">{tag.label}</span>
+                  <span>{tag.label}</span>
                 </span>
               ))}
             </div>
@@ -129,11 +129,12 @@ export function ConversationSummaryView({
                   <div className="max-w-[85%] min-w-0">
                     <div className="rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-900">
                       {safety ? (
-                        <div className="mb-3 rounded-lg border-2 border-amber-400/90 bg-amber-50 px-3 py-2.5 text-xs text-amber-950">
-                          <p className="font-semibold uppercase tracking-wide text-amber-900">
+                        <div className="mb-3 rounded-lg border border-gray-200 border-l-4 border-l-gray-400 bg-gray-100 px-3 py-2.5 text-xs text-gray-700">
+                          <p className="flex items-center gap-1.5 font-medium text-gray-800">
+                            <Info className="h-3.5 w-3.5 flex-shrink-0 text-gray-500" aria-hidden />
                             {t("buddy.crisis.safetyHeading")}
                           </p>
-                          <p className="mt-1.5 whitespace-pre-wrap leading-relaxed">{safety}</p>
+                          <p className="mt-1.5 whitespace-pre-wrap leading-relaxed text-gray-700">{safety}</p>
                         </div>
                       ) : null}
                       <p className="whitespace-pre-wrap">{body}</p>
