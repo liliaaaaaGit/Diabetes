@@ -346,22 +346,40 @@ export async function getEntries(
     limit?: number
   }
 ): Promise<Entry[]> {
-  let query = supabase
-    .from("entries")
-    .select("id,user_id,source,type,timestamp,note,created_at,conversation_id")
-    .eq("user_id", userId)
+  // Supabase/PostgREST returns at most 1,000 rows per request by default. A
+  // user with CGM data can easily have thousands of entries in a window, so we
+  // page through the results with .range() instead of silently truncating.
+  const PAGE_SIZE = 1000
+  // Safety ceiling so a pathological query can never pull unbounded rows.
+  const MAX_ROWS = 50000
 
-  if (filters?.type) query = query.eq("type", filters.type)
-  if (filters?.from) query = query.gte("timestamp", filters.from)
-  if (filters?.to) query = query.lt("timestamp", filters.to)
+  // Each page needs a freshly-built query (the Supabase builder isn't reusable).
+  const buildPage = (offset: number, size: number) => {
+    let q = supabase
+      .from("entries")
+      .select("id,user_id,source,type,timestamp,note,created_at,conversation_id")
+      .eq("user_id", userId)
+    if (filters?.type) q = q.eq("type", filters.type)
+    if (filters?.from) q = q.gte("timestamp", filters.from)
+    if (filters?.to) q = q.lt("timestamp", filters.to)
+    return q.order("timestamp", { ascending: false }).range(offset, offset + size - 1)
+  }
 
-  query = query.order("timestamp", { ascending: false })
-  if (filters?.limit) query = query.limit(filters.limit)
+  const hardCap = filters?.limit && filters.limit > 0 ? filters.limit : MAX_ROWS
 
-  const { data: baseRows, error } = await query
-  if (error) throw error
-
-  const base = (baseRows || []) as any[]
+  const base: any[] = []
+  let offset = 0
+  while (base.length < hardCap) {
+    const remaining = hardCap - base.length
+    const size = Math.min(PAGE_SIZE, remaining)
+    const { data, error } = await buildPage(offset, size)
+    if (error) throw error
+    const page = (data || []) as any[]
+    base.push(...page)
+    // Last page reached when fewer rows came back than we asked for.
+    if (page.length < size) break
+    offset += page.length
+  }
   const byType: Record<EntryType, string[]> = {
     glucose: [],
     insulin: [],
