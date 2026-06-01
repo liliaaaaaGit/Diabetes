@@ -11,6 +11,10 @@ interface StatCardProps {
   icon: LucideIcon
   trend?: "up" | "down" | "stable"
   color?: string
+  /** Small, lighter text shown right after the value, e.g. the sample size "(n=5)". */
+  caption?: string
+  /** Subtle disclaimer line shown below the value (used for sparse-data hints). */
+  note?: string
 }
 
 export function StatCard({
@@ -20,6 +24,8 @@ export function StatCard({
   icon: Icon,
   trend,
   color = "teal",
+  caption,
+  note,
 }: StatCardProps) {
   return (
     <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
@@ -36,7 +42,13 @@ export function StatCard({
               {unit && (
                 <span className="text-[11px] text-slate-500 sm:text-xs">{unit}</span>
               )}
+              {caption && (
+                <span className="text-[11px] font-normal text-slate-400">{caption}</span>
+              )}
             </div>
+            {note && (
+              <p className="text-[10px] leading-snug text-slate-400">{note}</p>
+            )}
             {trend && (
               <div
                 className={cn(

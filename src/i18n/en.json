@@ -114,6 +114,12 @@
     "bedtime": "Bedtime",
     "other": "Other",
     "carbs": "carbs",
+    "trendRising": "Rising",
+    "trendSlightlyRising": "Slightly rising",
+    "trendStable": "Stable",
+    "trendSlightlyFalling": "Slightly falling",
+    "trendFalling": "Falling",
+    "sparseDataHint": "Few measurements – more are recommended for reliable values.",
     "entryDialogComing": "Entry dialog coming in step 5"
   },
   "logbook": {

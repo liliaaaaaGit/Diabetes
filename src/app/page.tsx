@@ -19,10 +19,67 @@ import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucos
 import { createEntry } from "@/lib/db-client"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel, resolveMoodDisplayNote } from "@/lib/mood"
-import type { Entry, GlucoseEntry, MoodEntry } from "@/lib/types"
+import type { Entry, GlucoseContext, GlucoseEntry, MoodEntry } from "@/lib/types"
 import { formatDistanceToNow, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { enUS } from "date-fns/locale/en-US"
 import { glucoseTirPercents } from "@/lib/insights-aggregate"
+
+/** Translate a glucose context code into a human-readable label. */
+function getContextText(context: GlucoseContext, t: (k: string) => string): string {
+  if (context === "fasting") return t("dashboard.fasting")
+  if (context === "pre_meal") return t("dashboard.beforeMeal")
+  if (context === "post_meal") return t("dashboard.afterMeal")
+  if (context === "bedtime") return t("dashboard.bedtime")
+  return t("dashboard.other")
+}
+
+/** A measurement is considered "stale" (no longer decision-relevant) after 4 hours. */
+const STALE_HOURS = 4
+
+/** Below this average number of measurements per day, TIR/average are flagged as sparse. */
+const SPARSE_PER_DAY = 10
+
+/** Hours within which a previous measurement is still comparable for a trend. */
+const TREND_MAX_GAP_HOURS = 3
+
+interface GlucoseTrend {
+  arrow: string
+  /** Tailwind text-color class for the arrow. */
+  colorClass: string
+  /** Translation key for the descriptive label. */
+  labelKey: string
+}
+
+/**
+ * Compare the most recent measurement with the previous one and derive a trend.
+ * Returns null when there is no comparable previous reading (none at all, or the
+ * previous one is older than TREND_MAX_GAP_HOURS so the comparison is meaningless).
+ */
+function computeGlucoseTrend(
+  current: GlucoseEntry,
+  previous?: GlucoseEntry
+): GlucoseTrend | null {
+  if (!previous) return null
+
+  const currentMs = new Date(current.timestamp).getTime()
+  const previousMs = new Date(previous.timestamp).getTime()
+  const hoursApart = (currentMs - previousMs) / (1000 * 60 * 60)
+  if (hoursApart < 0 || hoursApart > TREND_MAX_GAP_HOURS) return null
+
+  // Values are stored in mg/dL, so the thresholds below are in mg/dL.
+  const diff = current.value - previous.value
+  if (diff > 15) return { arrow: "↑", colorClass: "text-red-600", labelKey: "dashboard.trendRising" }
+  if (diff > 5) return { arrow: "↗", colorClass: "text-amber-600", labelKey: "dashboard.trendSlightlyRising" }
+  if (diff >= -5) return { arrow: "→", colorClass: "text-emerald-600", labelKey: "dashboard.trendStable" }
+  if (diff >= -15) return { arrow: "↘", colorClass: "text-emerald-600", labelKey: "dashboard.trendSlightlyFalling" }
+  // A fast drop can also be dangerous, so it gets a warning color.
+  return { arrow: "↓", colorClass: "text-amber-600", labelKey: "dashboard.trendFalling" }
+}
+
+function hoursSince(timestamp: string): number {
+  return (Date.now() - new Date(timestamp).getTime()) / (1000 * 60 * 60)
+}
 
 function MoodSummaryCard({ label, moodEntry }: { label: string; moodEntry?: MoodEntry }) {
   const { t } = useTranslation()
@@ -42,6 +99,62 @@ function MoodSummaryCard({ label, moodEntry }: { label: string; moodEntry?: Mood
             />
           ))}
         </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+/**
+ * The big "Last Measurement" card. Shows the value with a trend arrow (Fix 5),
+ * the meal context, and a clearly separated "time ago" line that turns orange
+ * when the reading is stale (Fix 6).
+ */
+function LastMeasurementCard({
+  entry,
+  previousEntry,
+}: {
+  entry: GlucoseEntry
+  previousEntry?: GlucoseEntry
+}) {
+  const { t, locale } = useTranslation()
+  const { formatGlucoseWithUnit, unitSuffix } = useUserPreferences()
+
+  const trend = computeGlucoseTrend(entry, previousEntry)
+  const isStale = hoursSince(entry.timestamp) > STALE_HOURS
+
+  const dateLocale = locale === "en" ? enUS : de
+  let timeAgo = ""
+  try {
+    timeAgo = formatDistanceToNow(parseISO(entry.timestamp), {
+      addSuffix: true,
+      locale: dateLocale,
+    })
+  } catch {
+    timeAgo = ""
+  }
+
+  return (
+    <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
+      <CardContent className="p-6">
+        <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
+        <div className="flex items-baseline gap-2 mb-2">
+          <span className="text-3xl font-bold text-slate-900 sm:text-4xl">
+            {formatGlucoseWithUnit(entry.value).value}
+          </span>
+          <span className="text-lg text-slate-600">{unitSuffix}</span>
+          {trend && (
+            <span className={`flex items-baseline gap-1 text-lg font-semibold ${trend.colorClass}`}>
+              <span aria-hidden="true">{trend.arrow}</span>
+              <span className="text-sm">{t(trend.labelKey)}</span>
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-slate-600">{getContextText(entry.context, t)}</p>
+        {timeAgo && (
+          <p className={`text-[13px] mt-0.5 ${isStale ? "text-orange-500" : "text-gray-400"}`}>
+            {timeAgo}
+          </p>
+        )}
       </CardContent>
     </Card>
   )
@@ -89,30 +202,24 @@ export default function DashboardPage() {
     return glucoseTirPercents(last7d, targetMinMgDl, targetMaxMgDl).inRange
   }, [glucoseTyped, targetMinMgDl, targetMaxMgDl])
 
-  const lastGlucoseEntry = useMemo(() => {
-    return [...glucoseTyped]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
+  // Most recent two glucose readings (newest first), used for the trend arrow.
+  const sortedGlucose = useMemo(() => {
+    return [...glucoseTyped].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
   }, [glucoseTyped])
+  const lastGlucoseEntry = sortedGlucose[0]
+  const prevGlucoseEntry = sortedGlucose[1]
+
+  // Number of measurements the 7-day average / TIR are based on. With finger-prick
+  // data this is small, so we surface it (Fix 3) instead of implying CGM precision.
+  const last7dCount = useMemo(() => {
+    const cutoff = subDays(new Date(), 7)
+    return glucoseTyped.filter((e) => parseISO(e.timestamp) >= cutoff).length
+  }, [glucoseTyped])
+  const isSparseData = last7dCount > 0 && last7dCount / 7 < SPARSE_PER_DAY
 
   const lastMoodEntry = moodTyped[0]
-
-  const getContextText = (context: string) => {
-    if (context === "fasting") return t("dashboard.fasting")
-    if (context === "pre_meal") return t("dashboard.beforeMeal")
-    if (context === "post_meal") return t("dashboard.afterMeal")
-    if (context === "bedtime") return t("dashboard.bedtime")
-    return t("dashboard.other")
-  }
-
-  const getRelativeTime = (timestamp: string): string => {
-    try {
-      const date = parseISO(timestamp)
-      const distance = formatDistanceToNow(date, { addSuffix: true, locale: de })
-      return distance.replace(/^vor /, "").replace(/^in /, "")
-    } catch {
-      return ""
-    }
-  }
 
   const handleQuickLog = () => {
     setIsModalOpen(true)
@@ -156,20 +263,7 @@ export default function DashboardPage() {
         <div className="md:hidden space-y-6">
           {/* Last Measurement */}
           {lastGlucoseEntry && (
-            <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
-              <CardContent className="p-6">
-                <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-3xl font-bold text-slate-900 sm:text-4xl">
-                    {formatGlucoseWithUnit(lastGlucoseEntry.value).value}
-                  </span>
-                  <span className="text-lg text-slate-600">{unitSuffix}</span>
-                </div>
-                <p className="text-sm text-slate-600">
-                  {getContextText(lastGlucoseEntry.context)} • {getRelativeTime(lastGlucoseEntry.timestamp)}
-                </p>
-              </CardContent>
-            </Card>
+            <LastMeasurementCard entry={lastGlucoseEntry} previousEntry={prevGlucoseEntry} />
           )}
 
           {/* Mobile stat cards: stacked on narrow screens */}
@@ -180,6 +274,8 @@ export default function DashboardPage() {
               unit={unitSuffix}
               icon={Droplet}
               color="teal"
+              caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
+              note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
             />
             <StatCard
               label={t("dashboard.entriesToday")}
@@ -192,6 +288,8 @@ export default function DashboardPage() {
               value={`${timeInRangePercent}%`}
               icon={TrendingUp}
               color="purple"
+              caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
+              note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
             />
           </div>
 
@@ -214,18 +312,7 @@ export default function DashboardPage() {
           <div className="md:col-span-2 space-y-6">
             {/* Last Measurement */}
             {lastGlucoseEntry && (
-              <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
-                <CardContent className="p-6">
-                  <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-4xl font-bold text-slate-900">{formatGlucoseWithUnit(lastGlucoseEntry.value).value}</span>
-                    <span className="text-lg text-slate-600">{unitSuffix}</span>
-                  </div>
-                  <p className="text-sm text-slate-600">
-                    {getContextText(lastGlucoseEntry.context)} • {getRelativeTime(lastGlucoseEntry.timestamp)}
-                  </p>
-                </CardContent>
-              </Card>
+              <LastMeasurementCard entry={lastGlucoseEntry} previousEntry={prevGlucoseEntry} />
             )}
 
             {!glucoseLoading && glucoseTyped.length === 0 ? (
@@ -245,6 +332,8 @@ export default function DashboardPage() {
                 unit={unitSuffix}
                 icon={Droplet}
                 color="teal"
+                caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
+                note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
               />
               <StatCard
                 label={t("dashboard.entriesToday")}
@@ -257,6 +346,8 @@ export default function DashboardPage() {
                 value={`${timeInRangePercent}%`}
                 icon={TrendingUp}
                 color="purple"
+                caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
+                note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
               />
               <MoodSummaryCard label={t("dashboard.moodToday")} moodEntry={lastMoodEntry} />
             </div>

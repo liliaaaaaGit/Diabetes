@@ -57,8 +57,13 @@ export function glucoseChartScale(displayUnit: GlucoseDisplayUnit, targetMinMgDl
   const toDisplay = (mg: number) =>
     displayUnit === "mmol/L" ? mgDlToMmolL(mg) : Math.round(mg)
   return {
-    yMin: displayUnit === "mmol/L" ? 3.3 : 60,
+    // Start the axis at 40 mg/dL (~2.2 mmol/L) so a severe hypoglycemia
+    // is still visible on the chart instead of being clipped at the bottom.
+    yMin: displayUnit === "mmol/L" ? 2.2 : 40,
     yMax: displayUnit === "mmol/L" ? 11.1 : 200,
+    // Upper bound for the (optional) "high" reference zone. The axis itself
+    // grows automatically, so this only caps how far up the colored band fills.
+    yMaxCap: displayUnit === "mmol/L" ? mgDlToMmolL(300) : 300,
     targetLow: toDisplay(targetMinMgDl),
     targetHigh: toDisplay(targetMaxMgDl),
   }

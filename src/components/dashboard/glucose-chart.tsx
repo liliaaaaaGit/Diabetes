@@ -93,11 +93,18 @@ export function GlucoseChart({
         : Math.round(entry.valueMgDl)
     return {
       timestamp: entry.timestamp,
+      // Numeric epoch time (ms) so the X-axis can position points by *actual*
+      // clock time rather than by their index in the list.
+      ts: parseISO(entry.timestamp).getTime(),
       value: displayVal,
       valueMgDl: entry.valueMgDl,
-      time: format(parseISO(entry.timestamp), timeFmt, { locale: dateLocale }),
     }
   })
+
+  // X-axis domain = the full time window for the selected range (e.g. the last
+  // 24 hours, last 7 days, ...). This guarantees the horizontal distance
+  // between two points is proportional to the real time elapsed between them.
+  const xDomain: [number, number] = [cutoffDate.getTime(), now.getTime()]
 
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: (typeof chartData)[0] }[] }) => {
     if (active && payload && payload.length) {
@@ -173,35 +180,60 @@ export function GlucoseChart({
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" />
               <XAxis
-                dataKey="time"
+                dataKey="ts"
+                type="number"
+                scale="time"
+                domain={xDomain}
                 stroke="#78716C"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                interval="preserveStartEnd"
+                tickFormatter={(ts: number) =>
+                  format(new Date(ts), timeFmt, { locale: dateLocale })
+                }
               />
               <YAxis
                 stroke="#78716C"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                domain={[chartScale.yMin, chartScale.yMax]}
+                domain={[chartScale.yMin, "auto"]}
               />
               <Tooltip content={<CustomTooltip />} />
+              {/* Hypo zone (below the target range) – a low value is a medical
+                  emergency, so we highlight it in red. */}
+              <ReferenceArea
+                y1={chartScale.yMin}
+                y2={chartScale.targetLow}
+                fill="#FEE2E2"
+                fillOpacity={0.6}
+                stroke="none"
+              />
+              {/* In-range (target) zone – green. */}
               <ReferenceArea
                 y1={chartScale.targetLow}
                 y2={chartScale.targetHigh}
-                fill="#14B8A6"
-                fillOpacity={0.14}
+                fill="#D1FAE5"
+                fillOpacity={0.5}
+                stroke="none"
+              />
+              {/* High zone (above the target range) – yellow. */}
+              <ReferenceArea
+                y1={chartScale.targetHigh}
+                y2={chartScale.yMaxCap}
+                fill="#FEF3C7"
+                fillOpacity={0.45}
                 stroke="none"
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="value"
                 stroke="#0D9488"
                 strokeWidth={2}
-                dot={{ fill: "#14B8A6", r: 4 }}
-                activeDot={{ r: 6 }}
+                dot={{ fill: "#14B8A6", r: 5, stroke: "#ffffff", strokeWidth: 2 }}
+                activeDot={{ r: 7, stroke: "#ffffff", strokeWidth: 2 }}
+                connectNulls={false}
+                isAnimationActive={false}
               />
                 </LineChart>
               </ResponsiveContainer>

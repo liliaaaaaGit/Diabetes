@@ -114,6 +114,12 @@
     "bedtime": "Vor dem Schlafen",
     "other": "Sonstiges",
     "carbs": "KH",
+    "trendRising": "Steigend",
+    "trendSlightlyRising": "Leicht steigend",
+    "trendStable": "Stabil",
+    "trendSlightlyFalling": "Leicht fallend",
+    "trendFalling": "Fallend",
+    "sparseDataHint": "Wenige Messungen – für zuverlässige Werte werden mehr empfohlen.",
     "entryDialogComing": "Eintrag-Dialog kommt in Schritt 5"
   },
   "logbook": {
