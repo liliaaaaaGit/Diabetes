@@ -34,21 +34,48 @@ async function insertChunked<T extends Record<string, unknown>>(
 }
 
 /**
+ * Delete a user's `entries` in small batches. A single huge `DELETE` (cascading
+ * to ~9,000 entry_glucose rows) exceeds the database statement timeout, so we
+ * fetch a page of ids and delete those, looping until none are left.
+ */
+async function deleteEntriesBatched(userId: string, type?: "meal", batchSize = 500) {
+  for (;;) {
+    let query = supabase.from("entries").select("id").eq("user_id", userId).limit(batchSize)
+    if (type) query = query.eq("type", type)
+    const { data, error } = await query
+    if (error) throw error
+    if (!data || data.length === 0) break
+
+    const ids = data.map((row) => (row as { id: string }).id)
+    const del = await supabase.from("entries").delete().in("id", ids)
+    if (del.error) throw del.error
+    if (data.length < batchSize) break
+  }
+}
+
+/**
  * Delete every piece of mock data for a user, respecting foreign-key order.
  * The user row itself is kept. `entry_*` and `messages` are removed
  * automatically via ON DELETE CASCADE when their parent is deleted.
+ *
+ * Note: `entry_meal.linked_insulin_id` references `entries(id)` WITHOUT cascade,
+ * so deleting an insulin entry that a meal still points at would fail. We dodge
+ * this by deleting the user's MEAL entries first — that cascades away the
+ * entry_meal rows (and their linked_insulin_id references) before we remove the
+ * insulin entries in the second pass.
  */
 async function deleteAllUserData(userId: string) {
   // 1. conversations → cascades to messages
   const convDel = await supabase.from("conversations").delete().eq("user_id", userId)
   if (convDel.error) throw convDel.error
-  // 2. entries → cascades to entry_glucose/insulin/meal/mood/activity
-  const entryDel = await supabase.from("entries").delete().eq("user_id", userId)
-  if (entryDel.error) throw entryDel.error
-  // 3. insights
+  // 2. meal entries first → cascades to entry_meal (clears linked_insulin refs)
+  await deleteEntriesBatched(userId, "meal")
+  // 3. remaining entries (glucose/insulin/mood/activity) → cascades to subtype rows
+  await deleteEntriesBatched(userId)
+  // 4. insights
   const insightDel = await supabase.from("insights").delete().eq("user_id", userId)
   if (insightDel.error) throw insightDel.error
-  // 4. goals
+  // 5. goals
   const goalDel = await supabase.from("goals").delete().eq("user_id", userId)
   if (goalDel.error) throw goalDel.error
 }
