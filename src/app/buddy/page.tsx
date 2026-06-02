@@ -467,7 +467,8 @@ export default function BuddyPage() {
       title={t("buddy.title")}
       mainClassName={cn(
         "flex min-h-0 flex-col pb-0 md:pb-0",
-        isFullChatView && "overflow-hidden py-0 md:py-0"
+        isFullChatView &&
+          "overflow-hidden py-0 md:py-0 h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)]"
       )}
       hideFooter
     >
@@ -544,11 +545,14 @@ export default function BuddyPage() {
         {activeTab === "chat" && isFullChatView && (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-0 md:px-6 lg:px-8">
-              <ChatContainer messages={messages} showTyping={isStreaming} showCrisisBanner={hasCrisisFlag} />
-              <p className="hidden shrink-0 border-t border-slate-200/80 bg-slate-50/95 px-3 py-2 text-xs leading-snug text-slate-600 sm:block md:px-4">
-                {t("buddy.aiTransparencyNotice")}
-              </p>
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0">
+                <ChatContainer messages={messages} showTyping={isStreaming} showCrisisBanner={hasCrisisFlag} />
+                <p className="hidden shrink-0 border-t border-slate-200/80 bg-slate-50/95 px-3 py-2 text-xs leading-snug text-slate-600 sm:block md:px-4">
+                  {t("buddy.aiTransparencyNotice")}
+                </p>
+              </div>
               <InputComposer
+                fixedToViewport
                 onSend={handleSendWithExtraction}
                 isDisabled={!canSend || isStreaming}
                 onEndConversation={() => void handleLeaveChat()}

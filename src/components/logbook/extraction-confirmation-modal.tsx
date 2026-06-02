@@ -14,11 +14,26 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import { shouldPreventRadixOverlayDismiss } from "@/lib/radix-overlay-guards"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 
 type ExtractionConfirmationModalProps = ComponentProps<typeof ExtractionConfirmation> & {
   open: boolean
   onClose: () => void
+}
+
+const overlayGuardProps = {
+  onPointerDownOutside: (e: Event) => {
+    if (shouldPreventRadixOverlayDismiss(e)) e.preventDefault()
+  },
+  onInteractOutside: (e: Event) => {
+    if (shouldPreventRadixOverlayDismiss(e)) e.preventDefault()
+  },
+  // iOS: focusing inputs / selects must not dismiss the sheet.
+  onFocusOutside: (e: Event) => {
+    e.preventDefault()
+  },
 }
 
 /**
@@ -34,7 +49,10 @@ export function ExtractionConfirmationModal({
   ...confirmationProps
 }: ExtractionConfirmationModalProps) {
   const { t } = useTranslation()
+  const isMobile = useMediaQuery("(max-width: 767px)")
   const modalTitle = title ?? t("logbook.extractionDetectedEntries")
+
+  if (!open) return null
 
   const handleDiscard = () => {
     onDiscard()
@@ -60,36 +78,50 @@ export function ExtractionConfirmationModal({
     />
   )
 
-  return (
-    <>
-      <div className="md:hidden">
-        <Sheet open={open} onOpenChange={(v) => !v && handleDiscard()} modal>
-          <SheetContent
-            side="bottom"
-            className="flex max-h-[min(96dvh,100%)] flex-col gap-0 overflow-hidden rounded-t-2xl border-teal-100 bg-teal-50/95 px-4 pb-0 pt-5"
-          >
-            <SheetHeader className="shrink-0 text-left">
-              <SheetTitle className="text-base">{modalTitle}</SheetTitle>
-            </SheetHeader>
-            <div className="mt-3 min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
-              {panel}
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+  if (isMobile) {
+    return (
+      <Sheet
+        open
+        onOpenChange={(next) => {
+          if (!next) handleDiscard()
+        }}
+        modal
+      >
+        <SheetContent
+          side="bottom"
+          className="flex max-h-[min(96dvh,100%)] flex-col gap-0 overflow-hidden rounded-t-2xl border-teal-100 bg-teal-50/95 px-4 pb-0 pt-5"
+          {...overlayGuardProps}
+        >
+          <SheetHeader className="shrink-0 text-left">
+            <SheetTitle className="text-base">{modalTitle}</SheetTitle>
+          </SheetHeader>
+          <div className="mt-3 min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+            {panel}
+          </div>
+        </SheetContent>
+      </Sheet>
+    )
+  }
 
-      <div className="hidden md:block">
-        <Dialog open={open} onOpenChange={(v) => !v && handleDiscard()} modal>
-          <DialogContent className="flex max-h-[min(90dvh,900px)] max-w-2xl flex-col gap-0 overflow-hidden border-teal-100 bg-teal-50/95 p-0 sm:rounded-xl">
-            <DialogHeader className="shrink-0 border-b border-teal-100/80 px-6 py-4 text-left">
-              <DialogTitle className="text-base">{modalTitle}</DialogTitle>
-            </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
-              {panel}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </>
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next) handleDiscard()
+      }}
+      modal
+    >
+      <DialogContent
+        className="flex max-h-[min(90dvh,900px)] max-w-2xl flex-col gap-0 overflow-hidden border-teal-100 bg-teal-50/95 p-0 sm:rounded-xl"
+        {...overlayGuardProps}
+      >
+        <DialogHeader className="shrink-0 border-b border-teal-100/80 px-6 py-4 text-left">
+          <DialogTitle className="text-base">{modalTitle}</DialogTitle>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
+          {panel}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

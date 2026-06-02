@@ -5,6 +5,7 @@ import { Send, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useVisualViewportInset } from "@/hooks/use-visual-viewport-inset"
 import { cn } from "@/lib/utils"
 
 interface InputComposerProps {
@@ -14,6 +15,8 @@ interface InputComposerProps {
   onEndConversation?: () => void
   onImageSelected?: (file: File) => void
   isEndingConversation?: boolean
+  /** Pin to viewport bottom on mobile (ChatGPT-style chat). */
+  fixedToViewport?: boolean
 }
 
 export function InputComposer({
@@ -23,8 +26,10 @@ export function InputComposer({
   onEndConversation,
   onImageSelected,
   isEndingConversation = false,
+  fixedToViewport = false,
 }: InputComposerProps) {
   const { t } = useTranslation()
+  const keyboardInset = useVisualViewportInset()
   const [text, setText] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -45,9 +50,17 @@ export function InputComposer({
   return (
     <div
       className={cn(
-        "sticky bottom-0 z-20 shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm",
-        "px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:px-4 sm:py-3 sm:pb-[calc(env(safe-area-inset-bottom)+12px)]"
+        "shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm",
+        "px-3 pt-2 sm:px-4 sm:py-3",
+        fixedToViewport
+          ? "fixed inset-x-0 bottom-0 z-40 md:static md:z-auto"
+          : "sticky bottom-0 z-20"
       )}
+      style={{
+        paddingBottom: fixedToViewport
+          ? `calc(${12 + keyboardInset}px + env(safe-area-inset-bottom))`
+          : "calc(12px + env(safe-area-inset-bottom))",
+      }}
     >
       <input
         ref={fileInputRef}
@@ -91,8 +104,8 @@ export function InputComposer({
           disabled={isDisabled}
           rows={1}
           className={cn(
-            "min-h-[44px] min-w-0 flex-1 resize-none rounded-full px-4 py-3 text-base",
-            "max-h-[120px] focus-visible:ring-2 focus-visible:ring-teal-500 sm:text-sm"
+            "min-h-[44px] min-w-0 flex-1 resize-none rounded-full px-4 text-base leading-normal",
+            "py-2.5 max-h-[120px] focus-visible:ring-2 focus-visible:ring-teal-500 sm:text-sm sm:py-3"
           )}
           style={{
             height: "auto",
