@@ -86,13 +86,57 @@
     word-break: break-word;
   }
 
-  /* Native date/time pickers on iOS must stay inside narrow grid columns */
-  .logbook-datetime-input {
+}
+
+/* Logbook AI extraction: native date/time must match <Input h-10> / <SelectTrigger> (not achievable via Tailwind alone). */
+@layer components {
+  input.logbook-datetime-input[type="date"],
+  input.logbook-datetime-input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
     display: block;
     width: 100%;
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
+    /* Matches src/components/ui/input.tsx + select trigger: h-10 px-3 py-2 rounded-md border-input bg-background */
+    height: 2.5rem;
+    min-height: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+    border: 1px solid hsl(var(--input));
+    border-radius: 0.375rem;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    text-align: left;
+  }
+
+  @media (min-width: 640px) {
+    input.logbook-datetime-input[type="date"],
+    input.logbook-datetime-input[type="time"] {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+  }
+
+  input.logbook-datetime-input[type="date"]::-webkit-date-and-time-value,
+  input.logbook-datetime-input[type="time"]::-webkit-date-and-time-value {
+    text-align: left;
+    margin: 0;
+  }
+
+  input.logbook-datetime-input[type="date"]::-webkit-datetime-edit,
+  input.logbook-datetime-input[type="time"]::-webkit-datetime-edit {
+    padding: 0;
+    margin: 0;
+  }
+
+  input.logbook-datetime-input[type="date"]::-webkit-calendar-picker-indicator,
+  input.logbook-datetime-input[type="time"]::-webkit-calendar-picker-indicator {
+    margin: 0;
+    opacity: 0.5;
+    cursor: pointer;
   }
 }
 

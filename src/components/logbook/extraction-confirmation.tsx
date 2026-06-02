@@ -334,7 +334,9 @@ export function ExtractionConfirmation({
     onSaveResult?.({ saved, failed, dates })
   }
 
-  /** Same 2-column row as carbs + meal type — always side by side on mobile and desktop. */
+  /** Same grid cell + field styling as carbs / meal type row (see globals.css .logbook-datetime-input). */
+  const logbookFieldClass = "min-w-0 w-full appearance-none box-border"
+
   const renderEntryDateTimeFields = (entry: Row, idx: number) => (
     <>
       <div className="flex min-w-0 flex-col">
@@ -343,7 +345,7 @@ export function ExtractionConfirmation({
           type="date"
           value={entry.entryDate ?? ""}
           onChange={(e) => updateEntryMeta(idx, { entryDate: e.target.value })}
-          className="logbook-datetime-input min-w-0 w-full"
+          className={`logbook-datetime-input ${logbookFieldClass}`}
         />
       </div>
       <div className="flex min-w-0 flex-col">
@@ -352,7 +354,7 @@ export function ExtractionConfirmation({
           type="time"
           value={entry.entryTime ?? ""}
           onChange={(e) => updateEntryMeta(idx, { entryTime: e.target.value })}
-          className="logbook-datetime-input min-w-0 w-full"
+          className={`logbook-datetime-input ${logbookFieldClass}`}
         />
       </div>
     </>
@@ -495,7 +497,7 @@ export function ExtractionConfirmation({
                   carbsMaxGrams: undefined,
                 })
               }}
-              className="min-w-0"
+              className={logbookFieldClass}
             />
           </div>
           <div className="flex min-w-0 flex-col">
