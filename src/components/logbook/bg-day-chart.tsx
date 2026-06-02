@@ -29,7 +29,13 @@ export function BgDayChart({ date, entries }: BgDayChartProps) {
   const { t } = useTranslation()
   const { displayUnit, targetMinMgDl, targetMaxMgDl, formatGlucoseWithUnit: fmt } = useUserPreferences()
   const scale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
-  const yTicks = [scale.yMin, scale.targetLow, scale.targetHigh, scale.yMaxCap]
+  const yTicks = [
+    scale.yMin,
+    scale.yMin + (scale.yMaxCap - scale.yMin) * 0.25,
+    scale.yMin + (scale.yMaxCap - scale.yMin) * 0.5,
+    scale.yMin + (scale.yMaxCap - scale.yMin) * 0.75,
+    scale.yMaxCap,
+  ].map((v) => Math.round(v * 10) / 10)
 
   // Day window. For "today", the chart ends at "now" (never in the future).
   const dayStartMs = startOfDay(date).getTime()

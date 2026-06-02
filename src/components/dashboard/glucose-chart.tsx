@@ -12,7 +12,7 @@ import {
   buildBgCurveData,
 } from "@/components/charts/bg-curve-chart"
 import { parseISO } from "date-fns"
-import { glucoseChartScale, mgDlToMmolL } from "@/lib/glucose-units"
+import { glucoseChartScale } from "@/lib/glucose-units"
 
 export type GlucoseChartTimeRange = "24h" | "7d" | "30d" | "3m" | "1y"
 
@@ -76,12 +76,13 @@ export function GlucoseChart({
   const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
   const yTicks = [
     chartScale.yMin,
-    chartScale.targetLow,
-    chartScale.targetHigh,
+    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.25,
+    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.5,
+    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.75,
     chartScale.yMaxCap,
-  ]
-  const formatYAxisTick = (valueMgDl: number) =>
-    displayUnit === "mmol/L" ? mgDlToMmolL(valueMgDl).toFixed(1) : String(Math.round(valueMgDl))
+  ].map((v) => Math.round(v * 10) / 10)
+  const formatYAxisTick = (tickValue: number) =>
+    displayUnit === "mmol/L" ? tickValue.toFixed(1) : String(Math.round(tickValue))
 
   const tabTriggerClass =
     "min-h-[44px] shrink-0 px-3 text-xs sm:px-2.5 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
