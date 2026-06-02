@@ -234,6 +234,12 @@ export default function SettingsPage() {
               >
                 {t("settings.openPrivacyPolicy")}
               </Link>
+              <Link
+                href="/study/questionnaire"
+                className="text-sm text-teal-600 underline mt-3 block"
+              >
+                Fragebogen erneut öffnen
+              </Link>
             </div>
           </CardContent>
         </Card>

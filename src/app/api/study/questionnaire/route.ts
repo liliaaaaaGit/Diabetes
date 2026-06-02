@@ -4,7 +4,7 @@ import {
   getQuestionnaireResponse,
   upsertQuestionnaireResponse,
 } from "@/lib/questionnaire"
-import type { QuestionnairePatch } from "@/lib/questionnaire-types"
+import type { QuestionnairePatch, QuestionnaireSectionId } from "@/lib/questionnaire-types"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -30,14 +30,15 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 })
     }
 
-    const body = (await req.json()) as QuestionnairePatch & {
-      lastSection?: string
-    }
-
-    const patch: QuestionnairePatch = { ...body }
-    if (body.lastSection && ["A", "B", "C", "D", "E", "F", "G", "H"].includes(body.lastSection)) {
-      patch.lastSection = body.lastSection as QuestionnairePatch["lastSection"]
-    }
+    const body = (await req.json()) as { section?: QuestionnaireSectionId } & QuestionnairePatch
+    const patch: QuestionnairePatch = {}
+    if (body.sectionA) patch.sectionA = body.sectionA
+    if (body.sectionB) patch.sectionB = body.sectionB
+    if (body.sectionC) patch.sectionC = body.sectionC
+    if (body.sectionD) patch.sectionD = body.sectionD
+    if (body.sectionE) patch.sectionE = body.sectionE
+    if (body.sectionF) patch.sectionF = body.sectionF
+    if (body.sectionG) patch.sectionG = body.sectionG
 
     const response = await upsertQuestionnaireResponse(userId, patch)
     return NextResponse.json({ response })

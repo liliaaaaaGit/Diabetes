@@ -1,15 +1,6 @@
-export type QuestionnaireSectionId = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H"
+export type QuestionnaireSectionId = "A" | "B" | "C" | "D" | "E" | "F" | "G"
 
-export const QUESTIONNAIRE_SECTIONS: QuestionnaireSectionId[] = [
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "H",
-]
+export const QUESTIONNAIRE_SECTIONS: QuestionnaireSectionId[] = ["A", "B", "C", "D", "E", "F", "G"]
 
 export type DiabetesTypeValue = "typ1" | "typ2" | "lada" | "andere" | "keine_angabe"
 export type TherapyFormValue =
@@ -19,131 +10,93 @@ export type TherapyFormValue =
   | "nur_lebensstil"
   | "keine_angabe"
 export type ToolsCountValue = "0" | "1" | "2" | "3" | "4_plus"
+export type AiUsageGeneralValue = "nie" | "selten" | "monatlich" | "woechentlich" | "taeglich"
+export type AiUsageDiabetesValue = "ja_regelmaessig" | "ja_ausprobiert" | "nein"
+
+export type SectionA = {
+  age: number | null
+  diabetes_type: DiabetesTypeValue | null
+  years_with_diabetes: number | null
+  therapy_form: TherapyFormValue | null
+  tools_count: ToolsCountValue | null
+  ai_usage_general: AiUsageGeneralValue | null
+  ai_usage_diabetes: AiUsageDiabetesValue | null
+}
+
+export type SectionB = {
+  s1: number | null
+  s2: number | null
+  s3: number | null
+  s4: number | null
+  s5: number | null
+  s6: number | null
+  s7: number | null
+  s8: number | null
+  s9: number | null
+  s10: number | null
+}
+
+export type SectionC = {
+  pu1: number | null
+  pu2: number | null
+  pu3: number | null
+  pu4: number | null
+  bi1: number | null
+  bi2: number | null
+  bi3: number | null
+}
+
+export type SectionD = {
+  d1: number | null
+  d2: number | null
+  d3: number | null
+  mc_role: number | null
+  mc_transparency: number | null
+}
+
+export type SectionE = {
+  e1: number | null
+  e2: number | null
+  e3: number | null
+  e4: number | null
+  e5: number | null
+  e6: number | null
+}
+
+export type SectionF = {
+  f1: number | null
+  f2: number | null
+  f3: number | null
+}
+
+export type SectionG = {
+  g1: string | null
+  g2: string | null
+  g3: string | null
+}
 
 export interface QuestionnaireResponse {
   id: string
   userId: string
   createdAt: string
-  updatedAt: string
   completedAt: string | null
-  language: "de" | "en"
-  lastSection: QuestionnaireSectionId | null
-  durationSeconds: number | null
-
-  a1Age: number | null
-  a2DiabetesType: DiabetesTypeValue | null
-  a3YearsWithDiabetes: number | null
-  a4TherapyForm: TherapyFormValue | null
-  a5CurrentToolsCount: ToolsCountValue | null
-
-  b1Supportive: number | null
-  b2Easy: number | null
-  b3Efficient: number | null
-  b4Clear: number | null
-  b5Exciting: number | null
-  b6Interesting: number | null
-  b7Inventive: number | null
-  b8Innovative: number | null
-
-  c9ConsolidationReplace: number | null
-  c10ConsolidationOneapp: number | null
-  c11ConsolidationCgm: number | null
-
-  d12BuddyEmpathy: number | null
-  d13BuddySelfDisclosure: number | null
-  d14BuddyRoleClarity: number | null
-  d15BuddyTransparency: number | null
-  d16BuddyAcceptance: number | null
-
-  e17InsightCorrelationAha: number | null
-  e18InsightUnderstandable: number | null
-  e19SelfAwareness: number | null
-  e20EmotionalMarketGap: number | null
-  e21FreetextExtractionUseful: number | null
-
-  f22TrustDataClarity: number | null
-  f23TrustOverall: number | null
-  f24PrivacyTextClear: number | null
-
-  g25IntentContinue: number | null
-  g26IntentRecommend: number | null
-
-  h27OpenBest: string | null
-  h28OpenMissed: string | null
-  h29OpenOneChange: string | null
+  sectionA: SectionA
+  sectionB: SectionB
+  sectionC: SectionC
+  sectionD: SectionD
+  sectionE: SectionE
+  sectionF: SectionF
+  sectionG: SectionG
 }
 
-export type QuestionnairePatch = Partial<
-  Omit<
-    QuestionnaireResponse,
-    "id" | "userId" | "createdAt" | "updatedAt" | "completedAt" | "durationSeconds"
-  >
->
+export type QuestionnairePatch = Partial<{
+  sectionA: SectionA
+  sectionB: SectionB
+  sectionC: SectionC
+  sectionD: SectionD
+  sectionE: SectionE
+  sectionF: SectionF
+  sectionG: SectionG
+}>
 
-/** Section A — demographics (not included in the 29 scale-item count). */
-export const DEMOGRAPHIC_KEYS = [
-  "a1Age",
-  "a2DiabetesType",
-  "a3YearsWithDiabetes",
-  "a4TherapyForm",
-  "a5CurrentToolsCount",
-] as const
-
-/** 29 closed scale items B–G (excludes demographics A and open text H27–H29). */
-export const SCALE_ITEM_KEYS = [
-  "b1Supportive",
-  "b2Easy",
-  "b3Efficient",
-  "b4Clear",
-  "b5Exciting",
-  "b6Interesting",
-  "b7Inventive",
-  "b8Innovative",
-  "c9ConsolidationReplace",
-  "c10ConsolidationOneapp",
-  "c11ConsolidationCgm",
-  "d12BuddyEmpathy",
-  "d13BuddySelfDisclosure",
-  "d14BuddyRoleClarity",
-  "d15BuddyTransparency",
-  "d16BuddyAcceptance",
-  "e17InsightCorrelationAha",
-  "e18InsightUnderstandable",
-  "e19SelfAwareness",
-  "e20EmotionalMarketGap",
-  "e21FreetextExtractionUseful",
-  "f22TrustDataClarity",
-  "f23TrustOverall",
-  "f24PrivacyTextClear",
-  "g25IntentContinue",
-  "g26IntentRecommend",
-] as const
-
-export const CLOSED_ITEM_KEYS = [...DEMOGRAPHIC_KEYS, ...SCALE_ITEM_KEYS] as const
-
-export const SCALE_ITEM_COUNT = SCALE_ITEM_KEYS.length
-
-export function countAnsweredScaleItems(row: QuestionnaireResponse): number {
-  let n = 0
-  for (const key of SCALE_ITEM_KEYS) {
-    const v = row[key]
-    if (v !== null && v !== undefined) n += 1
-  }
-  return n
-}
-
-export function sectionIndex(section: QuestionnaireSectionId): number {
-  return QUESTIONNAIRE_SECTIONS.indexOf(section)
-}
-
-export function nextSection(section: QuestionnaireSectionId): QuestionnaireSectionId | null {
-  const i = sectionIndex(section)
-  if (i < 0 || i >= QUESTIONNAIRE_SECTIONS.length - 1) return null
-  return QUESTIONNAIRE_SECTIONS[i + 1]
-}
-
-export function prevSection(section: QuestionnaireSectionId): QuestionnaireSectionId | null {
-  const i = sectionIndex(section)
-  if (i <= 0) return null
-  return QUESTIONNAIRE_SECTIONS[i - 1]
-}
+export const LIKERT_VALUES = [1, 2, 3, 4, 5] as const

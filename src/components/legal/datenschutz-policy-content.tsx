@@ -107,7 +107,7 @@ export function DatenschutzPolicyContent() {
         <p>
           <strong className="font-semibold text-slate-900">4.6 Befragungsdaten.</strong> Sofern Sie den
           Studienfragebogen ausfüllen, werden Ihre Antworten (Skalen- und Freitextantworten) pseudonym unter
-          Ihrer Benutzerkennung gespeichert.
+          Ihrer Benutzer-ID gespeichert. Spätestens nach Abschluss der Studie werden sie gelöscht.
         </p>
       </section>
 
