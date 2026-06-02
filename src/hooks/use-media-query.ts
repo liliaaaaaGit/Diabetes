@@ -2,16 +2,19 @@
 
 import { useState, useEffect } from "react"
 
+function getMatches(query: string): boolean {
+  if (typeof window === "undefined") return true
+  return window.matchMedia(query).matches
+}
+
 /**
- * SSR-safe media query hook. Returns `false` until mounted, then the real value.
- * Prefer CSS breakpoints (md:hidden) when a layout flash would be jarring.
+ * SSR-safe media query hook. Initial value uses window on first client render
+ * so mobile does not briefly mount a desktop Dialog overlay.
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [matches, setMatches] = useState(() => getMatches(query))
 
   useEffect(() => {
-    setMounted(true)
     const media = window.matchMedia(query)
     setMatches(media.matches)
     const listener = () => setMatches(media.matches)
@@ -19,6 +22,5 @@ export function useMediaQuery(query: string): boolean {
     return () => media.removeEventListener("change", listener)
   }, [query])
 
-  if (!mounted) return false
   return matches
 }

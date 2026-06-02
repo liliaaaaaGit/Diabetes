@@ -187,6 +187,7 @@
     "aiSaveSuccess": "{{count}} Einträge gespeichert",
     "aiSavePartialFailed": "{{count}} Einträge konnten nicht gespeichert werden.",
     "aiSaveFailed": "Speichern fehlgeschlagen. Bitte versuche es erneut.",
+    "aiSaveNothingSelected": "Bitte wähle mindestens einen Eintrag aus (Häkchen-Button rechts).",
     "estimatedCarbsHint": "(geschaetzt)",
     "extractionDetectedEntries": "Erkannte Einträge",
     "entryDateLabel": "Eintragsdatum",

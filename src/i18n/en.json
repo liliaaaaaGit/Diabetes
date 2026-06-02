@@ -187,6 +187,7 @@
     "aiSaveSuccess": "{{count}} entries saved",
     "aiSavePartialFailed": "{{count}} entries could not be saved.",
     "aiSaveFailed": "Saving failed. Please try again.",
+    "aiSaveNothingSelected": "Please include at least one entry (check button on the right).",
     "estimatedCarbsHint": "(estimated)",
     "extractionDetectedEntries": "Recognized Entries",
     "entryDateLabel": "Entry date",

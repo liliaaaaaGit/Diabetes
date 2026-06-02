@@ -297,7 +297,13 @@ export function ExtractionConfirmation({
       .map((e) => buildNewEntryFromExtracted(e))
       .filter(Boolean) as NewEntry[]
 
-    if (newEntries.length === 0) return
+    if (newEntries.length === 0) {
+      toast({
+        title: t("logbook.aiSaveNothingSelected"),
+        variant: "destructive",
+      })
+      return
+    }
 
     setSaving(true)
     let saved = 0

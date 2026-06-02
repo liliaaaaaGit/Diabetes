@@ -140,6 +140,11 @@
   }
 }
 
+/* Radix Select portals to body; keep menus above extraction modal (z-110). */
+body:has(.extraction-modal-root) [data-radix-select-content] {
+  z-index: 150;
+}
+
 @layer utilities {
   .mobile-page-title {
     @apply text-xl font-semibold leading-relaxed text-slate-900 md:text-2xl;
