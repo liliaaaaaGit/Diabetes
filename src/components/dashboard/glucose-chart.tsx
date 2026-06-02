@@ -11,7 +11,7 @@ import {
   bgDotConfig,
   buildBgCurveData,
 } from "@/components/charts/bg-curve-chart"
-import { subHours, subDays, subMonths, subYears, parseISO } from "date-fns"
+import { parseISO } from "date-fns"
 
 export type GlucoseChartTimeRange = "24h" | "7d" | "30d" | "3m" | "1y"
 
@@ -21,20 +21,14 @@ interface GlucoseChartProps {
 }
 
 function cutoffForRange(range: GlucoseChartTimeRange, now: Date): Date {
-  switch (range) {
-    case "24h":
-      return subHours(now, 24)
-    case "7d":
-      return subDays(now, 7)
-    case "30d":
-      return subDays(now, 30)
-    case "3m":
-      return subMonths(now, 3)
-    case "1y":
-      return subYears(now, 1)
-    default:
-      return subHours(now, 24)
+  const rangeMs: Record<GlucoseChartTimeRange, number> = {
+    "24h": 24 * 60 * 60 * 1000,
+    "7d": 7 * 24 * 60 * 60 * 1000,
+    "30d": 30 * 24 * 60 * 60 * 1000,
+    "3m": 90 * 24 * 60 * 60 * 1000,
+    "1y": 365 * 24 * 60 * 60 * 1000,
   }
+  return new Date(now.getTime() - rangeMs[range])
 }
 
 function timeLabelFormat(range: GlucoseChartTimeRange): string {
@@ -65,6 +59,7 @@ export function GlucoseChart({
 
   const filteredEntries = entries.filter((entry) => {
     const entryDate = parseISO(entry.timestamp)
+    if (Number.isNaN(entryDate.getTime())) return false
     return entryDate >= cutoffDate && entryDate <= now
   })
 

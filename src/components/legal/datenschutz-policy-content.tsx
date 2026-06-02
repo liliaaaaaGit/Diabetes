@@ -94,7 +94,7 @@ export function DatenschutzPolicyContent() {
         </p>
         <p>
           <strong className="font-semibold text-slate-900">4.4 Kommunikationsdaten.</strong> Ihre Nachrichten an
-          den KI-Chatbot "Gluco", dessen Antworten, KI-generierte Gesprächszusammenfassungen sowie
+          den KI-Chatbot &quot;Gluco&quot;, dessen Antworten, KI-generierte Gesprächszusammenfassungen sowie
           KI-generierte Emotionsauswertungen.
         </p>
         <p>
@@ -114,7 +114,7 @@ export function DatenschutzPolicyContent() {
       <section className="space-y-4">
         <h2 className="text-base font-semibold text-slate-900">5. Einsatz künstlicher Intelligenz</h2>
         <p>
-          <strong className="font-semibold text-slate-900">5.1 Chatbot "Gluco".</strong> Gluco ist ein
+          <strong className="font-semibold text-slate-900">5.1 Chatbot &quot;Gluco&quot;.</strong> Gluco ist ein
           KI-gestützter Chatbot zur Unterstützung des emotionalen Selbstmanagements und orientiert sich an
           Ansätzen der kognitiven Verhaltenstherapie (KVT). Er ist kein Therapeut, kein Arzt und kein
           Medizinprodukt. Seine Antworten können fehlerhaft sein.

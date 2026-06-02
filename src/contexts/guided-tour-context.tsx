@@ -72,7 +72,7 @@ export function GuidedTourProvider({
       endTour,
       setTourPhase,
     }),
-    [active, tourPhase, startTour, endTour]
+    [active, tourPhase, startTour, endTour, setTourPhase]
   )
 
   return <GuidedTourContext.Provider value={value}>{children}</GuidedTourContext.Provider>
