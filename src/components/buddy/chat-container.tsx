@@ -18,30 +18,35 @@ export function ChatContainer({
   showCrisisBanner = false,
 }: ChatContainerProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    const run = () => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
     }
+    requestAnimationFrame(run)
   }, [messages, showTyping])
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
-    >
-      {showCrisisBanner && <CrisisBanner />}
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4">
+      <div className="space-y-4">
+        {showCrisisBanner && <CrisisBanner />}
 
-      {messages.map((message, index) => {
-        const previous = messages[index - 1]
-        const showAssistantAvatar = message.role !== "assistant" || previous?.role !== "assistant"
-        return <MessageBubble key={message.id} message={message} showAssistantAvatar={showAssistantAvatar} />
-      })}
+        {messages.map((message, index) => {
+          const previous = messages[index - 1]
+          const showAssistantAvatar = message.role !== "assistant" || previous?.role !== "assistant"
+          return (
+            <MessageBubble key={message.id} message={message} showAssistantAvatar={showAssistantAvatar} />
+          )
+        })}
 
-      {showTyping &&
-        (messages.length === 0 || messages[messages.length - 1]?.role !== "assistant") && (
-          <TypingIndicator />
-        )}
+        {showTyping &&
+          (messages.length === 0 || messages[messages.length - 1]?.role !== "assistant") && (
+            <TypingIndicator />
+          )}
+
+        <div ref={bottomRef} className="h-px w-full shrink-0" aria-hidden />
+      </div>
     </div>
   )
 }

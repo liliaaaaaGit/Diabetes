@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback, useEffect } from "react"
+import { flushSync } from "react-dom"
 import { Entry, EntryType, InsulinEntry, NewEntry } from "@/lib/types"
 import { AppShell } from "@/components/shared/app-shell"
 import { FilterTabs } from "@/components/logbook/filter-tabs"
@@ -13,7 +14,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { useEntries } from "@/hooks/useEntries"
+import { invalidateEntriesCacheForUser, useEntries } from "@/hooks/useEntries"
 import { useUser } from "@/hooks/useUser"
 import { createEntry } from "@/lib/db-client"
 import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
@@ -70,6 +71,18 @@ export default function LogbookPage() {
     setDidAutoSelectDate(true)
     setSelectedDate(startOfDay(d))
   }, [])
+
+  /** After AI/photo save: switch day first, then bust cache and refetch (avoids stale week list). */
+  const handleEntrySaved = useCallback(
+    async (dates?: string[]) => {
+      if (dates?.[0]) {
+        flushSync(() => handleNavigateToDate(dates[0]))
+      }
+      if (userId) invalidateEntriesCacheForUser(userId)
+      await refetch()
+    },
+    [handleNavigateToDate, refetch, userId]
+  )
 
   const dayEntries = useMemo(() => {
     return entries.filter((e) => isSameDay(parseISO(e.timestamp), selectedDate))
@@ -215,6 +228,7 @@ export default function LogbookPage() {
           onManualFallback={() => setIsModalOpen(true)}
           onRefetch={refetch}
           onNavigateToDate={handleNavigateToDate}
+          onEntrySaved={handleEntrySaved}
         />
 
         {/* 3. Filter tabs (sticky) sit directly above the entry list. */}

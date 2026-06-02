@@ -115,7 +115,7 @@ export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
     <div className="w-full">
       {visibleGroups.map((group) => (
         <LogbookUnifiedEntryCard
-          key={group.map((entry) => entry.id).join("-")}
+          key={[...group].map((entry) => entry.id).sort().join("|")}
           entries={group}
           dayEntries={entries}
           onMealUpdated={onMealUpdated}

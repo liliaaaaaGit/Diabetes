@@ -3,7 +3,7 @@
 import { Camera, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/hooks/useTranslation"
-import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
+import { ExtractionConfirmationModal } from "@/components/logbook/extraction-confirmation-modal"
 import { usePhotoMealContext } from "@/components/logbook/photo-meal-context"
 import { isMobileDevice } from "@/components/logbook/use-photo-meal-analysis"
 
@@ -53,18 +53,19 @@ export function PhotoMealPanels() {
 
   if (photo.extractedEntries) {
     return (
-      <div className="col-span-full mt-1 space-y-2">
-        <ExtractionConfirmation
-          extractedEntries={photo.extractedEntries}
-          aiMessage=""
-          photoWarning={photo.photoWarning}
-          mealSource="photo_ai"
-          source="manual"
-          onSaveEntry={photo.savePhotoMeal}
-          onSaveResult={photo.onPhotoSaveResult}
-          onDiscard={photo.resetPhoto}
-        />
-      </div>
+      <ExtractionConfirmationModal
+        key={photo.confirmationKey}
+        open
+        onClose={photo.resetPhoto}
+        extractedEntries={photo.extractedEntries}
+        aiMessage=""
+        photoWarning={photo.photoWarning}
+        mealSource="photo_ai"
+        source="manual"
+        onSaveEntry={photo.savePhotoMeal}
+        onSaveResult={(result) => void photo.onPhotoSaveResult(result)}
+        onDiscard={photo.resetPhoto}
+      />
     )
   }
 

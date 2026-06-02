@@ -25,12 +25,16 @@ export function photoAnalysisToExtractedEntry(
   if (khMin == null || khMax == null) return null
 
   const midpoint = Math.round((khMin + khMax) / 2)
-  const entryDate = todayYmd ?? format(new Date(), "yyyy-MM-dd")
+  const now = new Date()
+  const entryDate = todayYmd ?? format(now, "yyyy-MM-dd")
+  const entryTime = format(now, "HH:mm")
 
   return {
     type: "meal",
+    clientId: crypto.randomUUID(),
     sourceText: result.description,
     entryDate,
+    entryTime,
     confidence: confidenceToScore(result.confidence),
     included: true,
     data: {

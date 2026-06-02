@@ -25,9 +25,10 @@ import {
 import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
-import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
+import { ExtractionConfirmationModal } from "@/components/logbook/extraction-confirmation-modal"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
 
@@ -462,8 +463,20 @@ export default function BuddyPage() {
   }, [activeTab, conversations, refetchConversations, userId])
 
   return (
-    <AppShell title={t("buddy.title")} mainClassName="flex min-h-0 flex-col pb-0 md:pb-0" hideFooter>
-      <div className="relative flex min-h-0 flex-1 flex-col">
+    <AppShell
+      title={t("buddy.title")}
+      mainClassName={cn(
+        "flex min-h-0 flex-col pb-0 md:pb-0",
+        isFullChatView && "overflow-hidden py-0 md:py-0"
+      )}
+      hideFooter
+    >
+      <div
+        className={cn(
+          "relative flex min-h-0 flex-1 flex-col",
+          isFullChatView && "min-h-0 overflow-hidden"
+        )}
+      >
         {conversationsError && (
           <p className="shrink-0 text-sm text-red-600">{t("buddy.historyLoadFailed")}</p>
         )}
@@ -529,37 +542,12 @@ export default function BuddyPage() {
         )}
 
         {activeTab === "chat" && isFullChatView && (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 md:px-6 lg:px-8">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-0 md:px-6 lg:px-8">
               <ChatContainer messages={messages} showTyping={isStreaming} showCrisisBanner={hasCrisisFlag} />
-              <p className="shrink-0 border-t border-slate-200/80 bg-slate-50/95 px-3 py-2 text-xs leading-snug text-slate-600 md:px-4">
+              <p className="hidden shrink-0 border-t border-slate-200/80 bg-slate-50/95 px-3 py-2 text-xs leading-snug text-slate-600 sm:block md:px-4">
                 {t("buddy.aiTransparencyNotice")}
               </p>
-              {buddyExtraction &&
-                viewConversationId === activeConversationIdRef.current &&
-                activeConversationIdNow && (
-                  <ExtractionConfirmation
-                    extractedEntries={buddyExtraction}
-                    aiMessage={buddyAiMessage}
-                    title={t("buddy.suggestedEntries")}
-                    source="conversation"
-                    onSaveEntry={async (entry) => {
-                      if (!userId) throw new Error("Not signed in")
-                      await createEntry(userId, entry)
-                    }}
-                    onSaveResult={({ saved, failed }) => {
-                      if (failed === 0 && saved > 0) {
-                        setBuddyExtraction(null)
-                        setBuddyAiMessage("")
-                      }
-                    }}
-                    onDiscard={() => {
-                      setBuddyExtraction(null)
-                      setBuddyAiMessage("")
-                    }}
-                    conversationId={activeConversationIdNow}
-                  />
-                )}
               <InputComposer
                 onSend={handleSendWithExtraction}
                 isDisabled={!canSend || isStreaming}
@@ -608,6 +596,37 @@ export default function BuddyPage() {
         )}
 
       </div>
+
+      {buddyExtraction &&
+        viewConversationId === activeConversationIdRef.current &&
+        activeConversationIdNow && (
+          <ExtractionConfirmationModal
+            open
+            onClose={() => {
+              setBuddyExtraction(null)
+              setBuddyAiMessage("")
+            }}
+            extractedEntries={buddyExtraction}
+            aiMessage={buddyAiMessage}
+            title={t("buddy.suggestedEntries")}
+            source="conversation"
+            conversationId={activeConversationIdNow}
+            onSaveEntry={async (entry) => {
+              if (!userId) throw new Error("Not signed in")
+              await createEntry(userId, entry)
+            }}
+            onSaveResult={({ saved, failed }) => {
+              if (failed === 0 && saved > 0) {
+                setBuddyExtraction(null)
+                setBuddyAiMessage("")
+              }
+            }}
+            onDiscard={() => {
+              setBuddyExtraction(null)
+              setBuddyAiMessage("")
+            }}
+          />
+        )}
 
       {summaryPortal && (
         <ConversationSummaryView

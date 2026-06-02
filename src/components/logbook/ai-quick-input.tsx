@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/useUser"
 import type { ExtractedEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db-client"
-import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
+import { ExtractionConfirmationModal } from "@/components/logbook/extraction-confirmation-modal"
 import { PhotoMealProvider } from "@/components/logbook/photo-meal-context"
 import { PhotoMealInput, PhotoMealPanels } from "@/components/logbook/photo-meal-input"
 import { format } from "date-fns"
@@ -21,6 +21,8 @@ interface AiQuickInputProps {
   onRefetch?: () => void
   /** Jump the logbook to a given day (YYYY-MM-DD) after a save, so the new entry is visible. */
   onNavigateToDate?: (ymd: string) => void
+  /** Navigate to saved day, invalidate cache, refetch — use after AI/photo save. */
+  onEntrySaved?: (dates?: string[]) => void | Promise<void>
 }
 
 export function AiQuickInput({
@@ -28,6 +30,7 @@ export function AiQuickInput({
   isDisabled = false,
   onRefetch,
   onNavigateToDate,
+  onEntrySaved,
 }: AiQuickInputProps) {
   const { t, locale } = useTranslation()
   const mobilePlaceholder =
@@ -114,7 +117,7 @@ export function AiQuickInput({
   }
 
   return (
-    <PhotoMealProvider onRefetch={onRefetch} onNavigateToDate={onNavigateToDate}>
+    <PhotoMealProvider onEntrySaved={onEntrySaved}>
     <div className="sticky top-16 z-20 bg-slate-50/90 backdrop-blur pt-3 pb-2 px-0">
       <div className="mx-auto max-w-3xl md:max-w-7xl px-0">
         <div
@@ -197,7 +200,9 @@ export function AiQuickInput({
         )}
 
         {extractedEntries && (
-          <ExtractionConfirmation
+          <ExtractionConfirmationModal
+            open
+            onClose={handleDiscard}
             extractedEntries={extractedEntries}
             aiMessage={aiMessage}
             mealSource="freetext_ai"
@@ -207,16 +212,20 @@ export function AiQuickInput({
               await createEntry(userId, entry)
             }}
             onSaveResult={({ saved, failed, dates }) => {
-              if (saved > 0) {
-                if (dates && dates[0]) onNavigateToDate?.(dates[0])
-                onRefetch?.()
-              }
-              if (failed === 0 && saved > 0) {
-                setText("")
-                setExtractedEntries(null)
-                setEmptyMessage(null)
-                setAiMessage("")
-              }
+              void (async () => {
+                if (failed === 0 && saved > 0) {
+                  setText("")
+                  setExtractedEntries(null)
+                  setEmptyMessage(null)
+                  setAiMessage("")
+                  if (onEntrySaved) {
+                    await onEntrySaved(dates)
+                  } else {
+                    if (dates?.[0]) onNavigateToDate?.(dates[0])
+                    await onRefetch?.()
+                  }
+                }
+              })()
             }}
             onDiscard={handleDiscard}
           />

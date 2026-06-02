@@ -99,6 +99,8 @@ export interface MoodEntry extends BaseEntry {
 export type Entry = GlucoseEntry | InsulinEntry | MealEntry | ActivityEntry | MoodEntry
 
 export interface ExtractedEntry {
+  /** Stable client id for React keys and save sessions (not persisted). */
+  clientId?: string
   /** Explicit entry kind from the extraction API (preferred over guessing from data fields). */
   type?: EntryType
   sourceText: string

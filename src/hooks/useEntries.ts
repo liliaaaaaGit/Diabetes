@@ -18,6 +18,13 @@ type EntriesCacheItem = {
 const ENTRIES_CACHE_TTL_MS = 30_000
 const entriesCache = new Map<string, EntriesCacheItem>()
 
+/** Drop cached week/day queries so a save + refetch always hits the API. */
+export function invalidateEntriesCacheForUser(userId: string) {
+  for (const key of entriesCache.keys()) {
+    if (key.startsWith(`${userId}:`)) entriesCache.delete(key)
+  }
+}
+
 export function useEntries(filters?: EntriesFilters, userId: string | null = null) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,6 +55,8 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
       setError(null)
     }
 
+    const hadFreshCache = isCachedFresh
+
     try {
       const parsed = JSON.parse(filtersKey) as EntriesFilters
       const params = new URLSearchParams()
@@ -69,7 +78,7 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
       entriesCache.set(cacheKey, { data: nextEntries, ts: Date.now() })
     } catch (e) {
       // Keep cached data visible if available; only show error when no cached fallback exists.
-      if (!isCachedFresh) {
+      if (!hadFreshCache) {
         setError(e instanceof Error ? e.message : "Failed to load entries")
       }
     } finally {

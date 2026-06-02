@@ -488,6 +488,7 @@ export async function getEntries(
 
     if (entryType === "meal") {
       const m = mealMap[row.id]
+      if (!m) return null
       return {
         ...(common as any),
         type: "meal",
@@ -514,7 +515,7 @@ export async function getEntries(
     } satisfies MoodEntry
   })
 
-  return result
+  return result.filter((e): e is Entry => e != null)
 }
 
 export async function getRecentEntries(userId: string, limit: number): Promise<Entry[]> {

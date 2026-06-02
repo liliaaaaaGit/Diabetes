@@ -24,6 +24,7 @@ import { glucoseToMgDl } from "@/lib/glucose-units"
 import { formatInsulin, roundInsulinDose } from "@/lib/insulin-format"
 import type { GlucoseUnit } from "@/lib/types"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 import { isValidDateYmd, isValidTimeHhmm, timestampForEntryDateTime } from "@/lib/entry-timestamp"
 import { useToast } from "@/hooks/use-toast"
 import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
@@ -68,6 +69,8 @@ type ExtractionConfirmationProps = {
   /** Stored on entry_meal.source when saving meals. */
   mealSource?: MealInputSource
   photoWarning?: string | null
+  /** Inside modal: no outer card / duplicate page title. */
+  embedded?: boolean
 }
 
 function getEntryTypeFromData(data: ExtractedEntry["data"]): EntryType | null {
@@ -134,6 +137,7 @@ export function ExtractionConfirmation({
   conversationId,
   mealSource = "freetext_ai",
   photoWarning,
+  embedded = false,
 }: ExtractionConfirmationProps) {
   const { t, locale: appLocale } = useTranslation()
   const locale = appLocale === "en" ? "en" : "de"
@@ -154,6 +158,7 @@ export function ExtractionConfirmation({
     setEntries(
       extractedEntries.map((e) => ({
         ...e,
+        clientId: e.clientId ?? crypto.randomUUID(),
         entryDate: e.entryDate && isValidDateYmd(e.entryDate) ? e.entryDate : todayYmd,
         entryTime: e.entryTime && isValidTimeHhmm(e.entryTime) ? e.entryTime : nowHhmm,
       }))
@@ -286,6 +291,7 @@ export function ExtractionConfirmation({
   }
 
   const handleConfirmSave = async () => {
+    if (saving) return
     const included = entries.filter((e) => e.included)
     const newEntries = included
       .map((e) => buildNewEntryFromExtracted(e))
@@ -661,22 +667,25 @@ export function ExtractionConfirmation({
     return null
   }
 
-  return (
-    <Card className="mt-4 rounded-xl border border-teal-100 bg-teal-50/90">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-xl bg-teal-100 flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-teal-600" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900">
-                {title ?? t("logbook.extractionDetectedEntries")}
-              </p>
-              {aiMessage ? <p className="text-xs text-slate-600 mt-1">{aiMessage}</p> : null}
+  const body = (
+    <>
+        {!embedded ? (
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-xl bg-teal-100 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-teal-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  {title ?? t("logbook.extractionDetectedEntries")}
+                </p>
+                {aiMessage ? <p className="text-xs text-slate-600 mt-1">{aiMessage}</p> : null}
+              </div>
             </div>
           </div>
-        </div>
+        ) : aiMessage ? (
+          <p className="text-xs text-slate-600">{aiMessage}</p>
+        ) : null}
 
         {photoWarning ? (
           <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
@@ -686,7 +695,10 @@ export function ExtractionConfirmation({
 
         <div className="space-y-3 mt-4">
           {computed.map((entry, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-200 bg-white p-3 overflow-hidden">
+            <div
+              key={entry.clientId ?? `row-${idx}`}
+              className="rounded-xl border border-slate-200 bg-white p-3 overflow-hidden"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900 line-clamp-1">
@@ -748,8 +760,13 @@ export function ExtractionConfirmation({
           ))}
         </div>
 
-        <div className="flex gap-3 mt-4">
-          <Button className="flex-1" onClick={() => void handleConfirmSave()} disabled={saving}>
+        <div
+          className={cn(
+            "flex gap-3 mt-4",
+            embedded && "sticky bottom-0 border-t border-slate-200 bg-white pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          )}
+        >
+          <Button className="flex-1 min-h-[44px]" onClick={() => void handleConfirmSave()} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -759,11 +776,20 @@ export function ExtractionConfirmation({
               t("common.save")
             )}
           </Button>
-          <Button variant="ghost" onClick={onDiscard} className="flex-1" disabled={saving}>
+          <Button variant="ghost" onClick={onDiscard} className="flex-1 min-h-[44px]" disabled={saving}>
             {t("logbook.discard")}
           </Button>
         </div>
-      </CardContent>
+    </>
+  )
+
+  if (embedded) {
+    return <div className="space-y-3">{body}</div>
+  }
+
+  return (
+    <Card className="mt-4 rounded-xl border border-teal-100 bg-teal-50/90">
+      <CardContent className="p-4">{body}</CardContent>
     </Card>
   )
 }

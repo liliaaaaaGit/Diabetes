@@ -16,10 +16,7 @@ export function isMobileDevice(): boolean {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
 
-export function usePhotoMealAnalysis(
-  onRefetch?: () => void,
-  onNavigateToDate?: (ymd: string) => void
-) {
+export function usePhotoMealAnalysis(onEntrySaved?: (dates?: string[]) => void | Promise<void>) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
@@ -30,6 +27,8 @@ export function usePhotoMealAnalysis(
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [photoWarning, setPhotoWarning] = useState<string | null>(null)
   const [extractedEntries, setExtractedEntries] = useState<ExtractedEntry[] | null>(null)
+  /** Bumps on each successful analysis so confirmation UI remounts with fresh state. */
+  const [confirmationKey, setConfirmationKey] = useState(0)
 
   const hasPhotoFlow = Boolean(previewUrl || extractedEntries)
 
@@ -92,6 +91,7 @@ export function usePhotoMealAnalysis(
       }
       setPhotoWarning(json.warning ?? null)
       setExtractedEntries([entry])
+      setConfirmationKey((k) => k + 1)
     } catch {
       toast({ title: t("logbook.photoAnalyzeFailed"), variant: "destructive" })
     } finally {
@@ -106,7 +106,7 @@ export function usePhotoMealAnalysis(
     await createEntry(userId, entry)
   }
 
-  const onPhotoSaveResult = ({
+  const onPhotoSaveResult = async ({
     saved,
     failed,
     dates,
@@ -116,10 +116,8 @@ export function usePhotoMealAnalysis(
     dates?: string[]
   }) => {
     if (saved > 0 && failed === 0) {
-      // Jump the logbook to the day the entry was saved on, so it's visible.
-      if (dates && dates[0]) onNavigateToDate?.(dates[0])
       resetPhoto()
-      onRefetch?.()
+      await onEntrySaved?.(dates)
     }
   }
 
@@ -129,6 +127,7 @@ export function usePhotoMealAnalysis(
     isAnalyzing,
     photoWarning,
     extractedEntries,
+    confirmationKey,
     hasPhotoFlow,
     resetPhoto,
     openPicker,
