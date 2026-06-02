@@ -32,15 +32,25 @@ export default function InsightsPage() {
   const fromIso = range.from.toISOString()
   const toIso = range.to.toISOString()
 
-  const { entries, loading, error } = useEntries({ from: fromIso, to: toIso }, userId)
+  // Insights only needs glucose + mood data for charts/statistics.
+  const {
+    entries: glucoseEntriesRaw,
+    loading: glucoseLoading,
+    error: glucoseError,
+  } = useEntries({ type: "glucose", from: fromIso, to: toIso }, userId)
+  const {
+    entries: moodEntriesRaw,
+    loading: moodLoading,
+    error: moodError,
+  } = useEntries({ type: "mood", from: fromIso, to: toIso }, userId)
   const { conversations } = useConversations(userId)
 
   const loc = locale === "de" ? "de" : "en"
 
-  const glucoseEntries = useMemo(
-    () => entries.filter((e) => e.type === "glucose") as GlucoseEntry[],
-    [entries]
-  )
+  const glucoseEntries = useMemo(() => glucoseEntriesRaw as GlucoseEntry[], [glucoseEntriesRaw])
+  const entries = useMemo(() => [...glucoseEntriesRaw, ...moodEntriesRaw], [glucoseEntriesRaw, moodEntriesRaw])
+  const loading = glucoseLoading || moodLoading
+  const error = glucoseError || moodError
 
   const chartPoints = useMemo(
     () => buildDailyMoodGlucosePoints(range, entries, conversations, loc, "correlation"),

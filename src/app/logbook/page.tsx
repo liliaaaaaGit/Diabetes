@@ -21,7 +21,7 @@ import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucos
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
 import { isLogbookEvent } from "@/lib/cgm"
-import { addDays, isSameDay, parseISO, startOfDay } from "date-fns"
+import { addDays, isSameDay, parseISO, startOfDay, startOfWeek } from "date-fns"
 
 export default function LogbookPage() {
   const { t } = useTranslation()
@@ -32,14 +32,27 @@ export default function LogbookPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
   const [didAutoSelectDate, setDidAutoSelectDate] = useState(false)
-  const { entries, loading, error, refetch } = useEntries(undefined, userId)
+  const weekStartIso = useMemo(() => {
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
+    return weekStart.toISOString()
+  }, [selectedDate])
+  const weekEndIso = useMemo(() => {
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
+    return addDays(weekStart, 7).toISOString()
+  }, [selectedDate])
+
+  // Main payload: only entries for the currently visible week.
+  const { entries, loading, error, refetch } = useEntries(
+    { from: weekStartIso, to: weekEndIso },
+    userId
+  )
+  // Tiny helper query to detect the newest entry date without downloading all data.
+  const { entries: latestEntries, loading: latestLoading } = useEntries({ limit: 1 }, userId)
 
   useEffect(() => {
-    if (didAutoSelectDate || loading || entries.length === 0) return
+    if (didAutoSelectDate || latestLoading || latestEntries.length === 0) return
 
-    const latestEntry = [...entries].sort(
-      (a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime()
-    )[0]
+    const latestEntry = latestEntries[0]
 
     if (latestEntry) {
       const latestDay = startOfDay(parseISO(latestEntry.timestamp))
@@ -48,7 +61,7 @@ export default function LogbookPage() {
       setSelectedDate(latestDay.getTime() > today.getTime() ? today : latestDay)
     }
     setDidAutoSelectDate(true)
-  }, [didAutoSelectDate, entries, loading])
+  }, [didAutoSelectDate, latestEntries, latestLoading])
 
   // After an AI/photo save, jump to the day the entry landed on so it's visible.
   const handleNavigateToDate = useCallback((ymd: string) => {
