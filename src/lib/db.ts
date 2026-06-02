@@ -627,10 +627,29 @@ export async function getConversation(conversationId: string, userId: string): P
 }
 
 export async function getConversations(userId: string): Promise<Conversation[]> {
+  const nowIso = new Date().toISOString()
+  // Clean up seeded mock conversations that accidentally ended up in the future.
+  const { data: futureRows, error: futureErr } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("user_id", userId)
+    .gt("started_at", nowIso)
+  if (futureErr) throw futureErr
+  const futureIds = (futureRows || []).map((row: any) => row.id as string)
+  if (futureIds.length > 0) {
+    const { error: deleteFutureError } = await supabase
+      .from("conversations")
+      .delete()
+      .eq("user_id", userId)
+      .in("id", futureIds)
+    if (deleteFutureError) throw deleteFutureError
+  }
+
   const { data: convRows, error } = await supabase
     .from("conversations")
     .select("id,user_id,title,summary,tags,mood_emoji,emotions,started_at,ended_at,is_active")
     .eq("user_id", userId)
+    .lte("started_at", nowIso)
     .order("started_at", { ascending: false })
   if (error) throw error
 

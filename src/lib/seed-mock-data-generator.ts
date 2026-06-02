@@ -180,11 +180,15 @@ function toBerlinIso(date: Date, minutesOfDay: number): string {
   return new Date(utcGuess.getTime() + offsetMs).toISOString()
 }
 
-/** The 93 study days: May 1, 2026 → Aug 1, 2026 inclusive. */
+/** Study days: May 1, 2026 up to "today" (Europe/Berlin), max Aug 1, 2026. */
 function studyDates(): Date[] {
   const out: Date[] = []
   const start = new Date(Date.UTC(2026, 4, 1)) // May 1
-  const end = new Date(Date.UTC(2026, 7, 1)) // Aug 1
+  const maxEnd = new Date(Date.UTC(2026, 7, 1)) // Aug 1
+  const berlinTodayIso = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+  const berlinToday = new Date(`${berlinTodayIso}T00:00:00.000Z`)
+  const end = berlinToday < maxEnd ? berlinToday : maxEnd
+  if (end < start) return out
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     out.push(new Date(d))
   }

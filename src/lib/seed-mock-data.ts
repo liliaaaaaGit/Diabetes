@@ -109,7 +109,7 @@ async function insertSeedData(data: SeedData) {
 }
 
 /**
- * Seed a realistic 3-month dataset (May 1 – Aug 1, 2026).
+ * Seed a realistic dataset (May 1, 2026 up to today, max Aug 1, 2026).
  * - Without `force`, it skips if the user already has entries (used on registration).
  * - With `force`, it does NOT delete on its own — callers that want a clean
  *   reseed should use `reseedMockDataForUser`.
