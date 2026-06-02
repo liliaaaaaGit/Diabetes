@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSessionUserId } from "@/lib/auth-session"
 import { openai } from "@/lib/openai-server"
 import { EXTRACT_SYSTEM_PROMPT } from "@/lib/extract-meal-prompt"
+import { formatBerlinDateTimeLabel, resolveNowLabelForExtract } from "@/lib/entry-timestamp"
 import { parseExtractResponse } from "@/lib/extract-parse"
 
 export const runtime = "nodejs"
@@ -18,16 +19,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ code: "openai_missing" }, { status: 503 })
     }
 
-    const body = (await req.json()) as { text?: string; todayYmd?: string; nowIso?: string }
+    const body = (await req.json()) as {
+      text?: string
+      todayYmd?: string
+      /** Local "YYYY-MM-DD HH:mm" from the user's device — preferred. */
+      nowLocal?: string
+      /** @deprecated UTC ISO; converted to Europe/Berlin if nowLocal is missing. */
+      nowIso?: string
+    }
     const text = typeof body.text === "string" ? body.text.trim().slice(0, 500) : ""
     const todayYmd =
       typeof body.todayYmd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.todayYmd)
         ? body.todayYmd
-        : new Date().toISOString().slice(0, 10)
-    const nowLabel =
-      typeof body.nowIso === "string" && body.nowIso.length >= 16
-        ? body.nowIso.slice(0, 16).replace("T", " ")
-        : todayYmd
+        : formatBerlinDateTimeLabel().slice(0, 10)
+    const nowLabel = resolveNowLabelForExtract(body)
 
     if (!text) {
       return NextResponse.json({ entries: [], message: "" })

@@ -28,6 +28,7 @@ import { Sparkles } from "lucide-react"
 import { ExtractionConfirmationModal } from "@/components/logbook/extraction-confirmation-modal"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 import { format } from "date-fns"
+import { formatLocalDateTimeLabel, formatLocalYmd } from "@/lib/entry-timestamp"
 import { cn } from "@/lib/utils"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
@@ -284,7 +285,8 @@ export default function BuddyPage() {
         credentials: "include",
         body: JSON.stringify({
           text: userText.slice(0, 500),
-          todayYmd: format(new Date(), "yyyy-MM-dd"),
+          todayYmd: formatLocalYmd(),
+          nowLocal: formatLocalDateTimeLabel(),
         }),
       })
       if (!res.ok) {

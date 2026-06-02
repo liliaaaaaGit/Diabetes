@@ -1,8 +1,82 @@
+import { format, isValid, parseISO } from "date-fns"
+
 /**
  * Helpers for AI-extracted logbook entries that may target a specific calendar day.
+ * Times in forms and AI prompts use the device local clock; server fallbacks use Europe/Berlin.
  */
 
+export const APP_TIMEZONE = "Europe/Berlin"
+
 const YMD = /^\d{4}-\d{2}-\d{2}$/
+const LOCAL_NOW_LABEL = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/
+
+/** Local calendar date for the user's browser (Munich if the device is set to Germany). */
+export function formatLocalYmd(date = new Date()): string {
+  return format(date, "yyyy-MM-dd")
+}
+
+/** Local date + time label for AI prompts — never use toISOString() here (that is UTC). */
+export function formatLocalDateTimeLabel(date = new Date()): string {
+  return format(date, "yyyy-MM-dd HH:mm")
+}
+
+/** Europe/Berlin date+time (used on the server when the client omits nowLocal). */
+export function formatBerlinDateTimeLabel(date = new Date()): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: APP_TIMEZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+      .formatToParts(date)
+      .map((p) => [p.type, p.value])
+  )
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`
+}
+
+export function resolveNowLabelForExtract(body: {
+  nowLocal?: string
+  nowIso?: string
+}): string {
+  const local = typeof body.nowLocal === "string" ? body.nowLocal.trim() : ""
+  if (LOCAL_NOW_LABEL.test(local)) return local
+  if (typeof body.nowIso === "string" && body.nowIso.length >= 10) {
+    const d = new Date(body.nowIso)
+    if (!Number.isNaN(d.getTime())) return formatBerlinDateTimeLabel(d)
+  }
+  return formatBerlinDateTimeLabel()
+}
+
+/**
+ * Parse model "timestamp" into entry date/time fields.
+ * Local "YYYY-MM-DDTHH:mm" is kept as-is; Z/offset strings are converted to local clock fields.
+ */
+export function parseModelTimestampFields(
+  timestamp: unknown,
+  todayYmd: string
+): { entryDate: string; entryTime?: string } {
+  if (typeof timestamp !== "string" || timestamp.length < 10) {
+    return { entryDate: todayYmd }
+  }
+  const ts = timestamp.trim()
+  if (ts.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(ts)) {
+    const d = parseISO(ts)
+    if (isValid(d)) {
+      return {
+        entryDate: format(d, "yyyy-MM-dd"),
+        entryTime: format(d, "HH:mm"),
+      }
+    }
+  }
+  const entryDate = ts.slice(0, 10)
+  const entryTime =
+    ts.includes("T") && ts.length >= 16 ? ts.slice(11, 16) : undefined
+  return { entryDate, entryTime }
+}
 
 /** True if string is YYYY-MM-DD and the calendar date exists in the local timezone. */
 export function isValidDateYmd(ymd: string): boolean {

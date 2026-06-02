@@ -13,7 +13,7 @@ import { createEntry } from "@/lib/db-client"
 import { ExtractionConfirmationModal } from "@/components/logbook/extraction-confirmation-modal"
 import { PhotoMealProvider } from "@/components/logbook/photo-meal-context"
 import { PhotoMealInput, PhotoMealPanels } from "@/components/logbook/photo-meal-input"
-import { format } from "date-fns"
+import { formatLocalDateTimeLabel, formatLocalYmd } from "@/lib/entry-timestamp"
 
 interface AiQuickInputProps {
   onManualFallback: () => void
@@ -75,8 +75,8 @@ export function AiQuickInput({
         credentials: "include",
         body: JSON.stringify({
           text: payloadText,
-          todayYmd: format(new Date(), "yyyy-MM-dd"),
-          nowIso: new Date().toISOString(),
+          todayYmd: formatLocalYmd(),
+          nowLocal: formatLocalDateTimeLabel(),
         }),
       })
       if (!res.ok) {

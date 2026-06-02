@@ -8,6 +8,7 @@ import type {
   Intensity,
   MoodValue,
 } from "@/lib/types"
+import { parseModelTimestampFields } from "@/lib/entry-timestamp"
 import { normalizeComponents } from "@/lib/meal-carbs"
 
 function confidenceToScore(c: CarbConfidence | undefined): number {
@@ -113,19 +114,7 @@ export function parseExtractResponse(
     const type = o.type as EntryType | undefined
     if (!type) continue
 
-    const entryDate =
-      typeof o.timestamp === "string" && o.timestamp.length >= 10
-        ? o.timestamp.slice(0, 10)
-        : todayYmd
-
-    // Keep the time-of-day if the model returned one (local "...THH:mm").
-    // Undefined = the confirmation UI will default to the current time.
-    const entryTime =
-      typeof o.timestamp === "string" &&
-      o.timestamp.includes("T") &&
-      o.timestamp.length >= 16
-        ? o.timestamp.slice(11, 16)
-        : undefined
+    const { entryDate, entryTime } = parseModelTimestampFields(o.timestamp, todayYmd)
 
     if (type === "meal") {
       const description = String(o.description ?? "").trim()
