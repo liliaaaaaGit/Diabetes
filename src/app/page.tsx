@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Plus, Droplet, Activity, TrendingUp } from "lucide-react"
+import { Plus, Droplet, Activity, TrendingUp, ArrowUp, ArrowUpRight, ArrowRight, ArrowDownRight, ArrowDown } from "lucide-react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,7 +44,7 @@ const SPARSE_PER_DAY = 10
 const TREND_MAX_GAP_HOURS = 3
 
 interface GlucoseTrend {
-  arrow: string
+  arrowIcon: typeof ArrowRight
   /** Tailwind text-color class for the arrow. */
   colorClass: string
   /** Translation key for the descriptive label. */
@@ -69,12 +69,12 @@ function computeGlucoseTrend(
 
   // Values are stored in mg/dL, so the thresholds below are in mg/dL.
   const diff = current.value - previous.value
-  if (diff > 15) return { arrow: "↑", colorClass: "text-red-600", labelKey: "dashboard.trendRising" }
-  if (diff > 5) return { arrow: "↗", colorClass: "text-amber-600", labelKey: "dashboard.trendSlightlyRising" }
-  if (diff >= -5) return { arrow: "→", colorClass: "text-emerald-600", labelKey: "dashboard.trendStable" }
-  if (diff >= -15) return { arrow: "↘", colorClass: "text-emerald-600", labelKey: "dashboard.trendSlightlyFalling" }
+  if (diff > 15) return { arrowIcon: ArrowUp, colorClass: "text-red-600", labelKey: "dashboard.trendRising" }
+  if (diff > 5) return { arrowIcon: ArrowUpRight, colorClass: "text-amber-600", labelKey: "dashboard.trendSlightlyRising" }
+  if (diff >= -5) return { arrowIcon: ArrowRight, colorClass: "text-emerald-600", labelKey: "dashboard.trendStable" }
+  if (diff >= -15) return { arrowIcon: ArrowDownRight, colorClass: "text-emerald-600", labelKey: "dashboard.trendSlightlyFalling" }
   // A fast drop can also be dangerous, so it gets a warning color.
-  return { arrow: "↓", colorClass: "text-amber-600", labelKey: "dashboard.trendFalling" }
+  return { arrowIcon: ArrowDown, colorClass: "text-amber-600", labelKey: "dashboard.trendFalling" }
 }
 
 function hoursSince(timestamp: string): number {
@@ -121,6 +121,7 @@ function LastMeasurementCard({
 
   const trend = computeGlucoseTrend(entry, previousEntry)
   const isStale = hoursSince(entry.timestamp) > STALE_HOURS
+  const TrendIcon = trend?.arrowIcon
 
   const dateLocale = locale === "en" ? enUS : de
   let timeAgo = ""
@@ -144,7 +145,7 @@ function LastMeasurementCard({
           <span className="text-lg text-slate-600">{unitSuffix}</span>
           {trend && (
             <span className={`flex items-baseline gap-1 text-lg font-semibold ${trend.colorClass}`}>
-              <span aria-hidden="true">{trend.arrow}</span>
+              {TrendIcon ? <TrendIcon className="h-5 w-5" aria-hidden="true" /> : null}
               <span className="text-sm">{t(trend.labelKey)}</span>
             </span>
           )}

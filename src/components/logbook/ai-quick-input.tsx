@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type KeyboardEvent } from "react"
+import { useEffect, useState, type KeyboardEvent } from "react"
 import { Sparkles, Send, Loader2 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,10 @@ export function AiQuickInput({
   onRefetch,
   onNavigateToDate,
 }: AiQuickInputProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
+  const mobilePlaceholder =
+    locale === "de" ? "Beschreibe deinen Eintrag" : "Describe your entry"
+
   const { toast } = useToast()
   const { userId } = useUser()
   const [text, setText] = useState("")
@@ -37,6 +40,15 @@ export function AiQuickInput({
   const [aiMessage, setAiMessage] = useState("")
   const [extractedEntries, setExtractedEntries] = useState<ExtractedEntry[] | null>(null)
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)")
+    const update = () => setIsMobile(media.matches)
+    update()
+    media.addEventListener("change", update)
+    return () => media.removeEventListener("change", update)
+  }, [])
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -120,7 +132,7 @@ export function AiQuickInput({
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t("logbook.aiInput")}
+              placeholder={isMobile ? mobilePlaceholder : t("logbook.aiInput")}
               disabled={isDisabled || isExtracting}
               rows={1}
               className={cn(

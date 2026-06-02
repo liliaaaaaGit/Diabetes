@@ -691,7 +691,7 @@ export function ExtractionConfirmation({
 
               {/* Auto-filled but editable date + time, so the user can correct
                   "two hours ago" or "yesterday" before saving. */}
-              <div className="mt-3 grid grid-cols-2 gap-3 items-end">
+              <div className="mt-3 grid grid-cols-1 gap-3 items-end sm:grid-cols-2">
                 <div className="flex flex-col">
                   <Label className="text-xs text-slate-500 mb-1">
                     {t("logbook.entryDateLabel")}
@@ -700,6 +700,7 @@ export function ExtractionConfirmation({
                     type="date"
                     value={entry.entryDate ?? ""}
                     onChange={(e) => updateEntryMeta(idx, { entryDate: e.target.value })}
+                    className="min-w-0"
                   />
                 </div>
                 <div className="flex flex-col">
@@ -710,6 +711,7 @@ export function ExtractionConfirmation({
                     type="time"
                     value={entry.entryTime ?? ""}
                     onChange={(e) => updateEntryMeta(idx, { entryTime: e.target.value })}
+                    className="min-w-0"
                   />
                 </div>
               </div>
