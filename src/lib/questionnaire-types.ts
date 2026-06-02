@@ -2,6 +2,22 @@ export type QuestionnaireSectionId = "A" | "B" | "C" | "D" | "E" | "F" | "G"
 
 export const QUESTIONNAIRE_SECTIONS: QuestionnaireSectionId[] = ["A", "B", "C", "D", "E", "F", "G"]
 
+export function sectionIndex(section: QuestionnaireSectionId): number {
+  return QUESTIONNAIRE_SECTIONS.indexOf(section)
+}
+
+export function nextSection(section: QuestionnaireSectionId): QuestionnaireSectionId | null {
+  const i = sectionIndex(section)
+  if (i < 0 || i >= QUESTIONNAIRE_SECTIONS.length - 1) return null
+  return QUESTIONNAIRE_SECTIONS[i + 1]
+}
+
+export function prevSection(section: QuestionnaireSectionId): QuestionnaireSectionId | null {
+  const i = sectionIndex(section)
+  if (i <= 0) return null
+  return QUESTIONNAIRE_SECTIONS[i - 1]
+}
+
 export type DiabetesTypeValue = "typ1" | "typ2" | "lada" | "andere" | "keine_angabe"
 export type TherapyFormValue =
   | "pen_ict"

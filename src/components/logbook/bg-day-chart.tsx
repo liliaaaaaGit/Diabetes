@@ -35,20 +35,22 @@ export function BgDayChart({ date, entries }: BgDayChartProps) {
   const domainEndMs = isSameDay(date, now)
     ? now.getTime()
     : Math.min(endOfDay(date).getTime(), now.getTime())
-  const xDomain: [number, number] = [dayStartMs, Math.max(dayStartMs, domainEndMs)]
+  const xDomainStart = dayStartMs
+  const xDomainEnd = Math.max(dayStartMs, domainEndMs)
+  const xDomain: [number, number] = [xDomainStart, xDomainEnd]
   // Major ticks every 6 hours; include only ticks inside the visible domain.
   const xTicks = [0, 6, 12, 18, 24]
     .map((h) => dayStartMs + h * 60 * 60 * 1000)
-    .filter((ts) => ts >= xDomain[0] && ts <= xDomain[1])
+    .filter((ts) => ts >= xDomainStart && ts <= xDomainEnd)
 
   const visibleEntries = useMemo(() => {
-    const start = xDomain[0]
-    const end = xDomain[1]
+    const start = xDomainStart
+    const end = xDomainEnd
     return entries.filter((entry) => {
       const ts = parseISO(entry.timestamp).getTime()
       return Number.isFinite(ts) && ts >= start && ts <= end
     })
-  }, [entries, xDomain])
+  }, [entries, xDomainStart, xDomainEnd])
 
   const data = useMemo(
     () => buildBgCurveData(visibleEntries, displayUnit),
