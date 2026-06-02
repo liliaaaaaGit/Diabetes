@@ -928,7 +928,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 20 * 60 + 30,
     title: "Alltagsstress und hohe Werte",
     summary:
-      "Du steckst gerade in einer stressigen Phase mit wenig Schlaf, und deine Werte bleiben oben — das zermürbt dich. Du hast das Gefühl, weder den Alltag noch den Diabetes wirklich im Griff zu haben. Kurz rausgehen hilft dir eigentlich, auch wenn du es selten schaffst; das könnte eine kleine Ressource sein, wenn der Stress hoch ist.",
+      "Die letzten Tage waren stressig — wenig Schlaf, viel bei der Arbeit, und deine Werte bleiben über 200, egal was du machst. Du fühlst, weder Alltag noch Diabetes richtig im Griff zu haben. Kurz rausgehen hilft dir eigentlich, auch wenn du es selten schaffst; das könnte gerade eine kleine Ressource sein.",
     emoji: "😣",
     tags: [
       { emoji: "🧠", label: "Stress" },
@@ -950,7 +950,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 22 * 60,
     title: "Frustrierende Nacht",
     summary:
-      "Letzte Nacht war hart — erst eine Unterzuckerung, am Morgen trotzdem ein hoher Wert, und du verstehst nicht, warum. Du hattest Angst, etwas falsch gemacht zu haben, bist aber etwas beruhigter, wenn du mehrere mögliche Erklärungen hörst. Du willst das beim nächsten Termin bei der Diabetologin ansprechen — ein Muster, das du im Blick behalten könntest.",
+      "Letzte Nacht war echt hart — erst 55 in der Nacht, dann morgens 160, und du verstehst nicht, warum. Du hattest Angst, etwas kaputt gemacht zu haben, nimmst aber mit, dass es mehrere Erklärungen geben kann. Du schreibst dir vor, das bei der Diabetologin anzusprechen — das Muster „hoher Morgenwert nach nächtlicher Hypo“ willst du im Blick behalten.",
     emoji: "😟",
     tags: [
       { emoji: "🌙", label: "Nacht-Hypo" },
@@ -972,7 +972,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 21 * 60 + 15,
     title: "Hab keine Lust mehr",
     summary:
-      "Du bist erschöpft und hast kaum noch Motivation fürs Messen und Spritzen — Diabetes-Burnout, wie du es nennst. Manchmal lässt du das Messen weg, obwohl du weißt, dass es dir nicht guttut. Mit deinem Hund rausgehen ist etwas, das sich noch leicht anfühlt; für deinen baldigen Termin überlegst du, das Thema anzusprechen.",
+      "Du hast ausgesprochen, dass dir Messen, Spritzen und Rechnen gerade zu viel wird — echtes Diabetes-Burnout. Manchmal lässt du das Messen weg, obwohl du spürst, wie anstrengend das ist. Mit deinem Hund rausgehen ist etwas, das sich noch leicht anfühlt; für deinen baldigen Termin überlegst du, das Thema anzusprechen.",
     emoji: "😔",
     tags: [
       { emoji: "🔋", label: "Burnout" },
@@ -996,7 +996,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 20 * 60 + 45,
     title: "Alles Achterbahn",
     summary:
-      "Dein Tag war eine Achterbahn — ständig korrigieren, trotzdem keine Ruhe, und am Ende fühlst du dich leer. Es fühlt sich an, als wäre all deine Mühe umsonst. Du überlegst, früher schlafen zu gehen, weil du gerädert bist — das wäre für dich ein nächster kleiner Schritt.",
+      "Dein Tag ging von tief bis über 250 — ständig korrigieren, trotzdem keine Ruhe, am Ende fühlst du dich leer. Es fühlt sich an wie umsonst, obwohl du den ganzen Tag viel gemacht hast. Früher schlafen könnte dir morgen ein bisschen Luft geben — das nimmst du dir vor.",
     emoji: "🎢",
     tags: [
       { emoji: "🎢", label: "Schwankungen" },
@@ -1018,7 +1018,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 13 * 60 + 30,
     title: "Erkältet und alles hoch",
     summary:
-      "Du bist erkältet, fühlst dich schlapp, und deine Werte gehen trotz mehr Spritzen nicht runter — das macht dich ratlos. Du hast schon überlegt, dein Diabetesteam anzurufen. Ausruhen und genug trinken sind für dich gerade wichtig, auch wenn das schwerfällt.",
+      "Seit zwei Tagen bist du erkältet, fühlst dich schlapp, und der Zucker geht trotz mehr Spritzen nicht runter — das macht dich ratlos. Du hast überlegt, dein Diabetesteam anzurufen. Heute willst du dir vor allem Ruhe gönnen und genug trinken.",
     emoji: "🤒",
     tags: [
       { emoji: "🤒", label: "Krank" },
@@ -1040,7 +1040,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 19 * 60 + 30,
     title: "Sorge vor dem nächsten HbA1c",
     summary:
-      "Dein Termin beschäftigt dich: Du hast Angst, dass dein HbA1c schlechter ist als gehofft, und trägst trotzdem ein schlechtes Gewissen. Du willst vorher 2–3 Situationen notieren, die dir besonders schwerfallen — damit gehst du vorbereitet ins Gespräch, nicht mit leerem Kopf.",
+      "Dein Termin beschäftigt dich — du hast Angst, dass dein HbA1c schlechter ist als gehofft, und trotzdem ein schlechtes Gewissen. Du willst vorher zwei bis drei Situationen notieren, die dir besonders schwerfallen, damit du vorbereitet ins Gespräch gehst.",
     emoji: "😬",
     tags: [
       { emoji: "🩺", label: "Arzttermin" },
@@ -1062,7 +1062,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 20 * 60,
     title: "Kleine Routine, die hilft",
     summary:
-      "Deine Werte wirken diese Woche ruhiger, und du merkst im Alltag weniger Kopfkino. Nach dem Abendessen zehn Minuten laufen und danach kurz checken — das ist deine Mini-Routine. Dein Partner erinnert dich freundlich, wenn du es vergisst; das fühlt sich nach Unterstützung an, nicht nach Kontrolle.",
+      "Deine Werte sind diese Woche ruhiger, und du merkst weniger Kopfkino im Alltag. Nach dem Abendessen zehn Minuten laufen und kurz checken — diese Mini-Routine trägt dich. Dein Partner erinnert dich freundlich, wenn du es vergisst; das fühlt sich nach Unterstützung an, nicht nach Kontrolle.",
     emoji: "💪",
     tags: [
       { emoji: "🧩", label: "Routine" },
@@ -1085,7 +1085,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 18 * 60 + 30,
     title: "Sport hilft",
     summary:
-      "Du hast gemerkt, dass dir regelmäßige Bewegung — Joggen, Spazieren, Radeln — guttut: Danach bist du entspannter, und dein Blutzucker bleibt nachmittags ruhiger. Es fühlt sich nicht wie Pflicht an, sondern wie etwas, das du für dich tust. Du möchtest es locker zwei- bis dreimal die Woche beibehalten.",
+      "Du hast gemerkt, dass dir regelmäßige Bewegung — Spazieren, Radeln, Joggen — guttut: Nach dem Sport bist du entspannter, und dein Blutzucker bleibt nachmittags ruhiger. Bewegung scheint gerade eine Ressource für dich zu sein, die Werte und Stimmung zusammen trägt — locker zwei- bis dreimal die Woche, ohne Pflichtgefühl.",
     emoji: "🏃",
     tags: [
       { emoji: "🏃", label: "Bewegung" },
@@ -1107,7 +1107,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 21 * 60,
     title: "Endlich stabile Werte",
     summary:
-      "Du bist ein bisschen stolz: Deine Werte lagen diese Woche viel im Zielbereich — ein großer Unterschied zu dem, was du im Juni noch gedacht hast. Du hast für dich mitgenommen, dass weniger Druck dir mehr hilft als mehr Kontrolle. Das gibt dir einen entspannteren Umgang, auch wenn schwierige Tage wieder kommen können.",
+      "Du bist ein bisschen stolz: Diese Woche war viel im Zielbereich — ein großer Sprung gegenüber dem, was du im Juni noch gedacht hast. Du hast für dich mitgenommen, dass weniger Druck dir mehr hilft als mehr Kontrolle.",
     emoji: "😌",
     tags: [
       { emoji: "✅", label: "Stabil" },
@@ -1129,7 +1129,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 22 * 60 + 10,
     title: "Angst vor Hypos in der Nacht",
     summary:
-      "Du traust dich kaum noch richtig zu schlafen — die Angst vor einer verschlafenen Hypo ist groß, und du checkst nachts ständig. Das raubt dir den Schlaf. Du willst das Thema Sicherheit in der Nacht beim Diabetesteam ansprechen; allein die Idee, dass man etwas tun kann, beruhigt dich etwas.",
+      "Du traust dich kaum noch richtig zu schlafen — die Angst, eine Hypo zu verschlafen, ist groß. Du wachst ständig auf und checkst den Wert, und das raubt dir den Schlaf. Du nimmst mit, das Thema Nachtsicherheit beim Diabetesteam anzusprechen; allein dieses kleine Vorhaben beruhigt dich etwas.",
     emoji: "😨",
     tags: [
       { emoji: "🌙", label: "Hypo-Angst" },
@@ -1151,7 +1151,7 @@ const CONVERSATIONS: ConvoTemplate[] = [
     startMin: 20 * 60 + 30,
     title: "Ein richtig guter Tag",
     summary:
-      "Du hattest heute einen richtig guten Tag: stabile Werte, gute Stimmung, und Diabetes hat nicht alles bestimmt. Du merkst, dass du solche Tage sonst oft sofort hinterfragst, statt sie zu genießen. Du willst dir diesen Tag als Erinnerung behalten — Beweis, dass es auch leicht gehen kann.",
+      "Du hattest einen Tag, an dem deine Werte stabil blieben und Diabetes nicht alles bestimmt hat — das tut gut. Du merkst, dass du solche Tage sonst schnell hinterfragst, statt sie stehen zu lassen. Du willst dir diesen Moment als Erinnerung behalten, dass es auch leicht gehen kann.",
     emoji: "😄",
     tags: [
       { emoji: "🌟", label: "Guter Tag" },
@@ -1169,6 +1169,11 @@ const CONVERSATIONS: ConvoTemplate[] = [
     ],
   },
 ]
+
+/** Canonical Du-form summaries for seeded mock chats (matched by title in DB patch). */
+export function getMockConversationSummaryByTitle(): Map<string, string> {
+  return new Map(CONVERSATIONS.map((c) => [c.title, c.summary]))
+}
 
 function buildConversations(userId: string, dates: Date[]): { conversations: ConversationRow[]; messages: MessageRow[] } {
   const conversations: ConversationRow[] = []

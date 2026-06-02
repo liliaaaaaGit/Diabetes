@@ -1,5 +1,5 @@
 import { supabaseServer as supabase } from "@/lib/supabase-server"
-import { generateSeedData, type SeedData } from "@/lib/seed-mock-data-generator"
+import { generateSeedData, getMockConversationSummaryByTitle, type SeedData } from "@/lib/seed-mock-data-generator"
 
 type SeedResult = {
   seeded: boolean
@@ -109,6 +109,46 @@ async function insertSeedData(data: SeedData) {
 }
 
 /**
+ * Sync mock conversation summaries in the DB to the canonical Du-form texts from
+ * `seed-mock-data-generator` (by matching title). Updates rows that are outdated or
+ * still use third-person / Gluco phrasing.
+ */
+export async function patchMockConversationSummaries(
+  userId: string
+): Promise<{ updated: number; checked: number }> {
+  const byTitle = getMockConversationSummaryByTitle()
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id, title, summary")
+    .eq("user_id", userId)
+
+  if (error) throw error
+
+  let updated = 0
+  const rows = data ?? []
+
+  for (const row of rows) {
+    const title = typeof row.title === "string" ? row.title.trim() : ""
+    const canonical = byTitle.get(title)
+    if (!canonical) continue
+
+    const current = typeof row.summary === "string" ? row.summary.trim() : ""
+    if (current === canonical) continue
+
+    const { error: updateError } = await supabase
+      .from("conversations")
+      .update({ summary: canonical })
+      .eq("id", row.id)
+      .eq("user_id", userId)
+
+    if (updateError) throw updateError
+    updated += 1
+  }
+
+  return { updated, checked: rows.length }
+}
+
+/**
  * Seed a realistic dataset (May 1, 2026 up to today, max Aug 1, 2026).
  * - Without `force`, it skips if the user already has entries (used on registration).
  * - With `force`, it does NOT delete on its own — callers that want a clean
@@ -127,6 +167,7 @@ export async function seedMockDataForUser(
 
   if (countError) throw countError
   if (!force && (count ?? 0) > 0) {
+    await patchMockConversationSummaries(userId)
     return { seeded: false, skippedReason: "existing_entries", stats: EMPTY_STATS }
   }
 

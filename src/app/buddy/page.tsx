@@ -116,6 +116,22 @@ export default function BuddyPage() {
     refetch: refetchConversations,
   } = useConversations(userId)
 
+  const mockSummarySyncRef = useRef(false)
+  useEffect(() => {
+    if (!userId || mockSummarySyncRef.current) return
+    mockSummarySyncRef.current = true
+    void fetch("/api/buddy/sync-mock-summaries", { method: "POST", credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: { updated?: number } | null) => {
+        if (body && typeof body.updated === "number" && body.updated > 0) {
+          void refetchConversations()
+        }
+      })
+      .catch(() => {
+        mockSummarySyncRef.current = false
+      })
+  }, [userId, refetchConversations])
+
   const refreshBuddyListsAndStats = useCallback(async () => {
     await refetchConversations()
     setHistoryRefreshKey((k) => k + 1)
