@@ -293,11 +293,11 @@ export function ExtractionConfirmation({
   const handleConfirmSave = async () => {
     if (saving) return
     const included = entries.filter((e) => e.included)
-    const newEntries = included
-      .map((e) => buildNewEntryFromExtracted(e))
-      .filter(Boolean) as NewEntry[]
+    const built = included
+      .map((src) => ({ src, entry: buildNewEntryFromExtracted(src) }))
+      .filter((row): row is { src: ExtractedEntry; entry: NewEntry } => row.entry != null)
 
-    if (newEntries.length === 0) {
+    if (built.length === 0) {
       toast({
         title: t("logbook.aiSaveNothingSelected"),
         variant: "destructive",
@@ -310,15 +310,18 @@ export function ExtractionConfirmation({
     let failed = 0
     const dates: string[] = []
 
-    for (const ne of newEntries) {
+    for (const { src, entry: ne } of built) {
       try {
         // eslint-disable-next-line no-await-in-loop
         await onSaveEntry(ne)
         if (ne.type === "glucose") {
           triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
         }
-        // Local calendar day this entry landed on (so the parent can show it).
-        const localDay = format(new Date(ne.timestamp), "yyyy-MM-dd")
+        // Use the date the user picked in the form (not UTC rollover from timestamp).
+        const localDay =
+          src.entryDate && isValidDateYmd(src.entryDate)
+            ? src.entryDate
+            : format(new Date(ne.timestamp), "yyyy-MM-dd")
         if (!dates.includes(localDay)) dates.push(localDay)
         saved += 1
       } catch {
@@ -348,6 +351,52 @@ export function ExtractionConfirmation({
 
   /** Same grid cell + field styling as carbs / meal type row (see globals.css .logbook-datetime-input). */
   const logbookFieldClass = "min-w-0 w-full appearance-none box-border"
+
+  const mealTypeOptions: { value: MealEntry["mealType"]; labelKey: string }[] = [
+    { value: "breakfast", labelKey: "logbook.breakfast" },
+    { value: "lunch", labelKey: "logbook.lunch" },
+    { value: "dinner", labelKey: "logbook.dinner" },
+    { value: "snack", labelKey: "logbook.snack" },
+  ]
+
+  const renderMealTypeField = (idx: number, mealType: MealEntry["mealType"] | undefined) => {
+    const value = mealType ?? "lunch"
+    if (embedded) {
+      return (
+        <select
+          value={value}
+          onChange={(e) =>
+            updateEntryData(idx, { mealType: e.target.value as MealEntry["mealType"] })
+          }
+          className={cn(
+            "flex h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm",
+            logbookFieldClass
+          )}
+          aria-label={t("logbook.mealTypeLabel")}
+        >
+          {mealTypeOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {t(opt.labelKey)}
+            </option>
+          ))}
+        </select>
+      )
+    }
+    return (
+      <Select value={value} onValueChange={(v) => updateEntryData(idx, { mealType: v })}>
+        <SelectTrigger className="min-w-0 w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="z-[150]">
+          {mealTypeOptions.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {t(opt.labelKey)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    )
+  }
 
   const renderEntryDateTimeFields = (entry: Row, idx: number) => (
     <>
@@ -514,20 +563,7 @@ export function ExtractionConfirmation({
           </div>
           <div className="flex min-w-0 flex-col">
             <Label className="text-xs text-slate-500 mb-1">{t("logbook.mealTypeLabel")}</Label>
-            <Select
-              value={(entry.data as MealEntry).mealType ?? "lunch"}
-              onValueChange={(v) => updateEntryData(idx, { mealType: v })}
-            >
-              <SelectTrigger className="min-w-0 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="breakfast">{t("logbook.breakfast")}</SelectItem>
-                <SelectItem value="lunch">{t("logbook.lunch")}</SelectItem>
-                <SelectItem value="dinner">{t("logbook.dinner")}</SelectItem>
-                <SelectItem value="snack">{t("logbook.snack")}</SelectItem>
-              </SelectContent>
-            </Select>
+            {renderMealTypeField(idx, (entry.data as MealEntry).mealType)}
           </div>
           {renderEntryDateTimeFields(entry, idx)}
         </div>

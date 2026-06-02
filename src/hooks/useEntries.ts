@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { addDays, startOfWeek } from "date-fns"
 import type { Entry, EntryType } from "@/lib/types"
 
 export type EntriesFilters = {
@@ -23,6 +24,30 @@ export function invalidateEntriesCacheForUser(userId: string) {
   for (const key of entriesCache.keys()) {
     if (key.startsWith(`${userId}:`)) entriesCache.delete(key)
   }
+}
+
+/** Monday-start week range containing `day` (matches logbook calendar). */
+export function weekFiltersForDate(day: Date): EntriesFilters {
+  const weekStart = startOfWeek(day, { weekStartsOn: 1 })
+  return {
+    from: weekStart.toISOString(),
+    to: addDays(weekStart, 7).toISOString(),
+  }
+}
+
+async function fetchEntriesFromApi(filters: EntriesFilters): Promise<Entry[]> {
+  const params = new URLSearchParams()
+  if (filters.type) params.set("type", filters.type)
+  if (filters.from) params.set("from", filters.from)
+  if (filters.to) params.set("to", filters.to)
+  if (filters.limit != null) params.set("limit", String(filters.limit))
+  const query = params.toString()
+  const res = await fetch(`/api/entries${query ? `?${query}` : ""}`, {
+    credentials: "include",
+  })
+  if (!res.ok) throw new Error("Failed to load entries")
+  const json = (await res.json()) as { entries?: Entry[] }
+  return Array.isArray(json.entries) ? json.entries : []
 }
 
 export function useEntries(filters?: EntriesFilters, userId: string | null = null) {
@@ -59,21 +84,7 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
 
     try {
       const parsed = JSON.parse(filtersKey) as EntriesFilters
-      const params = new URLSearchParams()
-      if (parsed.type) params.set("type", parsed.type)
-      if (parsed.from) params.set("from", parsed.from)
-      if (parsed.to) params.set("to", parsed.to)
-      if (parsed.limit != null) params.set("limit", String(parsed.limit))
-      const query = params.toString()
-
-      const res = await fetch(`/api/entries${query ? `?${query}` : ""}`, {
-        credentials: "include",
-      })
-      if (!res.ok) {
-        throw new Error("Failed to load entries")
-      }
-      const json = (await res.json()) as { entries?: Entry[] }
-      const nextEntries = Array.isArray(json.entries) ? json.entries : []
+      const nextEntries = await fetchEntriesFromApi(parsed)
       setEntries(nextEntries)
       entriesCache.set(cacheKey, { data: nextEntries, ts: Date.now() })
     } catch (e) {
@@ -90,5 +101,34 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
     void refetch()
   }, [refetch])
 
-  return { entries, loading, error, refetch }
+  /** Reload the week that contains `day` (use after AI save — avoids stale refetch closure). */
+  const refetchForDay = useCallback(
+    async (day: Date) => {
+      if (!userId) {
+        setEntries([])
+        setError(null)
+        setLoading(false)
+        return
+      }
+
+      const dayFilters = weekFiltersForDate(day)
+      const dayCacheKey = `${userId}:${JSON.stringify(dayFilters)}`
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const nextEntries = await fetchEntriesFromApi(dayFilters)
+        setEntries(nextEntries)
+        entriesCache.set(dayCacheKey, { data: nextEntries, ts: Date.now() })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load entries")
+      } finally {
+        setLoading(false)
+      }
+    },
+    [userId]
+  )
+
+  return { entries, loading, error, refetch, refetchForDay }
 }

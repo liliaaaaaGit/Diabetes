@@ -22,7 +22,7 @@ import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucos
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
 import { isLogbookEvent } from "@/lib/cgm"
-import { addDays, isSameDay, parseISO, startOfDay, startOfWeek } from "date-fns"
+import { addDays, isSameDay, parse, parseISO, startOfDay, startOfWeek } from "date-fns"
 
 export default function LogbookPage() {
   const { t } = useTranslation()
@@ -43,7 +43,7 @@ export default function LogbookPage() {
   }, [selectedDate])
 
   // Main payload: only entries for the currently visible week.
-  const { entries, loading, error, refetch } = useEntries(
+  const { entries, loading, error, refetch, refetchForDay } = useEntries(
     { from: weekStartIso, to: weekEndIso },
     userId
   )
@@ -66,22 +66,30 @@ export default function LogbookPage() {
 
   // After an AI/photo save, jump to the day the entry landed on so it's visible.
   const handleNavigateToDate = useCallback((ymd: string) => {
-    const d = parseISO(ymd)
+    const d = parse(ymd, "yyyy-MM-dd", new Date())
     if (Number.isNaN(d.getTime())) return
     setDidAutoSelectDate(true)
     setSelectedDate(startOfDay(d))
   }, [])
 
-  /** After AI/photo save: switch day first, then bust cache and refetch (avoids stale week list). */
+  /** After AI/photo save: jump to saved day, then reload that calendar week (not a stale refetch). */
   const handleEntrySaved = useCallback(
     async (dates?: string[]) => {
+      let targetDay = selectedDate
       if (dates?.[0]) {
-        flushSync(() => handleNavigateToDate(dates[0]))
+        const parsed = parse(dates[0], "yyyy-MM-dd", new Date())
+        if (!Number.isNaN(parsed.getTime())) {
+          targetDay = startOfDay(parsed)
+          flushSync(() => {
+            setDidAutoSelectDate(true)
+            setSelectedDate(targetDay)
+          })
+        }
       }
       if (userId) invalidateEntriesCacheForUser(userId)
-      await refetch()
+      await refetchForDay(targetDay)
     },
-    [handleNavigateToDate, refetch, userId]
+    [refetchForDay, selectedDate, userId]
   )
 
   const dayEntries = useMemo(() => {
