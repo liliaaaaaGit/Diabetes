@@ -22,7 +22,8 @@ import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucos
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
 import { isLogbookEvent } from "@/lib/cgm"
-import { addDays, isSameDay, parse, parseISO, startOfDay, startOfWeek } from "date-fns"
+import { dayFiltersForDate } from "@/lib/entry-day"
+import { addDays, parse, parseISO, startOfDay, startOfWeek } from "date-fns"
 
 export default function LogbookPage() {
   const { t } = useTranslation()
@@ -42,11 +43,21 @@ export default function LogbookPage() {
     return addDays(weekStart, 7).toISOString()
   }, [selectedDate])
 
-  // Main payload: only entries for the currently visible week.
-  const { entries, loading, error, refetch, refetchForDay } = useEntries(
+  const dayFilters = useMemo(() => dayFiltersForDate(selectedDate), [selectedDate])
+
+  // Week: calendar dots only. Day: list + tab counts (avoids 1000s of CGM rows hiding meals).
+  const { entries: weekEntries, refetch: refetchWeek } = useEntries(
     { from: weekStartIso, to: weekEndIso },
     userId
   )
+  const {
+    entries: listEntries,
+    loading: listLoading,
+    error,
+    refetch: refetchList,
+    refetchForDay,
+    mergeEntries,
+  } = useEntries(dayFilters, userId)
   // Tiny helper query to detect the newest entry date without downloading all data.
   const { entries: latestEntries, loading: latestLoading } = useEntries({ limit: 1 }, userId)
 
@@ -72,9 +83,9 @@ export default function LogbookPage() {
     setSelectedDate(startOfDay(d))
   }, [])
 
-  /** After AI/photo save: jump to saved day, then reload that calendar week (not a stale refetch). */
+  /** After AI/photo save: show created rows immediately, then reload day + week. */
   const handleEntrySaved = useCallback(
-    async (dates?: string[]) => {
+    async (dates?: string[], saved?: Entry[]) => {
       let targetDay = selectedDate
       if (dates?.[0]) {
         const parsed = parse(dates[0], "yyyy-MM-dd", new Date())
@@ -86,20 +97,18 @@ export default function LogbookPage() {
           })
         }
       }
+      if (saved?.length) {
+        mergeEntries(saved)
+      }
       if (userId) invalidateEntriesCacheForUser(userId)
       await refetchForDay(targetDay)
+      await refetchWeek()
     },
-    [refetchForDay, selectedDate, userId]
+    [mergeEntries, refetchForDay, refetchWeek, selectedDate, userId]
   )
 
-  const dayEntries = useMemo(() => {
-    return entries.filter((e) => isSameDay(parseISO(e.timestamp), selectedDate))
-  }, [entries, selectedDate])
-
   const counts = useMemo(() => {
-    // Counts mirror the list, which shows events only (the dense CGM stream
-    // lives in the chart, not the logbook list).
-    const events = dayEntries.filter(isLogbookEvent)
+    const events = listEntries.filter(isLogbookEvent)
     const c: Record<string, number> = {
       all: events.length,
     }
@@ -108,9 +117,9 @@ export default function LogbookPage() {
     })
     // The Blutzucker tab shows the full day's glucose curve (CGM + manual),
     // so its badge counts every glucose reading, not just manual events.
-    c.glucose = dayEntries.filter((e) => e.type === "glucose").length
+    c.glucose = listEntries.filter((e) => e.type === "glucose").length
     return c
-  }, [dayEntries])
+  }, [listEntries])
 
   const handleShiftWeek = useCallback(
     (direction: -1 | 1) => {
@@ -122,7 +131,7 @@ export default function LogbookPage() {
 
   // Most recent bolus (rapid) insulin name, used to pre-fill the quick form.
   const defaultBolusName = useMemo(() => {
-    const boluses = entries
+    const boluses = listEntries
       .filter(
         (e): e is InsulinEntry =>
           e.type === "insulin" &&
@@ -131,7 +140,7 @@ export default function LogbookPage() {
       )
       .sort((a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime())
     return boluses[0]?.insulinName || undefined
-  }, [entries])
+  }, [listEntries])
 
   // Fast manual path: write each filled field as its own entry, no AI.
   const handleQuickSave = async (newEntries: NewEntry[]) => {
@@ -154,7 +163,9 @@ export default function LogbookPage() {
       }
     }
     if (saved > 0) {
-      await refetch()
+      if (userId) invalidateEntriesCacheForUser(userId)
+      await refetchList()
+      await refetchWeek()
       toast({ title: t("logbook.aiSaveSuccess", { count: saved }) })
     }
   }
@@ -178,7 +189,9 @@ export default function LogbookPage() {
         if (entryToSave.type === "glucose") {
           triggerGlucoseSafetyAfterSave(entryToSave, showGlucoseSafetyIfNeeded)
         }
-        await refetch()
+        if (userId) invalidateEntriesCacheForUser(userId)
+        await refetchList()
+        await refetchWeek()
         toast({
           title: t("logbook.entrySaved"),
           description: t("logbook.entrySavedSuccess"),
@@ -228,13 +241,13 @@ export default function LogbookPage() {
             setDidAutoSelectDate(true)
             setSelectedDate(startOfDay(new Date()))
           }}
-          entries={entries}
+          entries={weekEntries}
         />
 
         {/* 2. AI entry input: add an entry for the selected day. */}
         <AiQuickInput
           onManualFallback={() => setIsModalOpen(true)}
-          onRefetch={refetch}
+          onRefetch={refetchList}
           onNavigateToDate={handleNavigateToDate}
           onEntrySaved={handleEntrySaved}
         />
@@ -250,16 +263,18 @@ export default function LogbookPage() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        {loading && (
+        {listLoading && listEntries.length === 0 ? (
           <p className="text-sm text-slate-500 py-4">{t("common.loading")}</p>
-        )}
-
-        {!loading && (
+        ) : (
           <LogbookDayView
             selectedDate={selectedDate}
             filter={activeFilter}
-            entriesForDay={dayEntries}
-            onMealUpdated={() => void refetch()}
+            entriesForDay={listEntries}
+            onMealUpdated={() => {
+              if (userId) invalidateEntriesCacheForUser(userId)
+              void refetchList()
+              void refetchWeek()
+            }}
           />
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react"
 import { usePhotoMealAnalysis } from "@/components/logbook/use-photo-meal-analysis"
+import type { Entry } from "@/lib/types"
 
 type PhotoMealContextValue = ReturnType<typeof usePhotoMealAnalysis>
 
@@ -12,7 +13,7 @@ export function PhotoMealProvider({
   onEntrySaved,
 }: {
   children: ReactNode
-  onEntrySaved?: (dates?: string[]) => void | Promise<void>
+  onEntrySaved?: (dates?: string[], saved?: Entry[]) => void | Promise<void>
 }) {
   const value = usePhotoMealAnalysis(onEntrySaved)
   return <PhotoMealContext.Provider value={value}>{children}</PhotoMealContext.Provider>

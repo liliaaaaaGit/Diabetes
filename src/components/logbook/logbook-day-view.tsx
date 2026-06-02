@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { formatInsulin, roundInsulinDose } from "@/lib/insulin-format"
+import { isLogbookEvent } from "@/lib/cgm"
 import { mealCarbsForSum } from "@/lib/meal-carbs"
 import { format } from "date-fns"
 import { de } from "date-fns/locale/de"
@@ -27,9 +28,14 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay, onMealUpda
   const { formatGlucoseWithUnit: fmt } = useUserPreferences()
   const dateLocale = locale === "de" ? de : enUS
 
-  const filteredEntries = useMemo(
-    () => (filter === "all" ? entriesForDay : entriesForDay.filter((entry) => entry.type === filter)),
-    [entriesForDay, filter]
+  const dayEvents = useMemo(
+    () => entriesForDay.filter(isLogbookEvent),
+    [entriesForDay]
+  )
+
+  const filteredEvents = useMemo(
+    () => (filter === "all" ? dayEvents : dayEvents.filter((entry) => entry.type === filter)),
+    [dayEvents, filter]
   )
 
   const summary = useMemo(() => {
@@ -46,7 +52,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay, onMealUpda
     const sumInsulin = roundInsulinDose(ins.reduce((s, i) => s + i.dose, 0))
 
     return {
-      count: filteredEntries.length,
+      count: filteredEvents.length,
       avgGlucose,
       sumCarbs,
       sumInsulin,
@@ -54,7 +60,7 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay, onMealUpda
       showCarbs: meals.length > 0,
       showInsulin: ins.length > 0,
     }
-  }, [entriesForDay, filteredEntries.length])
+  }, [entriesForDay, filteredEvents.length])
 
   const dateTitle = format(selectedDate, "EEEE, d. MMMM yyyy", { locale: dateLocale })
 
@@ -75,8 +81,8 @@ export function LogbookDayView({ selectedDate, filter, entriesForDay, onMealUpda
     )
   }
 
-  if (filteredEntries.length === 0) {
-    const allEmpty = filter === "all" && entriesForDay.length === 0
+  if (filteredEvents.length === 0) {
+    const allEmpty = filter === "all" && dayEvents.length === 0
     return (
       <EmptyState
         icon={BookOpen}

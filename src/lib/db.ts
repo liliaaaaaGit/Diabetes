@@ -488,7 +488,16 @@ export async function getEntries(
 
     if (entryType === "meal") {
       const m = mealMap[row.id]
-      if (!m) return null
+      if (!m) {
+        console.warn("[getEntries] Meal row missing for entry", row.id)
+        return {
+          ...(common as any),
+          type: "meal",
+          description: common.note || "",
+          mealType: "lunch",
+          mealSource: "manual",
+        } satisfies MealEntry
+      }
       return {
         ...(common as any),
         type: "meal",

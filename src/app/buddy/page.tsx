@@ -617,7 +617,7 @@ export default function BuddyPage() {
             conversationId={activeConversationIdNow}
             onSaveEntry={async (entry) => {
               if (!userId) throw new Error("Not signed in")
-              await createEntry(userId, entry)
+              return await createEntry(userId, entry)
             }}
             onSaveResult={({ saved, failed }) => {
               if (failed === 0 && saved > 0) {

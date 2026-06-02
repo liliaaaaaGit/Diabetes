@@ -8,7 +8,7 @@ import { useUser } from "@/hooks/useUser"
 import { compressMealImage } from "@/lib/compress-meal-image"
 import type { PhotoAnalysisResult } from "@/lib/parse-photo-analysis"
 import { photoAnalysisToExtractedEntry } from "@/lib/photo-to-extracted-entry"
-import type { ExtractedEntry, NewEntry } from "@/lib/types"
+import type { Entry, ExtractedEntry, NewEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db-client"
 
 export function isMobileDevice(): boolean {
@@ -16,7 +16,9 @@ export function isMobileDevice(): boolean {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
 
-export function usePhotoMealAnalysis(onEntrySaved?: (dates?: string[]) => void | Promise<void>) {
+export function usePhotoMealAnalysis(
+  onEntrySaved?: (dates?: string[], saved?: Entry[]) => void | Promise<void>
+) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
@@ -103,21 +105,23 @@ export function usePhotoMealAnalysis(onEntrySaved?: (dates?: string[]) => void |
   // estimate carbs, then save a normal meal entry.
   const savePhotoMeal = async (entry: NewEntry) => {
     if (!userId) throw new Error("Not signed in")
-    await createEntry(userId, entry)
+    return await createEntry(userId, entry)
   }
 
   const onPhotoSaveResult = async ({
     saved,
     failed,
     dates,
+    entries,
   }: {
     saved: number
     failed: number
     dates?: string[]
+    entries: Entry[]
   }) => {
     if (saved > 0 && failed === 0) {
       resetPhoto()
-      await onEntrySaved?.(dates)
+      await onEntrySaved?.(dates, entries)
     }
   }
 

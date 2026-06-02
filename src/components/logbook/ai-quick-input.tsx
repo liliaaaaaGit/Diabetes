@@ -8,7 +8,7 @@ import { useTranslation } from "@/hooks/useTranslation"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/useUser"
-import type { ExtractedEntry } from "@/lib/types"
+import type { Entry, ExtractedEntry } from "@/lib/types"
 import { createEntry } from "@/lib/db-client"
 import { ExtractionConfirmationModal } from "@/components/logbook/extraction-confirmation-modal"
 import { PhotoMealProvider } from "@/components/logbook/photo-meal-context"
@@ -22,7 +22,7 @@ interface AiQuickInputProps {
   /** Jump the logbook to a given day (YYYY-MM-DD) after a save, so the new entry is visible. */
   onNavigateToDate?: (ymd: string) => void
   /** Navigate to saved day, invalidate cache, refetch — use after AI/photo save. */
-  onEntrySaved?: (dates?: string[]) => void | Promise<void>
+  onEntrySaved?: (dates?: string[], saved?: Entry[]) => void | Promise<void>
 }
 
 export function AiQuickInput({
@@ -209,9 +209,9 @@ export function AiQuickInput({
             source="manual"
             onSaveEntry={async (entry) => {
               if (!userId) throw new Error("Not signed in")
-              await createEntry(userId, entry)
+              return await createEntry(userId, entry)
             }}
-            onSaveResult={({ saved, failed, dates }) => {
+            onSaveResult={({ saved, failed, dates, entries }) => {
               void (async () => {
                 if (failed === 0 && saved > 0) {
                   setText("")
@@ -219,7 +219,7 @@ export function AiQuickInput({
                   setEmptyMessage(null)
                   setAiMessage("")
                   if (onEntrySaved) {
-                    await onEntrySaved(dates)
+                    await onEntrySaved(dates, entries)
                   } else {
                     if (dates?.[0]) onNavigateToDate?.(dates[0])
                     await onRefetch?.()

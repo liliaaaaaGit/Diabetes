@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import type {
+  Entry,
   ExtractedEntry,
   EntryType,
   NewEntry,
@@ -56,13 +57,18 @@ type ExtractionConfirmationProps = {
   extractedEntries: ExtractedEntry[]
   aiMessage: string
   title?: string
-  onSaveEntry: (entry: NewEntry) => Promise<void>
+  onSaveEntry: (entry: NewEntry) => Promise<Entry>
   /**
    * Called after attempting all saves; parent can clear UI when failed === 0 and saved > 0.
    * `dates` holds the YYYY-MM-DD day(s) the entries were saved on, so the parent can
    * navigate the logbook to that day and show the new entry.
    */
-  onSaveResult?: (result: { saved: number; failed: number; dates: string[] }) => void
+  onSaveResult?: (result: {
+    saved: number
+    failed: number
+    dates: string[]
+    entries: Entry[]
+  }) => void
   onDiscard: () => void
   source?: "manual" | "conversation"
   conversationId?: string
@@ -309,19 +315,21 @@ export function ExtractionConfirmation({
     let saved = 0
     let failed = 0
     const dates: string[] = []
+    const savedEntries: Entry[] = []
 
     for (const { src, entry: ne } of built) {
       try {
         // eslint-disable-next-line no-await-in-loop
-        await onSaveEntry(ne)
+        const created = await onSaveEntry(ne)
         if (ne.type === "glucose") {
           triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
         }
+        savedEntries.push(created)
         // Use the date the user picked in the form (not UTC rollover from timestamp).
         const localDay =
           src.entryDate && isValidDateYmd(src.entryDate)
             ? src.entryDate
-            : format(new Date(ne.timestamp), "yyyy-MM-dd")
+            : format(new Date(created.timestamp), "yyyy-MM-dd")
         if (!dates.includes(localDay)) dates.push(localDay)
         saved += 1
       } catch {
@@ -346,7 +354,7 @@ export function ExtractionConfirmation({
       })
     }
 
-    onSaveResult?.({ saved, failed, dates })
+    onSaveResult?.({ saved, failed, dates, entries: savedEntries })
   }
 
   /** Same grid cell + field styling as carbs / meal type row (see globals.css .logbook-datetime-input). */

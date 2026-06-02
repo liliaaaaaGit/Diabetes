@@ -103,6 +103,8 @@ export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
     [entries]
   )
 
+  const events = useMemo(() => entries.filter(isLogbookEvent), [entries])
+
   const visibleGroups = useMemo(() => {
     if (filter === "all") return groupedEntries
 
@@ -110,6 +112,23 @@ export function EntryList({ entries, filter, onMealUpdated }: EntryListProps) {
       .map((group) => group.filter((entry) => entry.type === filter))
       .filter((group) => group.length > 0)
   }, [filter, groupedEntries])
+
+  if (visibleGroups.length === 0 && events.length > 0) {
+    const flat =
+      filter === "all" ? events : events.filter((entry) => entry.type === filter)
+    return (
+      <div className="w-full space-y-3">
+        {flat.map((entry) => (
+          <LogbookUnifiedEntryCard
+            key={entry.id}
+            entries={[entry]}
+            dayEntries={entries}
+            onMealUpdated={onMealUpdated}
+          />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="w-full">
