@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { GlucoseEntry } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -51,6 +51,7 @@ export function GlucoseChart({
   timeRange: initialTimeRange = "24h",
 }: GlucoseChartProps) {
   const [timeRange, setTimeRange] = useState<GlucoseChartTimeRange>(initialTimeRange)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const { t } = useTranslation()
   const { displayUnit } = useUserPreferences()
 
@@ -74,6 +75,17 @@ export function GlucoseChart({
 
   const tabTriggerClass =
     "min-h-[44px] shrink-0 px-3 text-xs sm:px-2.5 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+
+  useEffect(() => {
+    if (chartData.length === 0) return
+    const el = scrollContainerRef.current
+    if (!el) return
+    const raf = window.requestAnimationFrame(() => {
+      // Start at "now" (right edge). Users can still scroll left for older data.
+      el.scrollLeft = el.scrollWidth
+    })
+    return () => window.cancelAnimationFrame(raf)
+  }, [timeRange, chartData.length])
 
   return (
     <Card className="rounded-xl border-slate-200 shadow-sm">
@@ -109,7 +121,10 @@ export function GlucoseChart({
         {chartData.length === 0 ? (
           <p className="text-sm text-slate-500 text-center py-12 px-2">{t("empty.glucoseChartEmpty")}</p>
         ) : (
-          <div className="-mx-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]">
+          <div
+            ref={scrollContainerRef}
+            className="-mx-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]"
+          >
             <div
               className="min-w-full"
               style={{ minWidth: Math.max(280, chartData.length * (timeRange === "24h" ? 12 : 28)) }}
