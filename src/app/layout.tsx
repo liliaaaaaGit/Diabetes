@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     title: "GlucoCompanion",
   },
   icons: {
-    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
-    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
   },
 }
 
