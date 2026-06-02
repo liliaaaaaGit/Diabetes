@@ -172,10 +172,15 @@ export function ConversationList({
   }
 
   return (
-    <div className="space-y-4">
-      <HistoryStats userId={userId} refreshKey={statsRefreshKey} />
+    <div className="space-y-3 md:space-y-4">
+      {/* Desktop/tablet only — mobile shows search + list directly */}
+      <div className="hidden md:block">
+        <HistoryStats userId={userId} refreshKey={statsRefreshKey} />
+      </div>
 
-      <HistoryListHeader />
+      <div className="hidden md:block">
+        <HistoryListHeader />
+      </div>
 
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

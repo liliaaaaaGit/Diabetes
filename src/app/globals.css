@@ -85,6 +85,15 @@
     overflow-wrap: anywhere;
     word-break: break-word;
   }
+
+  /* Native date/time pickers on iOS must stay inside narrow grid columns */
+  .logbook-datetime-input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 @layer utilities {

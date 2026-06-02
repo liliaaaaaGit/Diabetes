@@ -334,6 +334,30 @@ export function ExtractionConfirmation({
     onSaveResult?.({ saved, failed, dates })
   }
 
+  /** Same 2-column row as carbs + meal type — always side by side on mobile and desktop. */
+  const renderEntryDateTimeFields = (entry: Row, idx: number) => (
+    <>
+      <div className="flex min-w-0 flex-col">
+        <Label className="text-xs text-slate-500 mb-1">{t("logbook.entryDateLabel")}</Label>
+        <Input
+          type="date"
+          value={entry.entryDate ?? ""}
+          onChange={(e) => updateEntryMeta(idx, { entryDate: e.target.value })}
+          className="logbook-datetime-input min-w-0 w-full"
+        />
+      </div>
+      <div className="flex min-w-0 flex-col">
+        <Label className="text-xs text-slate-500 mb-1">{t("logbook.entryTimeLabel")}</Label>
+        <Input
+          type="time"
+          value={entry.entryTime ?? ""}
+          onChange={(e) => updateEntryMeta(idx, { entryTime: e.target.value })}
+          className="logbook-datetime-input min-w-0 w-full"
+        />
+      </div>
+    </>
+  )
+
   const renderMiniForm = (entry: Row, idx: number) => {
     const type = entry.resolvedType
     if (!type) return null
@@ -456,7 +480,7 @@ export function ExtractionConfirmation({
               rows={1}
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <Label className="text-xs text-slate-500 mb-1">{t("logbook.carbsLabel")} (g)</Label>
             <Input
               type="number"
@@ -471,15 +495,16 @@ export function ExtractionConfirmation({
                   carbsMaxGrams: undefined,
                 })
               }}
+              className="min-w-0"
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <Label className="text-xs text-slate-500 mb-1">{t("logbook.mealTypeLabel")}</Label>
             <Select
               value={(entry.data as MealEntry).mealType ?? "lunch"}
               onValueChange={(v) => updateEntryData(idx, { mealType: v })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="min-w-0 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -490,6 +515,7 @@ export function ExtractionConfirmation({
               </SelectContent>
             </Select>
           </div>
+          {renderEntryDateTimeFields(entry, idx)}
         </div>
       )
     }
@@ -706,32 +732,11 @@ export function ExtractionConfirmation({
 
               {renderMiniForm(entry, idx)}
 
-              {/* Auto-filled but editable date + time, so the user can correct
-                  "two hours ago" or "yesterday" before saving. */}
-              <div className="mt-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2">
-                <div className="flex min-w-0 flex-col">
-                  <Label className="text-xs text-slate-500 mb-1">
-                    {t("logbook.entryDateLabel")}
-                  </Label>
-                  <Input
-                    type="date"
-                    value={entry.entryDate ?? ""}
-                    onChange={(e) => updateEntryMeta(idx, { entryDate: e.target.value })}
-                    className="h-11 w-full min-w-0 max-w-full text-sm"
-                  />
+              {entry.resolvedType !== "meal" ? (
+                <div className="mt-3 grid grid-cols-2 gap-3 items-end">
+                  {renderEntryDateTimeFields(entry, idx)}
                 </div>
-                <div className="flex min-w-0 flex-col">
-                  <Label className="text-xs text-slate-500 mb-1">
-                    {t("logbook.entryTimeLabel")}
-                  </Label>
-                  <Input
-                    type="time"
-                    value={entry.entryTime ?? ""}
-                    onChange={(e) => updateEntryMeta(idx, { entryTime: e.target.value })}
-                    className="h-11 w-full min-w-0 max-w-full text-sm"
-                  />
-                </div>
-              </div>
+              ) : null}
 
               {/* One unified confidence indicator per AI suggestion card. */}
               <div className="mt-2 flex justify-end">

@@ -54,11 +54,6 @@ export function PhotoMealPanels() {
   if (photo.extractedEntries) {
     return (
       <div className="col-span-full mt-1 space-y-2">
-        {photo.photoWarning && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-            {photo.photoWarning}
-          </p>
-        )}
         <ExtractionConfirmation
           extractedEntries={photo.extractedEntries}
           aiMessage=""
