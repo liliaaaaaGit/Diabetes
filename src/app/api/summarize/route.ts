@@ -10,9 +10,7 @@ const SUMMARY_PROMPT = `WICHTIG (höchste Priorität):
 Für deutsche Titel und Zusammenfassungen: IMMER grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung (Substantive groß, Satzanfänge groß, „ich“ klein). NIEMALS den gesamten Titel oder die gesamte Zusammenfassung nur in Kleinbuchstaben schreiben.
 Für englische Ausgabe: normale englische Großschreibung (Satzanfänge, „I“ groß).
 
-You summarize a chat between a user and Gluco, an empathetic diabetes companion, for a research app.
-
-Focus on what the USER shared: feelings, worries, wins, relationships, diabetes-related stress — not on rehashing the assistant's advice.
+Du erzeugst eine JSON-Zusammenfassung eines beendeten Chats in einer Diabetes-Begleit-App (Forschungsprototyp). Der Chat enthält Nachrichten von USER und ASSISTANT (Gluco). Lies beide — schreibe die Zusammenfassung aber ausschließlich aus der Perspektive dessen, was der USER erlebt, fühlt und erkannt hat.
 
 Output a single JSON object with this exact shape:
 {
@@ -30,18 +28,32 @@ Output a single JSON object with this exact shape:
   }
 }
 
-TITLE:
-- 3–6 words, creative and evocative (not clinical). For German titles: use normal German capitalization (nouns capitalized). For English: natural title or sentence case.
-- Examples (English style): "Creating While Carrying Weight", "When Support Feels Out of Reach"
-- Examples (German style): "Wenn der Alltag zu viel wird", "Kleiner Schritt, große Ehrlichkeit"
+TITLE (unverändert zur bisherigen Logik):
+- 3–6 words, creative and evocative (not clinical). Match the user's main language.
+- German: normal capitalization. English: natural title or sentence case.
+- Examples (EN): "Creating While Carrying Weight", "When Support Feels Out of Reach"
+- Examples (DE): "Wenn der Alltag zu viel wird", "Kleiner Schritt, große Ehrlichkeit"
 
-SUMMARY:
-- One warm, empathetic, reflective paragraph: 6–12 sentences — like caring session notes with heart, not a cold clinical abstract.
-- For German: Schreibe grammatikalisch korrektes Deutsch mit korrekter Groß- und Kleinschreibung. Verwende vollständige Sätze mit Satzzeichen.
-- For English: use normal capitalization, punctuation, and complete sentences.
-- Speak directly to the user as "you" (English) or "du" (German) — match the language they used most in the conversation. In German ALWAYS use the informal "du/dein/dir", NEVER the formal "Sie/Ihre/Ihnen".
-- Reflect what they went through, validate feelings, name strengths you genuinely hear, offer a gentle reframe where fitting.
-- NOT clinical, NOT third person ("they/the user"), NOT bullet points.
+SUMMARY — zentrale Regeln:
+- Genau 2–4 Sätze. Warm, konkret, menschlich — wie ein Spiegel des eigenen Gesprächs, kein klinischer Bericht, keine Stichpunkte.
+- Sprache: die Sprache, die der USER im Chat überwiegend nutzt.
+  - Deutsch: IMMER Du-Form (du, dein, dir, dich). NIEMALS Sie/Ihre/Ihnen. NIEMALS dritte Person („der Nutzer“, „die Nutzerin“, „er/sie teilte“).
+  - Englisch: direkte „you“-Anrede. NIEMALS „the user“, „they“, „he/she shared“.
+- Fokus = nur der USER: wie es ihm/ihr geht, was passiert ist, was er/sie für sich mitgenommen hat.
+- NIEMALS Gluco, der Bot, der Assistent oder dessen Verhalten erwähnen — auch nicht lobend oder beschreibend (verboten z. B.: „Gluco bestärkt …“, „Gluco hat gut reagiert“, „the assistant explained …“).
+- Wenn im Gespräch vorhanden, herausfiltern (nur was der User wirklich angesprochen hat — nichts erfinden):
+  • Ressourcen: Was hilft? (Bewegung, Routinen, Schlaf, Menschen, Dinge, die Werte oder Stimmung stabilisieren.)
+  • Belastungen: Was macht zu schaffen? (Burnout, Hypo-Angst, Frust über Werte, Stress, Schuldgefühle …)
+  • Zusammenhänge: Beobachtbare Muster zwischen Stimmung, Blutzucker, Bewegung, Essen, Schlaf, Stress — als Beobachtung formulieren („du hast bemerkt …“, „es fällt auf, dass …“), nicht als medizinischer Rat.
+  • Konkrete Ereignisse & Erkenntnisse aus dem Chat.
+- VERBOTEN in der summary: dritte Person; jede Erwähnung von Gluco/Bot; Insulindosierung oder Therapieempfehlungen; Diagnosen; moralisierender Ton („gut/schlecht“, Schuldzuweisung); Fachjargon-Overkill.
+
+Beispiele summary (Deutsch, nur das Feld summary — Stilrichtung):
+SCHLECHT: „Der Nutzer entdeckt, dass regelmäßige Bewegung sowohl den Werten als auch der Stimmung guttut. Gluco bestärkt das als Ressource, ohne es zur Pflicht zu machen.“
+GUT: „Du hast gemerkt, dass dir regelmäßige Bewegung — Spazieren, Radeln, Joggen — guttut: Nach dem Sport bist du entspannter, und dein Blutzucker bleibt nachmittags ruhiger. Bewegung scheint gerade eine Ressource für dich zu sein, die Werte und Stimmung zusammen trägt.“
+
+SCHLECHT: „Der Nutzer zeigt Anzeichen von Burnout. Gluco erklärt mögliche Ursachen und empfiehlt einen Arzttermin.“
+GUT: „Letzte Nacht war hart — erst eine Unterzuckerung, am Morgen trotzdem ein hoher Wert, und das lässt dich ratlos und erschöpft zurück. Du hast beschrieben, dass dir das ständige Managen gerade zu viel wird. Als Halt hast du deinen Hund erwähnt. Auffällig ist das Muster ‚hoher Morgenwert nach nächtlicher Hypo‘ — etwas, das du im Blick behalten könntest.“
 
 TAGS:
 - 3–6 items. Each tag: { "emoji": "<single real Unicode emoji>", "label": "<short theme in same language as summary>" }
@@ -51,7 +63,7 @@ moodEmoji:
 - One primary mood Unicode emoji for the overall tone of what the user expressed.
 
 EMOTIONS:
-- Score each basic emotion from 0.0 to 1.0 (floats) based on the user's messages. Most chats mix emotions; use nuanced values, not all zeros.
+- Score each basic emotion from 0.0 to 1.0 (floats) based on the USER's messages only. Nuanced values, not all zeros.
 
 The conversation transcript follows.`
 
@@ -127,8 +139,8 @@ export async function POST(req: NextRequest) {
 
     const completion = await openai!.chat.completions.create({
       model: "gpt-4o-mini",
-      max_tokens: 800,
-      temperature: 0.6,
+      max_tokens: 550,
+      temperature: 0.5,
       messages: [
         { role: "system", content: SUMMARY_PROMPT },
         { role: "user", content: conversationText || "(empty)" },
