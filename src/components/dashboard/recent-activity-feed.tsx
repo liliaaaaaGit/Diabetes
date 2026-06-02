@@ -58,9 +58,15 @@ export function RecentActivityFeed({ entries, limit = 8 }: RecentActivityFeedPro
       }
       case "insulin": {
         const insulinEntry = entry as InsulinEntry
+        const entryTypeLabel =
+          insulinEntry.insulinEntryType === "basal"
+            ? t("logbook.insulinEntryBasal")
+            : insulinEntry.insulinEntryType === "correction"
+              ? t("logbook.insulinEntryCorrection")
+              : t("logbook.insulinEntryMealBolus")
         return {
           icon: <Syringe className="h-5 w-5 text-purple-600" />,
-          text: `${formatInsulin(insulinEntry.dose, locale)} ${t("logbook.insulinUnitsAbbrev")} ${insulinEntry.insulinName || ""}`.trim(),
+          text: `${formatInsulin(insulinEntry.dose, locale)} ${t("logbook.insulinUnitsAbbrev")} ${insulinEntry.insulinName || ""} · ${entryTypeLabel}`.trim(),
           color: "purple",
         }
       }

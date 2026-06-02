@@ -29,6 +29,7 @@ interface MomentCardProps {
 }
 
 function isBasalLantus(entry: InsulinEntry): boolean {
+  if (entry.insulinEntryType) return entry.insulinEntryType === "basal"
   const name = (entry.insulinName || "").toLowerCase()
   return entry.insulinType === "long_acting" || name.includes("lantus")
 }
@@ -156,6 +157,7 @@ export function MomentCard({ entries }: MomentCardProps) {
                 text={formatInsulinChipText(
                   basalInsulin.dose,
                   basalInsulin.insulinName || t("logbook.defaultLantus"),
+                  basalInsulin.insulinEntryType,
                   t,
                   locale
                 )}
@@ -191,7 +193,13 @@ export function MomentCard({ entries }: MomentCardProps) {
           {bolusInsulin.map((entry) => (
             <Chip
               key={entry.id}
-              text={formatInsulinChipText(entry.dose, entry.insulinName, t, locale)}
+              text={formatInsulinChipText(
+                entry.dose,
+                entry.insulinName,
+                entry.insulinEntryType,
+                t,
+                locale
+              )}
             />
           ))}
           {activities.map((activity) => (
@@ -208,7 +216,13 @@ export function MomentCard({ entries }: MomentCardProps) {
           {bolusInsulin.map((entry) => (
             <Chip
               key={entry.id}
-              text={formatInsulinChipText(entry.dose, entry.insulinName, t, locale)}
+              text={formatInsulinChipText(
+                entry.dose,
+                entry.insulinName,
+                entry.insulinEntryType,
+                t,
+                locale
+              )}
             />
           ))}
           {!glucose

@@ -5,6 +5,7 @@ export type GlucoseUnit = "mg_dl" | "mmol_l"
 export type GlucoseContext = "fasting" | "pre_meal" | "post_meal" | "bedtime" | "other"
 
 export type InsulinType = "rapid" | "long_acting" | "mixed" | "other"
+export type InsulinEntryType = "basal" | "meal_bolus" | "correction"
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack"
 
@@ -58,6 +59,7 @@ export interface InsulinEntry extends BaseEntry {
   type: "insulin"
   dose: number
   insulinType: InsulinType
+  insulinEntryType: InsulinEntryType
   insulinName?: string // z.B. "NovoRapid", "Lantus"
 }
 

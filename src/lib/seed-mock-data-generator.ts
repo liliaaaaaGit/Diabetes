@@ -19,6 +19,7 @@ import type {
   ConversationEmotions,
   ConversationTag,
   GlucoseContext,
+  InsulinEntryType,
   InsulinType,
   MealType,
   MoodValue,
@@ -43,6 +44,7 @@ export type InsulinRow = {
   entry_id: string
   dose: number
   insulin_type: InsulinType
+  insulin_entry_type: InsulinEntryType
   insulin_name: string | null
 }
 export type MealRow = {
@@ -759,6 +761,7 @@ function generateDay(userId: string, plan: DayPlan, baseMood: number, rng: Rng):
         entry_id: insEntry.id,
         dose: m.bolus,
         insulin_type: "rapid",
+        insulin_entry_type: "meal_bolus",
         insulin_name: "NovoRapid",
       })
       linkedInsulinId = insEntry.id
@@ -772,6 +775,7 @@ function generateDay(userId: string, plan: DayPlan, baseMood: number, rng: Rng):
           entry_id: insEntry2.id,
           dose: m.bolus,
           insulin_type: "rapid",
+          insulin_entry_type: "meal_bolus",
           insulin_name: "NovoRapid",
         })
       }
@@ -785,6 +789,7 @@ function generateDay(userId: string, plan: DayPlan, baseMood: number, rng: Rng):
         entry_id: corrEntry.id,
         dose: corrDose,
         insulin_type: "rapid",
+        insulin_entry_type: "correction",
         insulin_name: "NovoRapid",
       })
     }
@@ -828,6 +833,7 @@ function generateDay(userId: string, plan: DayPlan, baseMood: number, rng: Rng):
         entry_id: cEntry.id,
         dose,
         insulin_type: "rapid",
+        insulin_entry_type: "correction",
         insulin_name: "NovoRapid",
       })
     }
@@ -841,6 +847,7 @@ function generateDay(userId: string, plan: DayPlan, baseMood: number, rng: Rng):
     entry_id: basalEntry.id,
     dose: randInt(rng, 18, 22),
     insulin_type: "long_acting",
+    insulin_entry_type: "basal",
     insulin_name: "Lantus",
   })
 

@@ -4,6 +4,7 @@ import type {
   ExtractedEntry,
   GlucoseContext,
   InsulinType,
+  InsulinEntryType,
   Intensity,
   MoodValue,
 } from "@/lib/types"
@@ -39,6 +40,7 @@ const GLUCOSE_CONTEXTS: GlucoseContext[] = [
   "other",
 ]
 const INSULIN_TYPES: InsulinType[] = ["rapid", "long_acting", "mixed", "other"]
+const INSULIN_ENTRY_TYPES: InsulinEntryType[] = ["basal", "meal_bolus", "correction"]
 const INTENSITIES: Intensity[] = ["low", "medium", "high"]
 
 function parseGlucoseContext(v: unknown): GlucoseContext {
@@ -51,6 +53,36 @@ function parseInsulinType(v: unknown): InsulinType {
   return typeof v === "string" && INSULIN_TYPES.includes(v as InsulinType)
     ? (v as InsulinType)
     : "rapid"
+}
+
+function parseInsulinEntryType(v: unknown): InsulinEntryType | null {
+  return typeof v === "string" && INSULIN_ENTRY_TYPES.includes(v as InsulinEntryType)
+    ? (v as InsulinEntryType)
+    : null
+}
+
+function inferInsulinEntryType(
+  sourceText: string,
+  insulinType: InsulinType,
+  insulinName?: string
+): InsulinEntryType {
+  const normalized = sourceText.toLowerCase()
+  const normalizedName = (insulinName || "").toLowerCase()
+  if (
+    normalized.includes("korrektur") ||
+    normalized.includes("korrigier") ||
+    normalized.includes("zu hoch")
+  ) {
+    return "correction"
+  }
+  if (
+    insulinType === "long_acting" ||
+    normalized.includes("basal") ||
+    normalizedName.includes("lantus")
+  ) {
+    return "basal"
+  }
+  return "meal_bolus"
 }
 
 function parseIntensity(v: unknown): Intensity {
@@ -165,6 +197,11 @@ export function parseExtractResponse(
     if (type === "insulin") {
       const dose = Number(o.dose)
       if (!Number.isFinite(dose) || dose <= 0) continue
+      const insulinType = parseInsulinType(o.insulinType)
+      const insulinName = typeof o.insulinName === "string" ? o.insulinName : undefined
+      const insulinEntryType =
+        parseInsulinEntryType(o.insulinEntryType) ??
+        inferInsulinEntryType(sourceText, insulinType, insulinName)
       entries.push({
         type: "insulin",
         sourceText,
@@ -175,8 +212,9 @@ export function parseExtractResponse(
         data: {
           type: "insulin",
           dose,
-          insulinType: parseInsulinType(o.insulinType),
-          insulinName: typeof o.insulinName === "string" ? o.insulinName : undefined,
+          insulinType,
+          insulinEntryType,
+          insulinName,
         },
       })
       continue

@@ -113,6 +113,7 @@ export function QuickEntryForm({ defaultBolusName, onSubmit, onCancel }: QuickEn
         timestamp,
         dose: roundInsulinDose(bolusNum),
         insulinType: "rapid",
+        insulinEntryType: "meal_bolus",
         insulinName: defaultBolusName || undefined,
       } as NewEntry)
     }

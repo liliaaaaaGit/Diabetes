@@ -102,7 +102,12 @@ export default function LogbookPage() {
   // Most recent bolus (rapid) insulin name, used to pre-fill the quick form.
   const defaultBolusName = useMemo(() => {
     const boluses = entries
-      .filter((e): e is InsulinEntry => e.type === "insulin" && e.insulinType === "rapid")
+      .filter(
+        (e): e is InsulinEntry =>
+          e.type === "insulin" &&
+          e.insulinType === "rapid" &&
+          e.insulinEntryType === "meal_bolus"
+      )
       .sort((a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime())
     return boluses[0]?.insulinName || undefined
   }, [entries])

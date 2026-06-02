@@ -72,9 +72,15 @@ export function EntryDetailSheet({ entry, open, onOpenChange, onChanged }: Entry
     }
     if (entry.type === "insulin") {
       const i = entry as InsulinEntry
+      const entryTypeLabel =
+        i.insulinEntryType === "basal"
+          ? t("logbook.insulinEntryBasal")
+          : i.insulinEntryType === "correction"
+            ? t("logbook.insulinEntryCorrection")
+            : t("logbook.insulinEntryMealBolus")
       return `${t("logbook.insulin")}: ${formatInsulin(i.dose, loc)} ${t("logbook.insulinUnitsAbbrev")}${
         i.insulinName ? ` · ${i.insulinName}` : ""
-      }`
+      } · ${entryTypeLabel}`
     }
     if (entry.type === "activity") {
       const a = entry as ActivityEntry

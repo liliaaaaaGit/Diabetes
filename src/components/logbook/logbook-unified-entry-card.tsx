@@ -83,6 +83,7 @@ export function LogbookUnifiedEntryCard({
 
   const glucoseList = sorted.filter((e) => e.type === "glucose") as GlucoseEntry[]
   const insulinList = sorted.filter((e) => e.type === "insulin") as InsulinEntry[]
+  const mealBolusInsulin = insulinList.filter((ins) => ins.insulinEntryType === "meal_bolus")
   const mealList = sorted.filter((e) => e.type === "meal") as MealEntry[]
   const activityList = sorted.filter((e) => e.type === "activity") as ActivityEntry[]
   const moodList = sorted.filter((e) => e.type === "mood") as MoodEntry[]
@@ -216,10 +217,10 @@ export function LogbookUnifiedEntryCard({
           </div>
         </div>
 
-        {/* Bolus (documented, never evaluated) */}
-        {insulinList.length > 0 && (
+        {/* Meal bolus only (corrections are intentionally excluded from meal episodes). */}
+        {mealBolusInsulin.length > 0 && (
           <div className="mt-3 flex flex-col gap-1">
-            {insulinList.map((ins) => (
+            {mealBolusInsulin.map((ins) => (
               <button
                 key={ins.id}
                 type="button"
@@ -233,6 +234,7 @@ export function LogbookUnifiedEntryCard({
                 {ins.insulinName ? (
                   <span className="text-slate-500">{ins.insulinName}</span>
                 ) : null}
+                <span className="text-slate-500">· {t("logbook.insulinEntryMealBolus")}</span>
                 <span className="text-[11px] text-slate-400">({fmtTime(ins.timestamp)})</span>
               </button>
             ))}
@@ -363,6 +365,14 @@ export function LogbookUnifiedEntryCard({
           {ins.insulinName ? (
             <span className="text-sm text-slate-500">{ins.insulinName}</span>
           ) : null}
+          <span className="text-sm text-slate-500">
+            ·{" "}
+            {ins.insulinEntryType === "basal"
+              ? t("logbook.insulinEntryBasal")
+              : ins.insulinEntryType === "correction"
+                ? t("logbook.insulinEntryCorrection")
+                : t("logbook.insulinEntryMealBolus")}
+          </span>
         </button>
       ))}
 

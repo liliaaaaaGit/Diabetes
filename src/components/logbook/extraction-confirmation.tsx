@@ -218,6 +218,8 @@ export function ExtractionConfirmation({
         conversationId,
         dose,
         insulinType: (data.insulinType as InsulinEntry["insulinType"]) ?? "rapid",
+        insulinEntryType:
+          (data.insulinEntryType as InsulinEntry["insulinEntryType"]) ?? "meal_bolus",
         insulinName: (data.insulinName as string | undefined) ?? undefined,
       } as NewEntry
     }
@@ -422,6 +424,21 @@ export function ExtractionConfirmation({
               placeholder={t("logbook.insulinName")}
             />
             <p className="text-xs text-slate-500 mt-2">{t("logbook.insulinNote")}</p>
+          </div>
+          <div className="col-span-2">
+            <Select
+              value={(entry.data as InsulinEntry).insulinEntryType ?? "meal_bolus"}
+              onValueChange={(v) => updateEntryData(idx, { insulinEntryType: v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="basal">{t("logbook.insulinEntryBasal")}</SelectItem>
+                <SelectItem value="meal_bolus">{t("logbook.insulinEntryMealBolus")}</SelectItem>
+                <SelectItem value="correction">{t("logbook.insulinEntryCorrection")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )

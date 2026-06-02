@@ -1,5 +1,5 @@
 import type { Locale } from "@/i18n/config"
-import type { ActivityEntry, Entry, InsulinEntry, MealEntry } from "@/lib/types"
+import type { ActivityEntry, Entry, InsulinEntry, MealEntry, InsulinEntryType } from "@/lib/types"
 import { formatInsulin } from "@/lib/insulin-format"
 import { formatMealCarbsLabel } from "@/lib/meal-carbs"
 
@@ -19,14 +19,23 @@ export function logbookEntryTypeLabel(type: Entry["type"], t: TranslateFn): stri
 export function formatInsulinChipText(
   dose: number,
   insulinName: string | undefined,
+  insulinEntryType: InsulinEntryType | undefined,
   t: TranslateFn,
   locale: Locale
 ): string {
-  return t("logbook.insulinChip", {
+  const base = t("logbook.insulinChip", {
     dose: formatInsulin(dose, locale),
     insulinAbbrev: t("logbook.insulinUnitsAbbrev"),
     name: insulinName || t("logbook.insulin"),
   })
+  if (!insulinEntryType) return base
+  const entryTypeLabel =
+    insulinEntryType === "basal"
+      ? t("logbook.insulinEntryBasal")
+      : insulinEntryType === "correction"
+        ? t("logbook.insulinEntryCorrection")
+        : t("logbook.insulinEntryMealBolus")
+  return `${base} · ${entryTypeLabel}`
 }
 
 export function formatActivityChipText(activity: ActivityEntry, t: TranslateFn): string {

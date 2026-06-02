@@ -7,6 +7,7 @@ import type {
   GlucoseEntry,
   GlucoseUnit,
   InsulinEntry,
+  InsulinEntryType,
   InsulinType,
   MealEntry,
   MealType,
@@ -68,6 +69,10 @@ function normalizeConversationEmotionsFromDb(raw: unknown): ConversationEmotions
 
 const mmolToMgdl = (mmol: number) => mmol * 18.0182
 const ENTRY_ID_CHUNK_SIZE = 200
+const normalizeInsulinEntryType = (v: unknown): InsulinEntryType => {
+  if (v === "basal" || v === "meal_bolus" || v === "correction") return v
+  return "meal_bolus"
+}
 
 async function selectByEntryIds<T extends Record<string, unknown>>(
   table:
@@ -164,7 +169,7 @@ async function getEntryById(entryId: string, userId: string): Promise<Entry> {
   if (type === "insulin") {
     const { data, error } = await supabase
       .from("entry_insulin")
-      .select("entry_id,dose,insulin_type,insulin_name")
+      .select("entry_id,dose,insulin_type,insulin_entry_type,insulin_name")
       .eq("entry_id", entryId)
       .maybeSingle()
     if (error) throw error
@@ -175,6 +180,7 @@ async function getEntryById(entryId: string, userId: string): Promise<Entry> {
       type: "insulin",
       dose: toNumber((data as any).dose),
       insulinType: (data as any).insulin_type,
+      insulinEntryType: normalizeInsulinEntryType((data as any).insulin_entry_type),
       insulinName: (data as any).insulin_name || undefined,
     }
   }
@@ -299,6 +305,8 @@ export async function createEntry(userId: string, entry: NewEntry | Entry): Prom
         entry_id: entryId,
         dose: roundInsulinDose(toNumber(dose)),
         insulin_type: insulinType,
+        insulin_entry_type:
+          (entry as any).insulinEntryType ?? (insulinType === "long_acting" ? "basal" : "meal_bolus"),
         insulin_name: insulinName || null,
       })
       if (error) throw error
@@ -410,8 +418,9 @@ export async function getEntries(
       entry_id: string
       dose: number
       insulin_type: string
+      insulin_entry_type: string | null
       insulin_name: string | null
-    }>("entry_insulin", "entry_id,dose,insulin_type,insulin_name", insulinIds),
+    }>("entry_insulin", "entry_id,dose,insulin_type,insulin_entry_type,insulin_name", insulinIds),
     selectByEntryIds<Record<string, unknown>>(
       "entry_meal",
       MEAL_SELECT,
@@ -472,6 +481,7 @@ export async function getEntries(
         type: "insulin",
         dose: toNumber(i.dose),
         insulinType: i.insulin_type as InsulinType,
+        insulinEntryType: normalizeInsulinEntryType(i.insulin_entry_type),
         insulinName: i.insulin_name || undefined,
       } satisfies InsulinEntry
     }

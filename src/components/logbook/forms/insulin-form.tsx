@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { InsulinEntry, InsulinType } from "@/lib/types"
+import { InsulinEntry, InsulinType, InsulinEntryType } from "@/lib/types"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -92,6 +92,28 @@ export function InsulinForm({ value, onChange }: InsulinFormProps) {
             <SelectItem value="long_acting">{t("logbook.longActing")}</SelectItem>
             <SelectItem value="mixed">{t("logbook.mixed")}</SelectItem>
             <SelectItem value="other">{t("logbook.other")}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Entry category (basal/meal bolus/correction) */}
+      <div>
+        <Label className="text-sm text-slate-600 mb-2 block">
+          {t("logbook.insulinEntryType")}
+        </Label>
+        <Select
+          value={value.insulinEntryType || "meal_bolus"}
+          onValueChange={(v) =>
+            onChange({ ...value, insulinEntryType: v as InsulinEntryType })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="basal">{t("logbook.insulinEntryBasal")}</SelectItem>
+            <SelectItem value="meal_bolus">{t("logbook.insulinEntryMealBolus")}</SelectItem>
+            <SelectItem value="correction">{t("logbook.insulinEntryCorrection")}</SelectItem>
           </SelectContent>
         </Select>
       </div>

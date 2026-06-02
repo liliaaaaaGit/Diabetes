@@ -14,6 +14,7 @@ WICHTIGE REGELN für Kohlenhydrat-Schätzung:
 5. Bei Unklarheit: lieber konservativ schätzen und in "extraction_note" den Grund nennen.
 6. Du gibst NIEMALS eine Insulin-Dosierungsempfehlung oder einen Bolus-Vorschlag.
 7. Typische Hauptgerichte mit Reis/Nudeln und Gemüse liegen meist bei ca. 40–80 g KH — nicht 150+ g, außer bei sehr großen Portionen oder expliziten Mengenangaben.
+8. Bei Insulin-Einträgen kategorisiere nur den Typ (insulinEntryType): "correction" bei Formulierungen wie "zur Korrektur", "Korrektur gespritzt", "korrigiert"; sonst "meal_bolus" bei schnellem Insulin und "basal" bei langwirkendem Insulin.
 
 ZEIT & DATUM:
 - Gib für jeden Eintrag ein "timestamp" als LOKALE Zeit im Format "YYYY-MM-DDTHH:mm" zurück (KEIN "Z" und KEINE Zeitzone anhängen).
@@ -22,7 +23,7 @@ ZEIT & DATUM:
 
 Weitere Eintragstypen (gleiches "entries"-Array):
 - glucose: value (mg/dL), context optional (fasting|pre_meal|post_meal|bedtime|other)
-- insulin: dose (Einheiten), insulinType optional (rapid|long_acting|mixed|other), insulinName optional
+- insulin: dose (Einheiten), insulinType optional (rapid|long_acting|mixed|other), insulinName optional, insulinEntryType optional (basal|meal_bolus|correction)
 - activity: activityType, durationMinutes, intensity (low|medium|high)
 - mood: moodValue 1–5
 

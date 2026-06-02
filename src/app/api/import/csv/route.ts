@@ -101,6 +101,7 @@ export async function POST(req: Request) {
           source: "import",
           dose: ins,
           insulinType: "other",
+          insulinEntryType: "meal_bolus",
         })
         insulin++
         createdSomething = true

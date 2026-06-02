@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS entry_insulin (
   entry_id UUID PRIMARY KEY REFERENCES entries(id) ON DELETE CASCADE,
   dose NUMERIC NOT NULL,
   insulin_type TEXT CHECK (insulin_type IN ('rapid', 'long_acting', 'mixed', 'other')),
+  insulin_entry_type TEXT NOT NULL DEFAULT 'meal_bolus' CHECK (insulin_entry_type IN ('basal', 'meal_bolus', 'correction')),
   insulin_name TEXT
 );
 
