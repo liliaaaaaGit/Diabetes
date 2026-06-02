@@ -1,5 +1,23 @@
 -- Questionnaire v2: move from item columns to section JSON payloads (A-G)
 
+CREATE OR REPLACE FUNCTION public.requesting_user_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT nullif(current_setting('app.current_user_id', true), '')::uuid
+$$;
+
+CREATE OR REPLACE FUNCTION public.set_requesting_user_id(p_user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  PERFORM set_config('app.current_user_id', coalesce(p_user_id::text, ''), true);
+END;
+$$;
+
 ALTER TABLE public.questionnaire_responses
   ADD COLUMN IF NOT EXISTS section_a jsonb NOT NULL DEFAULT '{}'::jsonb,
   ADD COLUMN IF NOT EXISTS section_b jsonb NOT NULL DEFAULT '{}'::jsonb,

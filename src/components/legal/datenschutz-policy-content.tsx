@@ -105,9 +105,9 @@ export function DatenschutzPolicyContent() {
           Fehleranalyse verwendet.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.6 Befragungsdaten.</strong> Sofern Sie den
-          Studienfragebogen ausfüllen, werden Ihre Antworten (Skalen- und Freitextantworten) pseudonym unter
-          Ihrer Benutzer-ID gespeichert. Spätestens nach Abschluss der Studie werden sie gelöscht.
+          <strong className="font-semibold text-slate-900">4.6 Befragungsdaten.</strong> Sobald du den
+          Evaluations-Fragebogen ausfüllst, speichern wir deine Antworten (geschlossene Items und Freitext)
+          pseudonymisiert unter deiner Benutzer-ID. Spätestens nach Abschluss der Studie werden sie gelöscht.
         </p>
       </section>
 

@@ -11,6 +11,11 @@ import type {
   SectionG,
 } from "@/lib/questionnaire-types"
 
+async function setQuestionnaireUserContext(userId: string): Promise<void> {
+  const { error } = await supabase.rpc("set_requesting_user_id", { p_user_id: userId })
+  if (error) throw error
+}
+
 const emptySectionA: SectionA = {
   age: null,
   diabetes_type: null,
@@ -121,6 +126,7 @@ function isMissingTableError(error: { code?: string; message?: string } | null):
 export async function getQuestionnaireResponse(
   userId: string
 ): Promise<QuestionnaireResponse | null> {
+  await setQuestionnaireUserContext(userId)
   const { data, error } = await supabase
     .from("questionnaire_responses")
     .select("id,user_id,created_at,completed_at,section_a,section_b,section_c,section_d,section_e,section_f,section_g")
@@ -139,6 +145,7 @@ export async function upsertQuestionnaireResponse(
   userId: string,
   patch: QuestionnairePatch
 ): Promise<QuestionnaireResponse> {
+  await setQuestionnaireUserContext(userId)
   const dbPatch = patchToDbRow(patch)
   const { data, error } = await supabase
     .from("questionnaire_responses")
@@ -151,6 +158,7 @@ export async function upsertQuestionnaireResponse(
 }
 
 export async function completeQuestionnaireResponse(userId: string): Promise<QuestionnaireResponse> {
+  await setQuestionnaireUserContext(userId)
   const { data, error } = await supabase
     .from("questionnaire_responses")
     .upsert(
