@@ -4,6 +4,14 @@ import { useCallback, useEffect, useState } from "react"
 import { getConversations } from "@/lib/db-client"
 import type { Conversation } from "@/lib/types"
 
+type ConversationsCacheItem = {
+  data: Conversation[]
+  ts: number
+}
+
+const CONVERSATIONS_CACHE_TTL_MS = 30_000
+const conversationsCache = new Map<string, ConversationsCacheItem>()
+
 export function useConversations(userId: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
@@ -16,13 +24,25 @@ export function useConversations(userId: string | null) {
       setLoading(false)
       return
     }
-    setLoading(true)
-    setError(null)
+    const cached = conversationsCache.get(userId)
+    const isCachedFresh = !!cached && Date.now() - cached.ts < CONVERSATIONS_CACHE_TTL_MS
+
+    if (isCachedFresh) {
+      setConversations(cached.data)
+      setError(null)
+      setLoading(false)
+    } else {
+      setLoading(true)
+      setError(null)
+    }
     try {
       const data = await getConversations(userId)
       setConversations(data)
+      conversationsCache.set(userId, { data, ts: Date.now() })
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load conversations")
+      if (!isCachedFresh) {
+        setError(e instanceof Error ? e.message : "Failed to load conversations")
+      }
     } finally {
       setLoading(false)
     }
