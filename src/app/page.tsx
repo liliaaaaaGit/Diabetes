@@ -23,7 +23,7 @@ import type { Entry, GlucoseContext, GlucoseEntry, MoodEntry, NewEntry } from "@
 import { formatDistanceToNow, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
-import { glucoseTirPercents } from "@/lib/insights-aggregate"
+import { computeEstimatedGmi, glucoseTirPercents } from "@/lib/insights-aggregate"
 
 /** Translate a glucose context code into a human-readable label. */
 function getContextText(context: GlucoseContext, t: (k: string) => string): string {
@@ -201,6 +201,12 @@ export default function DashboardPage() {
     const last7d = glucoseTyped.filter((e) => parseISO(e.timestamp) >= cutoff)
     return glucoseTirPercents(last7d, targetMinMgDl, targetMaxMgDl).inRange
   }, [glucoseTyped, targetMinMgDl, targetMaxMgDl])
+  const tirBreakdown = useMemo(() => {
+    const cutoff = subDays(new Date(), 7)
+    const last7d = glucoseTyped.filter((e) => parseISO(e.timestamp) >= cutoff)
+    return glucoseTirPercents(last7d, targetMinMgDl, targetMaxMgDl)
+  }, [glucoseTyped, targetMinMgDl, targetMaxMgDl])
+  const estimatedGmi = useMemo(() => computeEstimatedGmi(statsSafe.avgGlucose), [statsSafe.avgGlucose])
 
   // Most recent two glucose readings (newest first), used for the trend arrow.
   const sortedGlucose = useMemo(() => {
@@ -301,7 +307,7 @@ export default function DashboardPage() {
               icon={Droplet}
               color="teal"
               caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
-              note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
+              note={`${estimatedGmi != null ? `GMI (geschätzt): ${estimatedGmi.toFixed(1)}%` : ""}${isSparseData ? ` · ${t("dashboard.sparseDataHint")}` : ""}`.trim()}
             />
             <StatCard
               label={t("dashboard.entriesToday")}
@@ -309,14 +315,23 @@ export default function DashboardPage() {
               icon={Activity}
               color="green"
             />
-            <StatCard
-              label={t("dashboard.timeInRange")}
-              value={`${timeInRangePercent}%`}
-              icon={TrendingUp}
-              color="purple"
-              caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
-              note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
-            />
+            <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
+              <CardContent className="p-3 sm:p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-medium text-slate-600 sm:text-xs">{t("dashboard.timeInRange")}</p>
+                  <TrendingUp className="h-4 w-4 text-cyan-600" />
+                </div>
+                <p className="text-lg font-semibold text-slate-900 sm:text-2xl">{timeInRangePercent}%</p>
+                <div className="flex h-2.5 w-full overflow-hidden rounded">
+                  <div className="bg-red-500" style={{ width: `${tirBreakdown.under}%` }} />
+                  <div className="bg-emerald-500" style={{ width: `${tirBreakdown.inRange}%` }} />
+                  <div className="bg-teal-900" style={{ width: `${tirBreakdown.over}%` }} />
+                </div>
+                <p className="text-[10px] leading-snug text-slate-500">
+                  Unter {tirBreakdown.under}% · Im Ziel {tirBreakdown.inRange}% · Über {tirBreakdown.over}%
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="min-w-0">
@@ -359,7 +374,7 @@ export default function DashboardPage() {
                 icon={Droplet}
                 color="teal"
                 caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
-                note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
+                note={`${estimatedGmi != null ? `GMI (geschätzt): ${estimatedGmi.toFixed(1)}%` : ""}${isSparseData ? ` · ${t("dashboard.sparseDataHint")}` : ""}`.trim()}
               />
               <StatCard
                 label={t("dashboard.entriesToday")}
@@ -367,14 +382,23 @@ export default function DashboardPage() {
                 icon={Activity}
                 color="green"
               />
-              <StatCard
-                label={t("dashboard.timeInRange")}
-                value={`${timeInRangePercent}%`}
-                icon={TrendingUp}
-                color="purple"
-                caption={last7dCount > 0 ? `n=${last7dCount}` : undefined}
-                note={isSparseData ? t("dashboard.sparseDataHint") : undefined}
-              />
+              <Card className="rounded-xl border-slate-100 shadow-sm bg-white">
+                <CardContent className="p-3 sm:p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-medium text-slate-600 sm:text-xs">{t("dashboard.timeInRange")}</p>
+                    <TrendingUp className="h-4 w-4 text-cyan-600" />
+                  </div>
+                  <p className="text-lg font-semibold text-slate-900 sm:text-2xl">{timeInRangePercent}%</p>
+                  <div className="flex h-2.5 w-full overflow-hidden rounded">
+                    <div className="bg-red-500" style={{ width: `${tirBreakdown.under}%` }} />
+                    <div className="bg-emerald-500" style={{ width: `${tirBreakdown.inRange}%` }} />
+                    <div className="bg-teal-900" style={{ width: `${tirBreakdown.over}%` }} />
+                  </div>
+                  <p className="text-[10px] leading-snug text-slate-500">
+                    Unter {tirBreakdown.under}% · Im Ziel {tirBreakdown.inRange}% · Über {tirBreakdown.over}%
+                  </p>
+                </CardContent>
+              </Card>
               <MoodSummaryCard label={t("dashboard.moodToday")} moodEntry={lastMoodEntry} />
             </div>
 

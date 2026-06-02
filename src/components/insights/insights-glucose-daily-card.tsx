@@ -1,18 +1,18 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts"
+import { Area, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
 import { formatGlucose, mgDlToMmolL } from "@/lib/glucose-units"
-import type { DailyMoodGlucosePoint } from "@/lib/insights-aggregate"
+import type { DailyGlucoseVariabilityPoint } from "@/lib/insights-aggregate"
 
 interface InsightsGlucoseDailyCardProps {
-  chartPoints: DailyMoodGlucosePoint[]
+  chartPoints: DailyGlucoseVariabilityPoint[]
   overallAvgGlucose: number | null
 }
 
-/** Daily glucose sparkline + period average (without insulin/carbs/entry stat cards). */
+/** Daily glucose variability card (min/max band + daily average). */
 export function InsightsGlucoseDailyCard({
   chartPoints,
   overallAvgGlucose,
@@ -22,13 +22,27 @@ export function InsightsGlucoseDailyCard({
 
   const sparkData = chartPoints.map((p) => ({
     name: p.label,
-    bg:
+    min:
+      p.minGlucose != null
+        ? displayUnit === "mmol/L"
+          ? mgDlToMmolL(p.minGlucose)
+          : p.minGlucose
+        : null,
+    max:
+      p.maxGlucose != null
+        ? displayUnit === "mmol/L"
+          ? mgDlToMmolL(p.maxGlucose)
+          : p.maxGlucose
+        : null,
+    avg:
       p.avgGlucose != null
         ? displayUnit === "mmol/L"
           ? mgDlToMmolL(p.avgGlucose)
           : p.avgGlucose
         : null,
-    bgMgDl: p.avgGlucose,
+    minMgDl: p.minGlucose,
+    maxMgDl: p.maxGlucose,
+    avgMgDl: p.avgGlucose,
   }))
 
   return (
@@ -37,32 +51,58 @@ export function InsightsGlucoseDailyCard({
         <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
           {t("insights.summaryDailyBg")}
         </p>
-        <div className="h-[52px] w-full -mx-1">
-          <ResponsiveContainer width="100%" height={52}>
-            <LineChart data={sparkData} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+        <div className="h-[160px] w-full -mx-1">
+          <ResponsiveContainer width="100%" height={160}>
+            <ComposedChart data={sparkData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+              <XAxis dataKey="name" hide />
+              <YAxis hide />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
-                  const mg = (payload[0]?.payload as { bgMgDl?: number | null } | undefined)?.bgMgDl
+                  const point = payload[0]?.payload as
+                    | { minMgDl?: number | null; maxMgDl?: number | null; avgMgDl?: number | null }
+                    | undefined
                   return (
                     <div className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs shadow-sm">
                       <p className="font-medium text-slate-700">{label}</p>
                       <p className="tabular-nums text-slate-900">
-                        {mg != null ? `${formatGlucose(mg, displayUnit)} ${unitSuffix}` : "—"}
+                        Min: {point?.minMgDl != null ? `${formatGlucose(point.minMgDl, displayUnit)} ${unitSuffix}` : "—"}
+                      </p>
+                      <p className="tabular-nums text-slate-900">
+                        Ø: {point?.avgMgDl != null ? `${formatGlucose(point.avgMgDl, displayUnit)} ${unitSuffix}` : "—"}
+                      </p>
+                      <p className="tabular-nums text-slate-900">
+                        Max: {point?.maxMgDl != null ? `${formatGlucose(point.maxMgDl, displayUnit)} ${unitSuffix}` : "—"}
                       </p>
                     </div>
                   )
                 }}
               />
+              <Area
+                type="monotone"
+                dataKey="max"
+                stroke="transparent"
+                fill="#99f6e4"
+                fillOpacity={0.35}
+                activeDot={false}
+              />
+              <Area
+                type="monotone"
+                dataKey="min"
+                stroke="transparent"
+                fill="#ffffff"
+                fillOpacity={1}
+                activeDot={false}
+              />
               <Line
                 type="monotone"
-                dataKey="bg"
+                dataKey="avg"
                 stroke="#0d9488"
                 strokeWidth={2}
                 dot={false}
-                connectNulls
+                connectNulls={false}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
         {overallAvgGlucose != null ? (

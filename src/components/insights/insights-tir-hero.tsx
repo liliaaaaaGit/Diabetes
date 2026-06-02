@@ -8,10 +8,11 @@ import { averageGlucoseLabelClass } from "@/lib/insights-aggregate"
 
 interface InsightsTirHeroProps {
   avgMgDl: number | null
+  gmi: number | null
   tir: { under: number; inRange: number; over: number }
 }
 
-export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
+export function InsightsTirHero({ avgMgDl, gmi, tir }: InsightsTirHeroProps) {
   const { t } = useTranslation()
   const { formatTargetRangeLabel, targetRange, formatGlucoseWithUnit } = useUserPreferences()
   const rangeLabel = formatTargetRangeLabel()
@@ -45,6 +46,10 @@ export function InsightsTirHero({ avgMgDl, tir }: InsightsTirHeroProps) {
               </p>
               <p className="text-xs text-slate-500 mt-2">
                 {t("insights.tirBandHint", { range: rangeLabel })}
+              </p>
+              <p className="text-sm text-slate-600 mt-2">
+                <span className="font-medium text-slate-700">GMI (geschätzt): </span>
+                <span className="font-semibold text-teal-800">{gmi != null ? `${gmi.toFixed(1)} %` : "—"}</span>
               </p>
             </div>
 

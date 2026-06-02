@@ -29,6 +29,7 @@ export function FilterTabs({ activeFilter, counts, onChange }: FilterTabsProps) 
         <TabsList className="inline-flex h-auto w-max min-w-full flex-nowrap justify-start gap-1 bg-transparent p-0">
           {filters.map((filter) => {
             const count = counts[filter.value] || 0
+            const showCount = filter.value !== "all" && count > 0
             return (
               <TabsTrigger
                 key={filter.value}
@@ -39,7 +40,7 @@ export function FilterTabs({ activeFilter, counts, onChange }: FilterTabsProps) 
                   "data-[state=inactive]:bg-slate-100 data-[state=inactive]:text-slate-700"
                 )}
               >
-                {filter.label} {count > 0 && `(${count})`}
+                {filter.label} {showCount && `(${count})`}
               </TabsTrigger>
             )
           })}

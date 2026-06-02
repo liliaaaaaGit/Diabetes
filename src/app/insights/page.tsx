@@ -5,7 +5,6 @@ import { AppShell } from "@/components/shared/app-shell"
 import { InsightsPeriodTabs } from "@/components/insights/insights-period-tabs"
 import { InsightsTirHero } from "@/components/insights/insights-tir-hero"
 import { InsightsGlucoseDailyCard } from "@/components/insights/insights-glucose-daily-card"
-import { InsightsMoodRadarSection } from "@/components/insights/insights-mood-radar-section"
 import { InsightsMoodGlucoseChart } from "@/components/insights/insights-mood-glucose-chart"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useEntries } from "@/hooks/useEntries"
@@ -15,7 +14,9 @@ import { useUserPreferences } from "@/contexts/user-preferences-context"
 import type { GlucoseEntry } from "@/lib/types"
 import {
   buildDailyMoodGlucosePoints,
+  buildDailyGlucoseVariabilityPoints,
   computeInsightsRange,
+  computeEstimatedGmi,
   glucoseTirPercents,
   averageGlucoseMgDl,
   type InsightsTimeRangeKey,
@@ -45,8 +46,13 @@ export default function InsightsPage() {
     () => buildDailyMoodGlucosePoints(range, entries, conversations, loc, "correlation"),
     [range, entries, conversations, loc]
   )
+  const variabilityPoints = useMemo(
+    () => buildDailyGlucoseVariabilityPoints(range, entries, loc),
+    [range, entries, loc]
+  )
 
   const avgMgDl = useMemo(() => averageGlucoseMgDl(glucoseEntries), [glucoseEntries])
+  const gmi = useMemo(() => computeEstimatedGmi(avgMgDl), [avgMgDl])
   const tir = useMemo(
     () => glucoseTirPercents(glucoseEntries, targetMinMgDl, targetMaxMgDl),
     [glucoseEntries, targetMinMgDl, targetMaxMgDl]
@@ -62,9 +68,8 @@ export default function InsightsPage() {
 
         {!loading && (
           <>
-            <InsightsTirHero avgMgDl={avgMgDl} tir={tir} />
-            <InsightsGlucoseDailyCard chartPoints={chartPoints} overallAvgGlucose={avgMgDl} />
-            <InsightsMoodRadarSection userId={userId} />
+            <InsightsTirHero avgMgDl={avgMgDl} gmi={gmi} tir={tir} />
+            <InsightsGlucoseDailyCard chartPoints={variabilityPoints} overallAvgGlucose={avgMgDl} />
             <InsightsMoodGlucoseChart data={chartPoints} timeRange={timeRange} />
           </>
         )}

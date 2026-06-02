@@ -9,7 +9,7 @@ import {
 } from "@/components/charts/bg-curve-chart"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
-import { glucoseEntryToMgDl } from "@/lib/glucose-units"
+import { glucoseChartScale, glucoseEntryToMgDl } from "@/lib/glucose-units"
 import { endOfDay, isSameDay, parseISO, startOfDay } from "date-fns"
 
 interface BgDayChartProps {
@@ -27,7 +27,9 @@ interface BgDayChartProps {
  */
 export function BgDayChart({ date, entries }: BgDayChartProps) {
   const { t } = useTranslation()
-  const { displayUnit, formatGlucoseWithUnit: fmt } = useUserPreferences()
+  const { displayUnit, targetMinMgDl, targetMaxMgDl, formatGlucoseWithUnit: fmt } = useUserPreferences()
+  const scale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
+  const yTicks = [scale.yMin, scale.targetLow, scale.targetHigh, scale.yMaxCap]
 
   // Day window. For "today", the chart ends at "now" (never in the future).
   const dayStartMs = startOfDay(date).getTime()
@@ -87,6 +89,7 @@ export function BgDayChart({ date, entries }: BgDayChartProps) {
         tooltipDateFormat="dd.MM.yyyy HH:mm"
         dotConfig={bgDotConfig(data.length)}
         height={220}
+        yTicks={yTicks}
       />
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-slate-500">
         <span>

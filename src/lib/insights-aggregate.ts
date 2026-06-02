@@ -152,11 +152,70 @@ export function glucoseTirPercents(
     else if (v <= targetMaxMgDl) inn++
     else over++
   }
-  return {
-    under: Math.round((under / n) * 100),
-    inRange: Math.round((inn / n) * 100),
-    over: Math.round((over / n) * 100),
+  return splitToExactHundred([under / n, inn / n, over / n])
+}
+
+function splitToExactHundred(shares: number[]): { under: number; inRange: number; over: number } {
+  const raw = shares.map((s) => Math.max(0, s * 100))
+  const floored = raw.map((v) => Math.floor(v))
+  let remainder = 100 - floored.reduce((a, b) => a + b, 0)
+  const order = raw
+    .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac)
+
+  let ptr = 0
+  while (remainder > 0 && ptr < order.length) {
+    floored[order[ptr].i] += 1
+    remainder -= 1
+    ptr += 1
+    if (ptr >= order.length && remainder > 0) ptr = 0
   }
+
+  return { under: floored[0], inRange: floored[1], over: floored[2] }
+}
+
+export function computeEstimatedGmi(avgMgDl: number | null): number | null {
+  if (avgMgDl == null || !Number.isFinite(avgMgDl)) return null
+  return Math.round((3.31 + 0.02392 * avgMgDl) * 10) / 10
+}
+
+export type DailyGlucoseVariabilityPoint = {
+  dateKey: string
+  label: string
+  minGlucose: number | null
+  maxGlucose: number | null
+  avgGlucose: number | null
+}
+
+export function buildDailyGlucoseVariabilityPoints(
+  range: { from: Date; to: Date },
+  entries: Entry[],
+  locale: "de" | "en" = "de"
+): DailyGlucoseVariabilityPoint[] {
+  const dateLocale = locale === "de" ? de : enUS
+  const start = startOfDay(range.from)
+  const end = startOfDay(range.to)
+  const days = eachDayOfInterval({ start, end })
+  const glucose = entries.filter((e) => e.type === "glucose") as GlucoseEntry[]
+
+  return days.map((day) => {
+    const key = format(day, "yyyy-MM-dd")
+    const label = format(day, locale === "de" ? "EEE d." : "EEE d", { locale: dateLocale })
+    const dayVals = glucose
+      .filter((g) => dayKeyFromIso(g.timestamp) === key)
+      .map((g) => glucoseMgDl(g))
+    if (dayVals.length === 0) {
+      return { dateKey: key, label, minGlucose: null, maxGlucose: null, avgGlucose: null }
+    }
+    const sum = dayVals.reduce((a, b) => a + b, 0)
+    return {
+      dateKey: key,
+      label,
+      minGlucose: Math.min(...dayVals),
+      maxGlucose: Math.max(...dayVals),
+      avgGlucose: Math.round((sum / dayVals.length) * 10) / 10,
+    }
+  })
 }
 
 /** Average glucose color vs user target range (matches TIR „im Ziel“). */

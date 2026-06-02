@@ -76,11 +76,10 @@ export function GlucoseChart({
   const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
   const yTicks = [
     chartScale.yMin,
-    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.25,
-    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.5,
-    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.75,
+    chartScale.targetLow,
+    chartScale.targetHigh,
     chartScale.yMaxCap,
-  ].map((v) => Math.round(v))
+  ]
   const formatYAxisTick = (valueMgDl: number) =>
     displayUnit === "mmol/L" ? mgDlToMmolL(valueMgDl).toFixed(1) : String(Math.round(valueMgDl))
 
@@ -161,6 +160,7 @@ export function GlucoseChart({
                   dotConfig={dots}
                   height={250}
                   showYAxis={false}
+                  yTicks={yTicks}
                 />
               </div>
             </div>

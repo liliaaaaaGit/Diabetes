@@ -1,12 +1,13 @@
 import { subDays } from "date-fns"
 import { openai } from "@/lib/openai-server"
-import { getConversations } from "@/lib/db"
+import { getConversations, getEntries } from "@/lib/db"
 import { getSessionUserId } from "@/lib/auth-session"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const FALLBACK_QUOTE = "Du musst heute nicht perfekt sein. Ein ehrlicher, kleiner Schritt reicht."
+const FALLBACK_QUOTE =
+  "Ein einzelner hoher oder niedriger Wert sagt nichts über dich als Person aus – er ist ein Signal, das du für deinen nächsten kleinen Schritt nutzen kannst."
 
 export async function GET() {
   try {
@@ -16,12 +17,18 @@ export async function GET() {
     }
 
     const conversations = await getConversations(userId)
+    const entries = await getEntries(userId, { limit: 200 })
     const from = subDays(new Date(), 14)
     const tags = conversations
       .filter((c) => !c.isActive && new Date(c.startedAt) >= from)
       .flatMap((c) => c.tags || [])
       .map((t) => `${t.emoji} ${t.label}`.trim())
       .filter(Boolean)
+    const glucose = entries.filter((e) => e.type === "glucose")
+    const highs = glucose.filter((e: any) => e.value > 180).length
+    const lows = glucose.filter((e: any) => e.value < 70).length
+    const meals = entries.filter((e) => e.type === "meal").length
+    const moods = entries.filter((e) => e.type === "mood").length
 
     if (!openai || tags.length === 0) {
       return Response.json({ quote: FALLBACK_QUOTE })
@@ -44,7 +51,12 @@ export async function GET() {
             "4. Anti-Perfektionismus, aber immer rund um Diabetes gerahmt, nicht ums Leben allgemein. " +
             "Kein Kitsch, kein medizinischer Rat, keine Insulin- oder Dosierungsempfehlung. Authentisch und warm. 1-2 Saetze. Auf Deutsch. Sprich die Person IMMER mit Du an, niemals mit Sie (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Antworte als JSON: { quote: string }",
         },
-        { role: "user", content: `Themen der letzten Gespraeche: ${tags.join(", ")}` },
+        {
+          role: "user",
+          content:
+            `Themen der letzten Gespraeche: ${tags.join(", ")}\n` +
+            `Kontext aus den letzten Eintraegen: hohe Werte=${highs}, niedrige Werte=${lows}, Mahlzeiten=${meals}, Stimmungseintraege=${moods}`,
+        },
       ],
     })
 
