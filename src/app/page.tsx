@@ -136,17 +136,17 @@ function LastMeasurementCard({
 
   return (
     <Card className="rounded-xl border-slate-200 shadow-sm bg-teal-50/50">
-      <CardContent className="p-6">
-        <p className="text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
+      <CardContent className="p-4 sm:p-6">
+        <p className="text-xs sm:text-sm text-slate-600 mb-2">{t("dashboard.lastMeasurement")}</p>
         <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-3xl font-bold text-slate-900 sm:text-4xl">
+          <span className="text-2xl font-bold text-slate-900 sm:text-4xl">
             {formatGlucoseWithUnit(entry.value).value}
           </span>
-          <span className="text-lg text-slate-600">{unitSuffix}</span>
+          <span className="text-base sm:text-lg text-slate-600">{unitSuffix}</span>
           {trend && (
-            <span className={`flex items-baseline gap-1 text-lg font-semibold ${trend.colorClass}`}>
-              {TrendIcon ? <TrendIcon className="h-5 w-5" aria-hidden="true" /> : null}
-              <span className="text-sm">{t(trend.labelKey)}</span>
+            <span className={`flex items-baseline gap-1 text-base sm:text-lg font-semibold ${trend.colorClass}`}>
+              {TrendIcon ? <TrendIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" /> : null}
+              <span className="text-sm leading-none">{t(trend.labelKey)}</span>
             </span>
           )}
         </div>
@@ -299,6 +299,13 @@ export default function DashboardPage() {
             <LastMeasurementCard entry={lastGlucoseEntry} previousEntry={prevGlucoseEntry} />
           )}
 
+          {!glucoseLoading && glucoseTyped.length === 0 ? (
+            <p className="text-sm text-slate-500 px-1">{t("empty.dashboardNoGlucose")}</p>
+          ) : null}
+
+          {/* Glucose Chart directly under Last Measurement on mobile */}
+          <GlucoseChart entries={glucoseTyped} />
+
           {/* Mobile stat cards: stacked on narrow screens */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <StatCard
@@ -338,14 +345,6 @@ export default function DashboardPage() {
           <div className="min-w-0">
             <MoodSummaryCard label={t("dashboard.moodToday")} moodEntry={lastMoodEntry} />
           </div>
-
-          {!glucoseLoading && glucoseTyped.length === 0 ? (
-            <p className="text-sm text-slate-500 px-1">{t("empty.dashboardNoGlucose")}</p>
-          ) : null}
-
-          {/* Glucose Chart */}
-          <GlucoseChart entries={glucoseTyped} />
-
         </div>
 
         {/* Desktop Layout */}

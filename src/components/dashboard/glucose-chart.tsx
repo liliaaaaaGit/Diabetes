@@ -100,7 +100,7 @@ export function GlucoseChart({
 
   return (
     <Card className="rounded-xl border-slate-200 shadow-sm">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 px-3 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-base font-semibold">{t("dashboard.glucoseTrend")}</CardTitle>
           <Tabs
@@ -128,12 +128,12 @@ export function GlucoseChart({
           </Tabs>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 pb-3 sm:px-6 sm:pb-6">
         {chartData.length === 0 ? (
           <p className="text-sm text-slate-500 text-center py-12 px-2">{t("empty.glucoseChartEmpty")}</p>
         ) : (
-          <div className="flex items-stretch gap-2">
-            <div className="w-9 shrink-0 py-[5px]">
+          <div className="flex items-stretch gap-1 sm:gap-2">
+            <div className="w-8 shrink-0 py-[5px] sm:w-9">
               <div className="flex h-[250px] flex-col justify-between">
                 {[...yTicks].reverse().map((tick) => (
                   <span
@@ -147,11 +147,11 @@ export function GlucoseChart({
             </div>
             <div
               ref={scrollContainerRef}
-              className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]"
+              className="min-w-0 flex-1 overflow-x-auto [-webkit-overflow-scrolling:touch]"
             >
               <div
                 className="min-w-full"
-                style={{ minWidth: Math.max(280, chartData.length * (timeRange === "24h" ? 12 : 28)) }}
+                style={{ minWidth: Math.max(300, chartData.length * (timeRange === "24h" ? 12 : 28)) }}
               >
                 <BgCurveChart
                   data={chartData}
