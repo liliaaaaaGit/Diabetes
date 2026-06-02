@@ -13,9 +13,10 @@ interface AppShellProps {
   actions?: React.ReactNode
   /** Override main content wrapper (e.g. full width without max-w-7xl). */
   mainClassName?: string
+  hideFooter?: boolean
 }
 
-export function AppShell({ children, title, actions, mainClassName }: AppShellProps) {
+export function AppShell({ children, title, actions, mainClassName, hideFooter = false }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50">
@@ -58,7 +59,7 @@ export function AppShell({ children, title, actions, mainClassName }: AppShellPr
         </main>
       </div>
 
-      <AppFooter />
+      {!hideFooter && <AppFooter />}
     </div>
   )
 }

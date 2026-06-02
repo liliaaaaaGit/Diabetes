@@ -24,7 +24,7 @@ import {
 } from "@/lib/db-client"
 import type { Conversation, ConversationEmotions, ConversationTag, ExtractedEntry, Message } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { Sparkles, ArrowLeft } from "lucide-react"
+import { Sparkles } from "lucide-react"
 import { ExtractionConfirmation } from "@/components/logbook/extraction-confirmation"
 import { BuddyStats } from "@/components/buddy/buddy-stats"
 import { format } from "date-fns"
@@ -446,7 +446,7 @@ export default function BuddyPage() {
   }, [activeTab, conversations, refetchConversations, userId])
 
   return (
-    <AppShell title={t("buddy.title")} mainClassName="flex min-h-0 flex-col">
+    <AppShell title={t("buddy.title")} mainClassName="flex min-h-0 flex-col pb-0 md:pb-0" hideFooter>
       <div className="relative flex min-h-0 flex-1 flex-col">
         {conversationsError && (
           <p className="shrink-0 text-sm text-red-600">{t("buddy.historyLoadFailed")}</p>
@@ -514,20 +514,6 @@ export default function BuddyPage() {
 
         {activeTab === "chat" && isFullChatView && (
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="mx-auto w-full max-w-6xl shrink-0 px-4 pb-2 md:px-6 lg:px-8">
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => void handleLeaveChat()}
-                  disabled={isEndingConversation}
-                  className="rounded-full text-slate-700"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t("buddy.chatLeaveEndConversation")}
-                </Button>
-              </div>
-            </div>
             <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-0 md:px-6 lg:px-8">
               <ChatContainer messages={messages} showTyping={isStreaming} showCrisisBanner={hasCrisisFlag} />
               <p className="shrink-0 border-t border-slate-200/80 bg-slate-50/95 px-3 py-2 text-xs leading-snug text-slate-600 md:px-4">
@@ -558,7 +544,18 @@ export default function BuddyPage() {
                     conversationId={activeConversationIdNow}
                   />
                 )}
-              <InputComposer onSend={handleSendWithExtraction} isDisabled={!canSend || isStreaming} />
+              <InputComposer
+                onSend={handleSendWithExtraction}
+                isDisabled={!canSend || isStreaming}
+                onEndConversation={() => void handleLeaveChat()}
+                isEndingConversation={isEndingConversation}
+                onImageSelected={(file) => {
+                  toast({
+                    title: "Bild ausgewählt",
+                    description: `${file.name} wurde ausgewählt. Bild-Upload im Chat folgt als nächster Schritt.`,
+                  })
+                }}
+              />
             </div>
           </div>
         )}
