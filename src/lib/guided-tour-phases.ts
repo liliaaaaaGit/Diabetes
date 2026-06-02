@@ -1,18 +1,21 @@
 import type { LucideIcon } from "lucide-react"
 import {
+  ChartSpline,
   Calendar,
   Camera,
-  Droplet,
+  Edit3,
+  Goal,
   History,
-  LineChart,
   Link2,
+  LineChart,
   MessageCircle,
+  Sparkles,
   Smile,
   TrendingUp,
 } from "lucide-react"
 
 /** App routes per tour phase (dashboard = /). */
-export const TOUR_PHASE_ROUTES = ["/", "/logbook", "/buddy", "/insights", "/"] as const
+export const TOUR_PHASE_ROUTES = ["/", "/", "/logbook", "/buddy", "/insights", "/"] as const
 
 export const TOUR_PHASE_COUNT = TOUR_PHASE_ROUTES.length
 
@@ -37,17 +40,28 @@ export const TOUR_PHASES: TourPhaseContent[] = [
     id: "welcome",
     titleKey: "onboarding.welcomeTitle",
     bodyKey: "onboarding.welcomeBody",
-    hintKey: "onboarding.welcomeHint",
     primaryKey: "onboarding.startTour",
+  },
+  {
+    id: "glucose",
+    titleKey: "onboarding.glucoseTitle",
+    bodyKey: "onboarding.glucoseIntro",
+    features: [
+      { icon: ChartSpline, textKey: "onboarding.glucoseFeature1" },
+      { icon: Goal, textKey: "onboarding.glucoseFeature2" },
+      { icon: TrendingUp, textKey: "onboarding.glucoseFeature3" },
+    ],
+    primaryKey: "onboarding.ctaToLogbook",
   },
   {
     id: "logbook",
     titleKey: "onboarding.logbookTitle",
     bodyKey: "onboarding.logbookIntro",
     features: [
-      { icon: Droplet, textKey: "onboarding.logbookFeature1" },
-      { icon: Camera, textKey: "onboarding.logbookFeature2" },
-      { icon: Calendar, textKey: "onboarding.logbookFeature3" },
+      { icon: Camera, textKey: "onboarding.logbookFeature1" },
+      { icon: Sparkles, textKey: "onboarding.logbookFeature2" },
+      { icon: Edit3, textKey: "onboarding.logbookFeature3" },
+      { icon: Calendar, textKey: "onboarding.logbookFeature4" },
     ],
     primaryKey: "onboarding.ctaToBuddy",
   },
@@ -70,15 +84,16 @@ export const TOUR_PHASES: TourPhaseContent[] = [
       { icon: TrendingUp, textKey: "onboarding.insightsFeature1" },
       { icon: Smile, textKey: "onboarding.insightsFeature2" },
       { icon: Link2, textKey: "onboarding.insightsFeature3" },
+      { icon: Sparkles, textKey: "onboarding.insightsFeature4" },
     ],
     primaryKey: "onboarding.ctaFinishTour",
-    completeOnboardingOnPrimary: true,
   },
   {
     id: "done",
     titleKey: "onboarding.doneTitle",
     bodyKey: "onboarding.doneBody",
     primaryKey: "onboarding.discoverApp",
+    completeOnboardingOnPrimary: true,
   },
 ]
 

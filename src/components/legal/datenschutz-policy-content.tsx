@@ -5,207 +5,240 @@ export function DatenschutzPolicyContent() {
   return (
     <article className="space-y-5 text-sm leading-relaxed text-slate-700">
       <header className="space-y-2 border-b border-slate-200 pb-6">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-          GlucoCompanion — Datenschutzerklärung
-        </h1>
-        <p className="text-base text-slate-600">Forschungsprototyp für Diabetes-Selbstmanagement</p>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Datenschutzerklärung</h1>
         <p className="text-sm text-slate-500">Stand: Mai 2026</p>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-900">1. Verantwortliche</h2>
-        <p>Verantwortliche im Sinne der DSGVO:</p>
-        <p>Lilia Schraut</p>
-        <p>Fischartstraße 15, 80686 München</p>
-        <p>E-Mail: lilia@schraut.de</p>
         <p>
-          Die Datenverarbeitung erfolgt im Rahmen einer Bachelorarbeit an der Ludwig-Maximilians-Universität
-          München, betreut durch PD Dr. Claudia Riesmeyer (Institut für Kommunikationswissenschaft, IfKW). Die
-          LMU München stellt für diese Arbeit keine technische Infrastruktur zur Verfügung; die hier genannten
-          Datenverarbeitungen erfolgen in alleiniger Verantwortung von Lilia Schraut.
+          Der Schutz Ihrer personenbezogenen Daten ist mir ein wichtiges Anliegen. Mit dieser
+          Datenschutzerklärung informiere ich Sie gemäß Art. 13 der Datenschutz-Grundverordnung (DSGVO)
+          darüber, welche personenbezogenen Daten bei der Nutzung der Web-Anwendung GlucoCompanion
+          verarbeitet werden, zu welchen Zwecken und auf welcher Rechtsgrundlage dies geschieht und welche
+          Rechte Ihnen zustehen.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-900">2. Zweck der Datenverarbeitung</h2>
+        <h2 className="text-base font-semibold text-slate-900">1. Verantwortliche</h2>
+        <p>Verantwortliche im Sinne von Art. 4 Nr. 7 DSGVO:</p>
         <p>
-          GlucoCompanion ist ein Forschungsprototyp, der im Rahmen einer wissenschaftlichen Abschlussarbeit
-          entwickelt wird. Die App untersucht, wie KI-gestützte Funktionen das emotionale und metabolische
-          Selbstmanagement von Menschen mit Diabetes unterstützen können. Die App ist kein Medizinprodukt und
-          ersetzt keine ärztliche oder therapeutische Beratung. Die erhobenen Daten werden ausschließlich für
-          die wissenschaftliche Auswertung im Rahmen der Bachelorarbeit verwendet. Eine kommerzielle Nutzung
-          findet nicht statt.
+          Lilia Schraut
+          <br />
+          Fischartstraße 15, 80686 München
+          <br />
+          E-Mail: lilia@schraut.de
+        </p>
+        <p>
+          Die Verarbeitung erfolgt im Rahmen einer Bachelorarbeit am Institut für Kommunikationswissenschaft
+          und Medienforschung (IfKW) der Ludwig-Maximilians-Universität München (Betreuung: PD Dr. Claudia
+          Riesmeyer). Die Universität stellt für dieses Vorhaben keine technische Infrastruktur bereit; die
+          nachfolgend beschriebenen Verarbeitungen erfolgen in alleiniger Verantwortung von Lilia Schraut.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-slate-900">2. Gegenstand und Zweck der Verarbeitung</h2>
+        <p>
+          GlucoCompanion ist ein wissenschaftlicher Forschungsprototyp. Gegenstand der Studie ist die Frage,
+          wie KI-gestützte Funktionen das emotionale und metabolische Selbstmanagement von Menschen mit
+          Diabetes unterstützen können. Die bei der Nutzung anfallenden Daten werden ausschließlich zu
+          wissenschaftlichen Zwecken im Rahmen der genannten Abschlussarbeit verarbeitet; eine kommerzielle
+          Nutzung findet nicht statt.
+        </p>
+        <p>
+          Die App ist kein Medizinprodukt und ersetzt keine ärztliche, therapeutische oder ernährungsmedizinische
+          Beratung.
         </p>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">3. Rechtsgrundlage</h2>
         <p>
-          Die Verarbeitung deiner Daten erfolgt auf Grundlage deiner ausdrücklichen Einwilligung gemäß Art. 6 Abs.
-          1 lit. a DSGVO in Verbindung mit Art. 9 Abs. 2 lit. a DSGVO (Einwilligung in die Verarbeitung
-          besonderer Kategorien personenbezogener Daten, hier: Gesundheitsdaten). Du kannst deine Einwilligung
-          jederzeit mit Wirkung für die Zukunft widerrufen, ohne dass dies Auswirkungen auf die Rechtmäßigkeit
-          der bis dahin erfolgten Verarbeitung hat.
+          Rechtsgrundlage der Verarbeitung ist Ihre ausdrückliche Einwilligung gemäß Art. 6 Abs. 1 lit. a in
+          Verbindung mit Art. 9 Abs. 2 lit. a DSGVO (Einwilligung in die Verarbeitung besonderer Kategorien
+          personenbezogener Daten – hier: Gesundheitsdaten). Sie können Ihre Einwilligung jederzeit widerrufen.
+          Die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt hiervon unberührt.
+        </p>
+        <p>
+          Die Bereitstellung Ihrer Daten ist freiwillig. Es besteht weder eine gesetzliche noch eine
+          vertragliche Verpflichtung zur Bereitstellung. Ohne Einwilligung ist eine Nutzung der App jedoch
+          nicht möglich, da die Verarbeitung für den Betrieb erforderlich ist.
         </p>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-base font-semibold text-slate-900">4. Welche Daten werden erhoben?</h2>
+        <h2 className="text-base font-semibold text-slate-900">4. Kategorien verarbeiteter Daten</h2>
         <p>
-          <strong className="font-semibold text-slate-900">4.1 Registrierungsdaten:</strong> Frei gewähltes
-          Pseudonym (kein Klarname erforderlich), PIN (gespeichert als bcrypt-Hash — die PIN selbst wird nicht
-          gespeichert). Es werden keine E-Mail-Adressen, Namen oder Telefonnummern erhoben.
+          <strong className="font-semibold text-slate-900">4.1 Registrierungsdaten.</strong> Frei gewähltes
+          Pseudonym (kein Klarname erforderlich) sowie eine PIN, die ausschließlich als kryptografischer Hash
+          (bcrypt) gespeichert wird; die PIN selbst wird nicht gespeichert. Es werden keine Namen,
+          E-Mail-Adressen oder Telefonnummern erhoben.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.2 Demo-Daten:</strong> Bei der Registrierung werden
-          automatisch fiktive Beispieldaten (Blutzuckerwerte, Mahlzeiten, Insulin, Stimmungseinträge, ein
-          Beispielgespräch) in deinen Account geladen. Diese Daten stammen nicht von echten Personen mit Diabetes
-          und dienen der Demonstration der App-Funktionen.
+          <strong className="font-semibold text-slate-900">4.2 Demonstrationsdaten.</strong> Bei der
+          Registrierung werden Ihrem Konto automatisch fiktive Beispieldaten (Blutzucker, Mahlzeiten, Insulin,
+          Stimmungseinträge sowie ein Beispielgespräch) hinzugefügt. Diese Daten stammen nicht von realen
+          Personen und dienen ausschließlich der Veranschaulichung der Funktionen.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.3 Nutzergenerierte Gesundheitsdaten:</strong> Sofern
-          du eigene Einträge erstellst: Blutzuckerwerte (mg/dL bzw. mmol/L), Insulindosen (Einheiten,
-          Insulintyp), Mahlzeiten (Beschreibung, geschätzte Kohlenhydrate als Spanne mit Konfidenz-Hinweis),
-          optional Fotos von Mahlzeiten zur KI-Analyse (das Foto wird nach der Analyse verworfen und nicht in
-          der App gespeichert), körperliche
-          Aktivitäten, Stimmungseinträge (Freitext und/oder Skalenwert 1–5), Zeitstempel aller Einträge.
-          Foto-Analysen werden ohne Pseudonym oder Benutzer-ID an den KI-Dienst übermittelt — nur das Bild und
-          der Analyse-Prompt.
+          <strong className="font-semibold text-slate-900">4.3 Selbst eingegebene Gesundheitsdaten.</strong>{" "}
+          Sofern Sie eigene Einträge vornehmen: Blutzuckerwerte (mg/dL bzw. mmol/L), Insulindosen (Einheiten,
+          Insulintyp), Mahlzeiten (Beschreibung, geschätzte Kohlenhydrate als Spanne mit Konfidenzangabe),
+          optional Fotografien von Mahlzeiten zur KI-Analyse, körperliche Aktivitäten, Stimmungseinträge
+          (Freitext und/oder Skalenwert 1–5) sowie Zeitstempel. Fotografien werden ausschließlich zur Analyse
+          und ohne Pseudonym oder Benutzerkennung an OpenAI übermittelt. Nach der Auswertung werden sie
+          verworfen und nicht in der App gespeichert. Bitte laden Sie keine Aufnahmen hoch, auf denen Personen
+          erkennbar sind. Beachten Sie zudem, dass Bilddateien Standortinformationen (EXIF-Daten) enthalten
+          können.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.4 Gesprächsdaten (Gluco):</strong> Deine
-          Nachrichten an den KI-Chatbot, Antworten des Chatbots, KI-generierte Gesprächszusammenfassungen,
-          KI-generierte Emotionsanalysen.
+          <strong className="font-semibold text-slate-900">4.4 Kommunikationsdaten.</strong> Ihre Nachrichten an
+          den KI-Chatbot "Gluco", dessen Antworten, KI-generierte Gesprächszusammenfassungen sowie
+          KI-generierte Emotionsauswertungen.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.5 Technische Daten:</strong> Pseudonymisierte
-          Benutzer-ID (UUID), Session-Cookies zur Authentifizierung (httpOnly, keine Tracking-Cookies). Über
-          Vercel (Hosting) fallen Server-Logs mit IP-Adressen an; diese werden maximal 30 Tage gespeichert und
-          ausschließlich zur Abwehr von Angriffen und Fehleranalyse verwendet.
+          <strong className="font-semibold text-slate-900">4.5 Technische Daten.</strong> Eine pseudonyme
+          Benutzerkennung (UUID) sowie Session-Cookies zur Authentifizierung (httpOnly; keine Tracking-Cookies).
+          Beim Hosting fallen serverseitige Protokolldaten einschließlich IP-Adressen an; diese werden für
+          höchstens 30 Tage gespeichert und ausschließlich zur Gewährleistung der Systemsicherheit sowie zur
+          Fehleranalyse verwendet.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">4.6 Fragebogen-Antworten:</strong> Wenn du den
-          Studien-Fragebogen ausfüllst, speichern wir deine Antworten (sowohl die Skalenwerte als auch deine
-          Freitext-Antworten) pseudonymisiert unter deiner Benutzer-ID. Die Antworten werden ausschließlich für
-          die wissenschaftliche Auswertung im Rahmen der Bachelorarbeit verwendet und spätestens zum 31.12.2026
-          gelöscht.
+          <strong className="font-semibold text-slate-900">4.6 Befragungsdaten.</strong> Sofern Sie den
+          Studienfragebogen ausfüllen, werden Ihre Antworten (Skalen- und Freitextantworten) pseudonym unter
+          Ihrer Benutzerkennung gespeichert.
         </p>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-base font-semibold text-slate-900">5. Einsatz von Künstlicher Intelligenz</h2>
+        <h2 className="text-base font-semibold text-slate-900">5. Einsatz künstlicher Intelligenz</h2>
         <p>
-          <strong className="font-semibold text-slate-900">5.1 Gluco (Chatbot):</strong> Gluco ist ein
-          KI-gestützter Chatbot für emotionales Selbstmanagement. Er orientiert sich an
-          Ansätzen der kognitiven Verhaltenstherapie (CBT). Er ist kein Therapeut, kein Arzt und kein
+          <strong className="font-semibold text-slate-900">5.1 Chatbot "Gluco".</strong> Gluco ist ein
+          KI-gestützter Chatbot zur Unterstützung des emotionalen Selbstmanagements und orientiert sich an
+          Ansätzen der kognitiven Verhaltenstherapie (KVT). Er ist kein Therapeut, kein Arzt und kein
           Medizinprodukt. Seine Antworten können fehlerhaft sein.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">5.2 Tagebuch-Extraktion:</strong> Die
-          Extraktionsfunktion wandelt Freitext-Eingaben in strukturierte Einträge um. KI-geschätzte
-          Kohlenhydrate werden als Spanne (Minimum–Maximum) mit einem Konfidenz-Hinweis (niedrig /
-          mittel / hoch) angezeigt; die Schätzung kann nach Komponenten aufgeschlüsselt werden. Diese
-          Werte sind grobe Richtwerte und ersetzen keine professionelle Ernährungs- oder
-          Diabetesberatung. Diese Werte dürfen nicht als Grundlage für Insulindosierungen verwendet werden.
-          Korrekturen durch dich werden gespeichert, um die Schätzqualität künftig zu verbessern.
-        </p>
-        <p>
-          <strong className="font-semibold text-slate-900">5.3 Stimmungsanalyse und Profiling:</strong>{" "}
-          Freitext-Stimmungseinträge werden automatisch in einen numerischen Wert (1–5) umgewandelt. Gespräche
-          mit Gluco werden nach Beendigung emotional analysiert. Diese Verarbeitungen stellen Profiling im
-          Sinne von Art. 4 Nr. 4 DSGVO dar. Es findet jedoch keine automatisierte Entscheidung mit rechtlicher
-          oder ähnlich erheblicher Wirkung im Sinne von Art. 22 DSGVO statt.
+          <strong className="font-semibold text-slate-900">5.2 Texterkennung im Tagebuch.</strong> Eine
+          Erkennungsfunktion wandelt Freitexteingaben in strukturierte Einträge um. KI-geschätzte
+          Kohlenhydratwerte werden mit einer Konfidenzangabe (niedrig / mittel / hoch) ausgewiesen und können
+          nach Komponenten aufgeschlüsselt werden. Diese Werte sind grobe Richtwerte, ersetzen keine
+          professionelle Ernährungs- oder Diabetesberatung und dürfen nicht als Grundlage für
+          Insulindosierungen herangezogen werden. Von Ihnen vorgenommene Korrekturen werden gespeichert, um die
+          Schätzqualität künftig zu verbessern.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">
-            5.4 Transparenzhinweis gemäß EU AI Act:
+            5.3 Stimmungs- und Emotionsanalyse (Profiling).
           </strong>{" "}
-          Gemäß der EU-Verordnung über Künstliche Intelligenz weisen wir darauf hin, dass du in dieser App mit
-          einem KI-System interagierst. Alle KI-generierten Inhalte werden automatisch erstellt und nicht von
-          einem Menschen geprüft. Die KI-Funktionen dienen ausschließlich Forschungszwecken.
+          Freitext-Stimmungseinträge werden automatisch in einen numerischen Wert (1–5) überführt. Gespräche mit
+          Gluco werden nach ihrer Beendigung emotional ausgewertet. Diese Verarbeitungen stellen ein Profiling
+          im Sinne von Art. 4 Nr. 4 DSGVO dar. Eine automatisierte Entscheidung im Einzelfall mit rechtlicher
+          oder ähnlich erheblicher Wirkung im Sinne von Art. 22 DSGVO findet nicht statt.
+        </p>
+        <p>
+          <strong className="font-semibold text-slate-900">
+            5.4 Transparenzhinweis nach der KI-Verordnung (EU AI Act).
+          </strong>{" "}
+          Nach der Verordnung (EU) 2024/1689 über künstliche Intelligenz weise ich darauf hin, dass Sie in
+          dieser App mit einem KI-System interagieren. Alle KI-generierten Inhalte werden automatisch erstellt
+          und nicht durch einen Menschen geprüft. Die KI-Funktionen dienen ausschließlich Forschungszwecken.
         </p>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-base font-semibold text-slate-900">
-          6. Datenübermittlung an Dritte / Auftragsverarbeitung
-        </h2>
+        <h2 className="text-base font-semibold text-slate-900">6. Empfänger und Auftragsverarbeitung</h2>
         <p>
-          Die folgenden externen Dienstleister werden im Rahmen einer Auftragsverarbeitung gemäß Art. 28 DSGVO
-          eingesetzt. Mit allen Anbietern bestehen Auftragsverarbeitungsverträge bzw.
+          Die nachfolgenden Dienstleister werden als Auftragsverarbeiter gemäß Art. 28 DSGVO eingesetzt. Mit
+          allen Anbietern bestehen entsprechende Auftragsverarbeitungsverträge bzw.
           Datenverarbeitungsvereinbarungen:
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">Supabase</strong> — Zweck: Datenbank (PostgreSQL).
-          Daten: alle Nutzerdaten (pseudonymisiert). Serverstandort: EU (Frankfurt).
+          <strong className="font-semibold text-slate-900">Supabase</strong> – Bereitstellung der Datenbank
+          (PostgreSQL). Verarbeitet werden sämtliche Nutzerdaten in pseudonymer Form. Serverstandort: EU
+          (Frankfurt am Main).
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">OpenAI</strong> — Zweck: KI-Verarbeitung (Chat,
-          Extraktion, Zusammenfassungen, Stimmungsanalyse). Daten: Textnachrichten, Tagebucheinträge (ohne
-          Benutzer-ID und ohne Pseudonym). Serverstandort: USA. Über die API-Nutzung wurde der Datenausschluss
-          für Trainingszwecke aktiviert.
+          <strong className="font-semibold text-slate-900">OpenAI</strong> – KI-Verarbeitung (Chat,
+          Texterkennung, Zusammenfassungen sowie Stimmungs- und Bildanalyse). Verarbeitet werden Textnachrichten,
+          Tagebucheinträge sowie hochgeladene Mahlzeitenfotos, jeweils ohne Benutzerkennung und ohne Pseudonym.
+          Serverstandort: USA.
         </p>
         <p>
-          <strong className="font-semibold text-slate-900">Vercel</strong> — Zweck: Hosting der Web-App. Daten:
-          HTTP-Requests, IP-Adressen (Server-Logs, max. 30 Tage). Serverstandort: USA.
+          <strong className="font-semibold text-slate-900">Vercel</strong> – Hosting der Web-Anwendung.
+          Verarbeitet werden HTTP-Anfragen und IP-Adressen im Rahmen serverseitiger Protokolle (Speicherung
+          höchstens 30 Tage). Serverstandort: USA.
         </p>
         <p>
           <strong className="font-semibold text-slate-900">Hinweis zur Drittlandübermittlung:</strong> Die
           Übermittlung an OpenAI und Vercel (USA) erfolgt auf Grundlage der von diesen Anbietern
-          bereitgestellten EU-Standardvertragsklauseln gemäß Art. 46 Abs. 2 lit. c DSGVO. Ergänzend stützen wir
-          die Übermittlung auf deine ausdrückliche Einwilligung gemäß Art. 49 Abs. 1 lit. a DSGVO. Trotz dieser
-          Schutzmaßnahmen besteht das Risiko, dass US-Behörden auf diese Daten zugreifen könnten. Deine Daten
-          werden pseudonymisiert übermittelt.
+          bereitgestellten EU-Standardvertragsklauseln gemäß Art. 46 Abs. 2 lit. c DSGVO. Ergänzend wird die
+          Übermittlung auf Ihre ausdrückliche Einwilligung gemäß Art. 49 Abs. 1 lit. a DSGVO gestützt. Trotz
+          dieser Schutzmaßnahmen kann nicht ausgeschlossen werden, dass US-amerikanische Behörden auf diese Daten
+          zugreifen. Die Übermittlung erfolgt in pseudonymisierter Form; für die Nutzung der
+          OpenAI-Programmierschnittstelle ist der Ausschluss der Verwendung zu Trainingszwecken aktiviert.
         </p>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">7. Datensicherheit</h2>
         <p>
-          Pseudonymisierung; HTTPS/TLS; PIN als bcrypt-Hash; Row Level Security (RLS) auf Datenbankebene.
+          Zum Schutz Ihrer Daten werden geeignete technische und organisatorische Maßnahmen getroffen: Der
+          Zugang erfolgt ausschließlich über ein Pseudonym und eine PIN, ohne Erhebung von Klarnamen. Sämtliche
+          Datenübertragungen sind durch HTTPS/TLS verschlüsselt. Die PIN wird ausschließlich als bcrypt-Hash
+          gespeichert. Eine serverseitige Datentrennung mittels Row Level Security (RLS) stellt sicher, dass
+          jede nutzende Person ausschließlich auf ihre eigenen Daten zugreifen kann. Der Zugang zur App ist
+          überdies durch einen Zugangscode beschränkt, der nur an Studienteilnehmende ausgegeben wird.
         </p>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">8. Speicherdauer und Löschung</h2>
         <p>
-          Deine Daten werden bis zur Auswertung aller Fragebögen gespeichert, längstens bis 31.12.2026. Danach
-          vollständige und unwiderrufliche Löschung. In die Bachelorarbeit fließen ausschließlich anonymisierte,
-          aggregierte Auswertungen ein. Vorzeitiger Widerruf: Daten werden innerhalb von 14 Tagen gelöscht.
+          Ihre Daten werden bis zum Abschluss der Auswertung aller Fragebögen gespeichert, längstens jedoch bis
+          zum 31. Dezember 2026. Anschließend werden sie vollständig und unwiderruflich gelöscht. In die
+          Bachelorarbeit fließen ausschließlich anonymisierte und aggregierte Auswertungen ein. Im Falle eines
+          vorzeitigen Widerrufs werden Ihre Daten innerhalb von 14 Tagen gelöscht.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-900">9. Deine Rechte</h2>
+        <h2 className="text-base font-semibold text-slate-900">9. Ihre Rechte</h2>
+        <p>Ihnen stehen hinsichtlich der Sie betreffenden personenbezogenen Daten die folgenden Rechte zu:</p>
         <ul className="list-disc space-y-2 pl-5">
-          <li>
-            <strong className="font-semibold text-slate-900">Widerruf der Einwilligung (Art. 7 Abs. 3):</strong>{" "}
-            per E-Mail an lilia@schraut.de.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-900">Auskunft (Art. 15):</strong> per E-Mail.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-900">Löschung (Art. 17):</strong> per E-Mail an
-            lilia@schraut.de unter Angabe des Pseudonyms.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-900">Berichtigung (Art. 16):</strong> per E-Mail.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-900">Datenübertragbarkeit (Art. 20):</strong> per
-            E-Mail.
-          </li>
-          <li>
-            <strong className="font-semibold text-slate-900">Beschwerde (Art. 77):</strong> Bayerisches
-            Landesamt für Datenschutzaufsicht (BayLDA).
-          </li>
+          <li>Recht auf Auskunft (Art. 15 DSGVO)</li>
+          <li>Recht auf Berichtigung (Art. 16 DSGVO)</li>
+          <li>Recht auf Löschung (Art. 17 DSGVO)</li>
+          <li>Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
+          <li>Recht auf Datenübertragbarkeit (Art. 20 DSGVO)</li>
+          <li>Recht auf Widerruf einer erteilten Einwilligung (Art. 7 Abs. 3 DSGVO)</li>
         </ul>
+        <p>
+          Zur Wahrnehmung dieser Rechte genügt eine formlose Mitteilung an lilia@schraut.de. Bei Auskunfts- und
+          Löschersuchen geben Sie zur Zuordnung bitte Ihr Pseudonym an.
+        </p>
+        <p>
+          <strong className="font-semibold text-slate-900">Beschwerderecht (Art. 77 DSGVO):</strong> Unbeschadet
+          anderweitiger Rechtsbehelfe steht Ihnen ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde zu.
+          Zuständig ist das Bayerische Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach.
+        </p>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">10. Altersbeschränkung</h2>
-        <p>Die Teilnahme ist nur für Personen ab 18 Jahren vorgesehen.</p>
+        <p>Die Teilnahme an der Studie und die Nutzung der App sind ausschließlich für Personen ab 18 Jahren vorgesehen.</p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-slate-900">
+          11. Aktualität und Änderung dieser Datenschutzerklärung
+        </h2>
+        <p>
+          Diese Datenschutzerklärung hat den Stand Mai 2026. Sollten Anpassungen der App oder der eingesetzten
+          Dienste eine Änderung erforderlich machen, wird die jeweils aktuelle Fassung innerhalb der App
+          bereitgestellt.
+        </p>
       </section>
     </article>
   )

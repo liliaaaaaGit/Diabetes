@@ -1,4 +1,5 @@
-/**
+
+**
  * Resizes the buddy hero image for mobile (was ~8.6 MB @ 3691×3691).
  * Outputs WebP variants + a compact PNG fallback.
  * Run: node scripts/optimize-buddy-image.mjs

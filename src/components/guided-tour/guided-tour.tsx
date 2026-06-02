@@ -113,7 +113,9 @@ export function GuidedTour({ onComplete }: GuidedTourProps) {
     if (!phase || saving) return
 
     if (tourPhase >= TOUR_PHASE_COUNT - 1) {
-      void closeTour()
+      void goToPhase(tourPhase, { completeFirst: true }).then(() => {
+        void closeTour()
+      })
       return
     }
 
@@ -159,7 +161,7 @@ export function GuidedTour({ onComplete }: GuidedTourProps) {
 
       <div
         className={cn(
-          "pointer-events-auto fixed left-1/2 w-[min(100%,calc(100vw-32px))] max-w-[400px] min-w-[320px] -translate-x-1/2 transition-all ease-out",
+          "pointer-events-auto fixed left-1/2 w-[calc(100vw-24px)] sm:w-[min(92vw,680px)] md:min-w-[420px] -translate-x-1/2 transition-all ease-out",
           isMobile ? "top-[45%] -translate-y-[45%]" : "top-1/2 -translate-y-1/2",
           cardVisible ? "scale-100 opacity-100 duration-300" : "scale-95 opacity-0 duration-200"
         )}
