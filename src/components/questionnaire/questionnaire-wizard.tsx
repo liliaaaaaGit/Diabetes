@@ -126,6 +126,7 @@ export function QuestionnaireWizard() {
 
   const stepIndex = QUESTIONNAIRE_SECTIONS.indexOf(section) + 1
   const answeredCount = countAnsweredScaleItems(data)
+  const hasUnansweredScaleItems = answeredCount < SCALE_ITEM_COUNT
   const isLast = section === "H"
 
   const setField = <K extends keyof QuestionnaireResponse>(key: K, value: QuestionnaireResponse[K]) => {
@@ -191,7 +192,11 @@ export function QuestionnaireWizard() {
 
   const handleNext = async () => {
     if (isLast) {
-      setSubmitOpen(true)
+      if (hasUnansweredScaleItems) {
+        setSubmitOpen(true)
+      } else {
+        await handleSubmit()
+      }
       return
     }
     const n = nextSection(section)
@@ -538,7 +543,7 @@ export function QuestionnaireWizard() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {submitOpen && (
-        <Card className="border-amber-200 bg-amber-50/80">
+        <Card className="border-teal-200 bg-teal-50/70">
           <CardContent className="p-4 space-y-3">
             <p className="font-medium text-slate-900">{t("questionnaire.submitConfirmTitle")}</p>
             <p className="text-sm text-slate-700">
