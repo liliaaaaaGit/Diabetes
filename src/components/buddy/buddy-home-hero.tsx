@@ -26,20 +26,20 @@ export function BuddyHomeHero({
     <div className="flex min-h-0 w-full flex-col justify-between overflow-x-hidden overflow-y-auto">
       {/* Mobile layout */}
       <div className="md:hidden space-y-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <Image
             src="/TherapistRobot4-400.webp"
             alt={robotImageAlt}
             width={264}
             height={264}
             priority
-            className="h-[192px] w-auto flex-shrink-0 object-contain object-left"
+            className="h-auto w-full max-w-[220px] object-contain object-left"
           />
           <Button
             type="button"
             onClick={onNewConversation}
             disabled={disabled}
-            className="h-11 rounded-full bg-teal-500 px-5 text-base font-semibold text-white shadow-sm hover:bg-teal-600"
+            className="h-10 flex-shrink-0 rounded-full bg-teal-500 px-4 text-sm font-semibold text-white shadow-sm hover:bg-teal-600"
           >
             {newChatLabel}
           </Button>
