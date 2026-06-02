@@ -55,7 +55,18 @@ function emptyResponse(): QuestionnaireResponse {
 }
 
 function apiToResponse(raw: Record<string, unknown>): QuestionnaireResponse {
-  return { ...emptyResponse(), ...(raw as QuestionnaireResponse) }
+  const r = raw as unknown as Partial<QuestionnaireResponse>
+  return {
+    ...emptyResponse(),
+    ...r,
+    sectionA: { ...emptyResponse().sectionA, ...(r.sectionA ?? {}) },
+    sectionB: { ...emptyResponse().sectionB, ...(r.sectionB ?? {}) },
+    sectionC: { ...emptyResponse().sectionC, ...(r.sectionC ?? {}) },
+    sectionD: { ...emptyResponse().sectionD, ...(r.sectionD ?? {}) },
+    sectionE: { ...emptyResponse().sectionE, ...(r.sectionE ?? {}) },
+    sectionF: { ...emptyResponse().sectionF, ...(r.sectionF ?? {}) },
+    sectionG: { ...emptyResponse().sectionG, ...(r.sectionG ?? {}) },
+  }
 }
 
 function LikertBlock(props: {
