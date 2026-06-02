@@ -658,7 +658,7 @@ export function ExtractionConfirmation({
 
         <div className="space-y-3 mt-4">
           {computed.map((entry, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-200 bg-white p-3">
+            <div key={idx} className="rounded-xl border border-slate-200 bg-white p-3 overflow-hidden">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900 line-clamp-1">
@@ -708,8 +708,8 @@ export function ExtractionConfirmation({
 
               {/* Auto-filled but editable date + time, so the user can correct
                   "two hours ago" or "yesterday" before saving. */}
-              <div className="mt-3 grid grid-cols-1 gap-3 items-end sm:grid-cols-2">
-                <div className="flex flex-col">
+              <div className="mt-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2">
+                <div className="flex min-w-0 flex-col">
                   <Label className="text-xs text-slate-500 mb-1">
                     {t("logbook.entryDateLabel")}
                   </Label>
@@ -717,10 +717,10 @@ export function ExtractionConfirmation({
                     type="date"
                     value={entry.entryDate ?? ""}
                     onChange={(e) => updateEntryMeta(idx, { entryDate: e.target.value })}
-                    className="min-w-0"
+                    className="h-11 w-full min-w-0 max-w-full text-sm"
                   />
                 </div>
-                <div className="flex flex-col">
+                <div className="flex min-w-0 flex-col">
                   <Label className="text-xs text-slate-500 mb-1">
                     {t("logbook.entryTimeLabel")}
                   </Label>
@@ -728,7 +728,7 @@ export function ExtractionConfirmation({
                     type="time"
                     value={entry.entryTime ?? ""}
                     onChange={(e) => updateEntryMeta(idx, { entryTime: e.target.value })}
-                    className="min-w-0"
+                    className="h-11 w-full min-w-0 max-w-full text-sm"
                   />
                 </div>
               </div>
