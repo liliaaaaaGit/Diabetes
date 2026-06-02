@@ -30,16 +30,16 @@ export function BuddyHomeHero({
           <Image
             src="/TherapistRobot4-400.webp"
             alt={robotImageAlt}
-            width={88}
-            height={88}
+            width={264}
+            height={264}
             priority
-            className="h-[64px] w-auto object-contain object-left"
+            className="h-[192px] w-auto flex-shrink-0 object-contain object-left"
           />
           <Button
             type="button"
             onClick={onNewConversation}
             disabled={disabled}
-            className="h-9 rounded-full bg-teal-500 px-4 text-sm font-semibold text-white shadow-sm hover:bg-teal-600"
+            className="h-11 rounded-full bg-teal-500 px-5 text-base font-semibold text-white shadow-sm hover:bg-teal-600"
           >
             {newChatLabel}
           </Button>
