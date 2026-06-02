@@ -27,7 +27,14 @@ export function BuddyHomeHero({
       {/* Mobile layout */}
       <div className="md:hidden space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-slate-900">Gluco</h2>
+          <Image
+            src="/TherapistRobot4-400.webp"
+            alt={robotImageAlt}
+            width={88}
+            height={88}
+            priority
+            className="h-[64px] w-auto object-contain object-left"
+          />
           <Button
             type="button"
             onClick={onNewConversation}
@@ -40,17 +47,6 @@ export function BuddyHomeHero({
 
         <div className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-3">
           <p className="text-sm leading-snug text-slate-700">{disclaimer}</p>
-        </div>
-
-        <div className="flex justify-center">
-          <Image
-            src="/TherapistRobot4-400.webp"
-            alt={robotImageAlt}
-            width={260}
-            height={260}
-            priority
-            className="h-auto w-auto max-h-[140px] object-contain object-center"
-          />
         </div>
 
         <div className="relative rounded-xl bg-teal-500/10 p-4 shadow-sm ring-1 ring-teal-500/15">
