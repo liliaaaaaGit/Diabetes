@@ -12,6 +12,7 @@ import {
   buildBgCurveData,
 } from "@/components/charts/bg-curve-chart"
 import { parseISO } from "date-fns"
+import { glucoseChartScale, mgDlToMmolL } from "@/lib/glucose-units"
 
 export type GlucoseChartTimeRange = "24h" | "7d" | "30d" | "3m" | "1y"
 
@@ -53,7 +54,7 @@ export function GlucoseChart({
   const [timeRange, setTimeRange] = useState<GlucoseChartTimeRange>(initialTimeRange)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const { t } = useTranslation()
-  const { displayUnit } = useUserPreferences()
+  const { displayUnit, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
 
   const now = new Date()
   const cutoffDate = cutoffForRange(timeRange, now)
@@ -72,6 +73,16 @@ export function GlucoseChart({
   const xDomain: [number, number] = [cutoffDate.getTime(), now.getTime()]
   const dots = bgDotConfig(chartData.length)
   const tooltipDateFormat = timeRange === "24h" ? "dd.MM.yyyy HH:mm" : "dd.MM.yyyy"
+  const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
+  const yTicks = [
+    chartScale.yMin,
+    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.25,
+    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.5,
+    chartScale.yMin + (chartScale.yMaxCap - chartScale.yMin) * 0.75,
+    chartScale.yMaxCap,
+  ].map((v) => Math.round(v))
+  const formatYAxisTick = (valueMgDl: number) =>
+    displayUnit === "mmol/L" ? mgDlToMmolL(valueMgDl).toFixed(1) : String(Math.round(valueMgDl))
 
   const tabTriggerClass =
     "min-h-[44px] shrink-0 px-3 text-xs sm:px-2.5 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
@@ -121,22 +132,37 @@ export function GlucoseChart({
         {chartData.length === 0 ? (
           <p className="text-sm text-slate-500 text-center py-12 px-2">{t("empty.glucoseChartEmpty")}</p>
         ) : (
-          <div
-            ref={scrollContainerRef}
-            className="-mx-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]"
-          >
+          <div className="flex items-stretch gap-2">
+            <div className="w-9 shrink-0 py-[5px]">
+              <div className="flex h-[250px] flex-col justify-between">
+                {[...yTicks].reverse().map((tick) => (
+                  <span
+                    key={tick}
+                    className="text-right text-xs leading-none text-slate-500 tabular-nums"
+                  >
+                    {formatYAxisTick(tick)}
+                  </span>
+                ))}
+              </div>
+            </div>
             <div
-              className="min-w-full"
-              style={{ minWidth: Math.max(280, chartData.length * (timeRange === "24h" ? 12 : 28)) }}
+              ref={scrollContainerRef}
+              className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 [-webkit-overflow-scrolling:touch]"
             >
-              <BgCurveChart
-                data={chartData}
-                xDomain={xDomain}
-                xTickFormat={timeLabelFormat(timeRange)}
-                tooltipDateFormat={tooltipDateFormat}
-                dotConfig={dots}
-                height={250}
-              />
+              <div
+                className="min-w-full"
+                style={{ minWidth: Math.max(280, chartData.length * (timeRange === "24h" ? 12 : 28)) }}
+              >
+                <BgCurveChart
+                  data={chartData}
+                  xDomain={xDomain}
+                  xTickFormat={timeLabelFormat(timeRange)}
+                  tooltipDateFormat={tooltipDateFormat}
+                  dotConfig={dots}
+                  height={250}
+                  showYAxis={false}
+                />
+              </div>
             </div>
           </div>
         )}

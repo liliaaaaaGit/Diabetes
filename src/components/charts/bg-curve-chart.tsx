@@ -92,6 +92,8 @@ interface BgCurveChartProps {
   height?: number
   /** Dot styling (defaults to `bgDotConfig(data.length)`). */
   dotConfig?: BgDotConfig
+  /** Toggle Y-axis rendering (useful when an external sticky axis is shown). */
+  showYAxis?: boolean
 }
 
 /**
@@ -108,6 +110,7 @@ export function BgCurveChart({
   tooltipDateFormat,
   height = 250,
   dotConfig,
+  showYAxis = true,
 }: BgCurveChartProps) {
   const { locale } = useTranslation()
   const { displayUnit, formatGlucoseWithUnit, targetMinMgDl, targetMaxMgDl } =
@@ -166,13 +169,15 @@ export function BgCurveChart({
             format(new Date(ts), xTickFormat, { locale: dateLocale })
           }
         />
-        <YAxis
-          stroke="#78716C"
-          fontSize={12}
-          tickLine={false}
-          axisLine={false}
-          domain={[chartScale.yMin, "auto"]}
-        />
+        {showYAxis ? (
+          <YAxis
+            stroke="#78716C"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+            domain={[chartScale.yMin, chartScale.yMaxCap]}
+          />
+        ) : null}
         <Tooltip content={<CustomTooltip />} />
         {/* Hypo zone (below the target range) – a low value is a medical
             emergency, so we highlight it in red. */}
