@@ -1,25 +1,18 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { Plus, Droplet, Activity, TrendingUp, ArrowUp, ArrowUpRight, ArrowRight, ArrowDownRight, ArrowDown } from "lucide-react"
+import { useEffect, useMemo } from "react"
+import { Droplet, Activity, TrendingUp, ArrowUp, ArrowUpRight, ArrowRight, ArrowDownRight, ArrowDown } from "lucide-react"
 import { AppShell } from "@/components/shared/app-shell"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { GlucoseChart } from "@/components/dashboard/glucose-chart"
-import { ManualEntryModal } from "@/components/logbook/manual-entry-modal"
 import { useTranslation } from "@/hooks/useTranslation"
-import { useToast } from "@/hooks/use-toast"
 import { useEntries } from "@/hooks/useEntries"
 import { useDashboardStats } from "@/hooks/useDashboardStats"
 import { useUser } from "@/hooks/useUser"
 import { useUserPreferences } from "@/contexts/user-preferences-context"
-import { useGlucoseSafetyBanner } from "@/contexts/glucose-safety-context"
-import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucose-form"
-import { createEntry } from "@/lib/db-client"
-import { scoreMoodTextClient } from "@/lib/mood-client"
-import { getMoodLabel, resolveMoodDisplayNote } from "@/lib/mood"
-import type { Entry, GlucoseContext, GlucoseEntry, MoodEntry, NewEntry } from "@/lib/types"
+import { resolveMoodDisplayNote } from "@/lib/mood"
+import type { GlucoseContext, GlucoseEntry, MoodEntry } from "@/lib/types"
 import { formatDistanceToNow, parseISO, subDays } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
@@ -163,12 +156,8 @@ function LastMeasurementCard({
 
 export default function DashboardPage() {
   const { t } = useTranslation()
-  const { toast } = useToast()
   const { userId } = useUser()
   const { formatGlucoseWithUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
-  const { showGlucoseSafetyIfNeeded } = useGlucoseSafetyBanner()
-
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   /** Load up to 1 year of glucose readings for the chart’s longest range. */
   const glucoseFetchFrom = useMemo(() => {
@@ -227,67 +216,6 @@ export default function DashboardPage() {
   const isSparseData = last7dCount > 0 && last7dCount / 7 < SPARSE_PER_DAY
 
   const lastMoodEntry = moodTyped[0]
-
-  const handleQuickLog = () => {
-    setIsModalOpen(true)
-  }
-
-  // Fast manual path: write each filled field as its own entry, no AI.
-  const handleQuickSave = async (newEntries: NewEntry[]) => {
-    if (!userId) return
-    let saved = 0
-    for (const ne of newEntries) {
-      try {
-        // eslint-disable-next-line no-await-in-loop
-        await createEntry(userId, ne)
-        if (ne.type === "glucose") {
-          triggerGlucoseSafetyAfterSave(ne, showGlucoseSafetyIfNeeded)
-        }
-        saved += 1
-      } catch (e) {
-        toast({
-          title: t("logbook.entrySaved"),
-          description: e instanceof Error ? e.message : undefined,
-          variant: "destructive",
-        })
-      }
-    }
-    if (saved > 0) {
-      await Promise.all([refetchStats(), refetchGlucose(), refetchMood()])
-      toast({ title: t("logbook.aiSaveSuccess", { count: saved }) })
-    }
-  }
-
-  const handleSaveEntry = async (entry: Entry) => {
-    try {
-      if (!userId) return
-      let entryToSave: Entry = entry
-      if (entry.type === "mood") {
-        const note = (entry.note || "").trim()
-        if (note) {
-          const scoredMood = await scoreMoodTextClient(note)
-          entryToSave = { ...entry, moodValue: scoredMood, note }
-        } else {
-          entryToSave = { ...entry, note: getMoodLabel(entry.moodValue, t) }
-        }
-      }
-      await createEntry(userId, entryToSave)
-      if (entryToSave.type === "glucose") {
-        triggerGlucoseSafetyAfterSave(entryToSave, showGlucoseSafetyIfNeeded)
-      }
-      toast({
-        title: t("logbook.entrySaved"),
-        description: t("logbook.entrySavedSuccess"),
-      })
-      await Promise.all([refetchStats(), refetchGlucose(), refetchMood()])
-    } catch (e) {
-      toast({
-        title: t("logbook.entrySaved"),
-        description: e instanceof Error ? e.message : undefined,
-        variant: "destructive",
-      })
-    }
-  }
 
   return (
     <AppShell title={t("pages.dashboard")}>
@@ -405,23 +333,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Quick Log Button */}
-      <Button
-        onClick={handleQuickLog}
-        size="icon"
-        data-tour="add-entry"
-        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-50 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6 md:h-16 md:w-16"
-      >
-        <Plus className="h-6 w-6 md:h-7 md:w-7" />
-      </Button>
-
-      <ManualEntryModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveEntry}
-        onQuickSave={handleQuickSave}
-      />
     </AppShell>
   )
 }

@@ -19,7 +19,7 @@ export function isMobileDevice(): boolean {
 export function usePhotoMealAnalysis(
   onEntrySaved?: (dates?: string[], saved?: Entry[]) => void | Promise<void>
 ) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -68,6 +68,7 @@ export function usePhotoMealAnalysis(
     try {
       const formData = new FormData()
       formData.append("image", compressedFile)
+      formData.append("locale", locale)
       const res = await fetch("/api/diary/analyze-photo", {
         method: "POST",
         credentials: "include",

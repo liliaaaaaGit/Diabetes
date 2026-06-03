@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useUser } from "@/hooks/useUser"
 import { useToast } from "@/hooks/use-toast"
-import { formatMealCarbsLabel, hasAiMealEstimate } from "@/lib/meal-carbs"
+import { formatCarbsGrams, formatMealCarbsLabel, hasAiMealEstimate } from "@/lib/meal-carbs"
 import { MealConfidenceBadge } from "@/components/logbook/meal-confidence-badge"
 import { deleteEntry, updateEntryNote } from "@/lib/db-client"
 
@@ -136,7 +136,7 @@ export function MealDetailSheet({ meal, open, onOpenChange, onCorrected }: MealD
                         <span className="block text-xs text-slate-500">{c.estimatedAmount}</span>
                       ) : null}
                     </span>
-                    <span className="tabular-nums shrink-0">{c.kh_g} g KH</span>
+                    <span className="tabular-nums shrink-0">{formatCarbsGrams(c.kh_g, loc)}</span>
                   </li>
                 ))}
               </ul>

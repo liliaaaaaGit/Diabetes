@@ -287,6 +287,7 @@ export default function BuddyPage() {
           text: userText.slice(0, 500),
           todayYmd: formatLocalYmd(),
           nowLocal: formatLocalDateTimeLabel(),
+          locale,
         }),
       })
       if (!res.ok) {

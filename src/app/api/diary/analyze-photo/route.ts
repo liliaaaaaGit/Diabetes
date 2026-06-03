@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSessionUserId } from "@/lib/auth-session"
 import { openai } from "@/lib/openai-server"
-import { ANALYZE_PHOTO_SYSTEM_PROMPT } from "@/lib/analyze-photo-prompt"
+import { buildAnalyzePhotoSystemPrompt } from "@/lib/analyze-photo-prompt"
+import { resolveAppLocale } from "@/lib/app-locale"
 import { parsePhotoAnalysisResponse } from "@/lib/parse-photo-analysis"
 import {
   assertPhotoAnalysisAllowed,
@@ -30,6 +31,9 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData()
+    const locale = resolveAppLocale(
+      typeof formData.get("locale") === "string" ? String(formData.get("locale")) : null
+    )
     const file = formData.get("image")
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ code: "no_image" }, { status: 400 })
@@ -48,16 +52,21 @@ export async function POST(req: NextRequest) {
     const base64 = buffer.toString("base64")
 
     // No pseudonym, user id, or other PII sent to OpenAI — image + system prompt only.
+    const visionUserText =
+      locale === "en"
+        ? "Analyze this meal for my diabetes logbook."
+        : "Analysiere diese Mahlzeit für mein Diabetes-Tagebuch."
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: ANALYZE_PHOTO_SYSTEM_PROMPT },
+        { role: "system", content: buildAnalyzePhotoSystemPrompt(locale) },
         {
           role: "user",
           content: [
-            { type: "text", text: "Analysiere diese Mahlzeit für mein Diabetes-Tagebuch." },
+            { type: "text", text: visionUserText },
             {
               type: "image_url",
               image_url: { url: `data:${mimeType};base64,${base64}` },

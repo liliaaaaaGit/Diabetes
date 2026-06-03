@@ -77,6 +77,7 @@ export function AiQuickInput({
           text: payloadText,
           todayYmd: formatLocalYmd(),
           nowLocal: formatLocalDateTimeLabel(),
+          locale,
         }),
       })
       if (!res.ok) {
