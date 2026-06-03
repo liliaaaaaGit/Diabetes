@@ -18,6 +18,7 @@ import {
 import { de } from "date-fns/locale/de"
 import { enUS } from "date-fns/locale/en-US"
 import type { Entry } from "@/lib/types"
+import { filterEntriesVisibleForDay } from "@/lib/entry-day"
 import { useTranslation } from "@/hooks/useTranslation"
 
 interface LogbookWeekCalendarProps {
@@ -29,7 +30,8 @@ interface LogbookWeekCalendarProps {
 }
 
 function dayHasEntries(entries: Entry[], day: Date): boolean {
-  return entries.some((e) => isSameDay(parseISO(e.timestamp), day))
+  const onDay = entries.filter((e) => isSameDay(parseISO(e.timestamp), day))
+  return filterEntriesVisibleForDay(onDay, day).length > 0
 }
 
 export function LogbookWeekCalendar({

@@ -22,8 +22,8 @@ import { triggerGlucoseSafetyAfterSave } from "@/components/logbook/forms/glucos
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
 import { isLogbookEvent } from "@/lib/cgm"
-import { dayFiltersForDate } from "@/lib/entry-day"
-import { addDays, parse, parseISO, startOfDay, startOfWeek } from "date-fns"
+import { dayFiltersForDate, filterEntriesVisibleForDay } from "@/lib/entry-day"
+import { addDays, isSameDay, parse, parseISO, startOfDay, startOfWeek } from "date-fns"
 
 export default function LogbookPage() {
   const { t } = useTranslation()
@@ -34,6 +34,8 @@ export default function LogbookPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
   const [didAutoSelectDate, setDidAutoSelectDate] = useState(false)
+  /** Keep just-saved AI meals visible even if form time is still later today. */
+  const [pinnedEntryIds, setPinnedEntryIds] = useState<string[]>([])
   const weekStartIso = useMemo(() => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 })
     return weekStart.toISOString()
@@ -83,7 +85,7 @@ export default function LogbookPage() {
     setSelectedDate(startOfDay(d))
   }, [])
 
-  /** After AI/photo save: show created rows immediately, then reload day + week. */
+  /** After AI/photo save: jump to saved day, reload, keep full rows from createEntry. */
   const handleEntrySaved = useCallback(
     async (dates?: string[], saved?: Entry[]) => {
       let targetDay = selectedDate
@@ -91,24 +93,44 @@ export default function LogbookPage() {
         const parsed = parse(dates[0], "yyyy-MM-dd", new Date())
         if (!Number.isNaN(parsed.getTime())) {
           targetDay = startOfDay(parsed)
-          flushSync(() => {
-            setDidAutoSelectDate(true)
-            setSelectedDate(targetDay)
-          })
+          if (!isSameDay(targetDay, selectedDate)) {
+            flushSync(() => {
+              setDidAutoSelectDate(true)
+              setSelectedDate(targetDay)
+            })
+          }
         }
+      }
+      const savedIds = saved?.map((e) => e.id) ?? []
+      if (savedIds.length > 0) {
+        setPinnedEntryIds(savedIds)
       }
       if (saved?.length) {
         mergeEntries(saved)
       }
       if (userId) invalidateEntriesCacheForUser(userId)
-      await refetchForDay(targetDay)
+      await refetchForDay(targetDay, saved)
+      if (saved?.length) {
+        mergeEntries(saved)
+      }
       await refetchWeek()
     },
     [mergeEntries, refetchForDay, refetchWeek, selectedDate, userId]
   )
 
+  useEffect(() => {
+    if (pinnedEntryIds.length === 0) return
+    const t = window.setTimeout(() => setPinnedEntryIds([]), 30_000)
+    return () => window.clearTimeout(t)
+  }, [pinnedEntryIds])
+
+  const visibleListEntries = useMemo(
+    () => filterEntriesVisibleForDay(listEntries, selectedDate, new Date(), pinnedEntryIds),
+    [listEntries, selectedDate, pinnedEntryIds]
+  )
+
   const counts = useMemo(() => {
-    const events = listEntries.filter(isLogbookEvent)
+    const events = visibleListEntries.filter(isLogbookEvent)
     const c: Record<string, number> = {
       all: events.length,
     }
@@ -117,9 +139,9 @@ export default function LogbookPage() {
     })
     // The Blutzucker tab shows the full day's glucose curve (CGM + manual),
     // so its badge counts every glucose reading, not just manual events.
-    c.glucose = listEntries.filter((e) => e.type === "glucose").length
+    c.glucose = visibleListEntries.filter((e) => e.type === "glucose").length
     return c
-  }, [listEntries])
+  }, [visibleListEntries])
 
   const handleShiftWeek = useCallback(
     (direction: -1 | 1) => {
@@ -131,7 +153,7 @@ export default function LogbookPage() {
 
   // Most recent bolus (rapid) insulin name, used to pre-fill the quick form.
   const defaultBolusName = useMemo(() => {
-    const boluses = listEntries
+    const boluses = visibleListEntries
       .filter(
         (e): e is InsulinEntry =>
           e.type === "insulin" &&
@@ -140,7 +162,7 @@ export default function LogbookPage() {
       )
       .sort((a, b) => parseISO(b.timestamp).getTime() - parseISO(a.timestamp).getTime())
     return boluses[0]?.insulinName || undefined
-  }, [listEntries])
+  }, [visibleListEntries])
 
   // Fast manual path: write each filled field as its own entry, no AI.
   const handleQuickSave = async (newEntries: NewEntry[]) => {
@@ -269,7 +291,7 @@ export default function LogbookPage() {
           <LogbookDayView
             selectedDate={selectedDate}
             filter={activeFilter}
-            entriesForDay={listEntries}
+            entriesForDay={visibleListEntries}
             onMealUpdated={() => {
               if (userId) invalidateEntriesCacheForUser(userId)
               void refetchList()

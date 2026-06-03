@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { addDays, startOfWeek } from "date-fns"
 import { dayFiltersForDate } from "@/lib/entry-day"
+import { mergeEntryLists } from "@/lib/merge-entries"
 import type { Entry, EntryType } from "@/lib/types"
 
 export type EntriesFilters = {
@@ -60,7 +61,7 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
   const filtersKey = useMemo(() => JSON.stringify(filters ?? {}), [filters])
   const cacheKey = useMemo(() => `${userId ?? "anon"}:${filtersKey}`, [userId, filtersKey])
 
-  const applyEntries = useCallback(
+  const commitEntries = useCallback(
     (nextEntries: Entry[], gen: number) => {
       if (gen !== fetchGenRef.current) return
       setEntries(nextEntries)
@@ -71,46 +72,50 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
     [cacheKey, userId]
   )
 
-  const refetch = useCallback(async () => {
-    if (!userId) {
-      setEntries([])
-      setError(null)
-      setLoading(false)
-      return
-    }
-
-    const gen = ++fetchGenRef.current
-    const cached = entriesCache.get(cacheKey)
-    const isCachedFresh =
-      !!cached && Date.now() - cached.ts < ENTRIES_CACHE_TTL_MS
-
-    if (isCachedFresh) {
-      applyEntries(cached.data, gen)
-      setError(null)
-      setLoading(false)
-    } else {
-      setLoading(true)
-      setError(null)
-    }
-
-    const hadFreshCache = isCachedFresh
-
-    try {
-      const parsed = JSON.parse(filtersKey) as EntriesFilters
-      const nextEntries = await fetchEntriesFromApi(parsed)
-      applyEntries(nextEntries, gen)
-      setError(null)
-    } catch (e) {
-      if (gen !== fetchGenRef.current) return
-      if (!hadFreshCache) {
-        setError(e instanceof Error ? e.message : "Failed to load entries")
-      }
-    } finally {
-      if (gen === fetchGenRef.current) {
+  const refetch = useCallback(
+    async (preserve?: Entry[]) => {
+      if (!userId) {
+        setEntries([])
+        setError(null)
         setLoading(false)
+        return
       }
-    }
-  }, [userId, filtersKey, cacheKey, applyEntries])
+
+      const gen = ++fetchGenRef.current
+      const cached = entriesCache.get(cacheKey)
+      const isCachedFresh =
+        !!cached && Date.now() - cached.ts < ENTRIES_CACHE_TTL_MS
+
+      if (isCachedFresh && !preserve?.length) {
+        commitEntries(cached.data, gen)
+        setError(null)
+        setLoading(false)
+      } else {
+        setLoading(true)
+        setError(null)
+      }
+
+      const hadFreshCache = isCachedFresh && !preserve?.length
+
+      try {
+        const parsed = JSON.parse(filtersKey) as EntriesFilters
+        const apiEntries = await fetchEntriesFromApi(parsed)
+        const nextEntries = mergeEntryLists(apiEntries, preserve ?? [])
+        commitEntries(nextEntries, gen)
+        setError(null)
+      } catch (e) {
+        if (gen !== fetchGenRef.current) return
+        if (!hadFreshCache) {
+          setError(e instanceof Error ? e.message : "Failed to load entries")
+        }
+      } finally {
+        if (gen === fetchGenRef.current) {
+          setLoading(false)
+        }
+      }
+    },
+    [userId, filtersKey, cacheKey, commitEntries]
+  )
 
   useEffect(() => {
     void refetch()
@@ -118,7 +123,7 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
 
   /** Reload entries for one local calendar day (use after AI save). */
   const refetchForDay = useCallback(
-    async (day: Date) => {
+    async (day: Date, preserve?: Entry[]) => {
       if (!userId) {
         setEntries([])
         setError(null)
@@ -134,10 +139,11 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
       setError(null)
 
       try {
-        const nextEntries = await fetchEntriesFromApi(dayFilters)
-        applyEntries(nextEntries, gen)
-        setError(null)
+        const apiEntries = await fetchEntriesFromApi(dayFilters)
+        const nextEntries = mergeEntryLists(apiEntries, preserve ?? [])
+        commitEntries(nextEntries, gen)
         entriesCache.set(dayCacheKey, { data: nextEntries, ts: Date.now() })
+        setError(null)
       } catch (e) {
         if (gen !== fetchGenRef.current) return
         setError(e instanceof Error ? e.message : "Failed to load entries")
@@ -147,22 +153,23 @@ export function useEntries(filters?: EntriesFilters, userId: string | null = nul
         }
       }
     },
-    [userId, applyEntries]
+    [userId, commitEntries]
   )
 
   /** Immediately show entries returned from createEntry (before refetch completes). */
-  const mergeEntries = useCallback((incoming: Entry[]) => {
-    if (incoming.length === 0) return
-    setEntries((prev) => {
-      const byId = new Map(prev.map((e) => [e.id, e]))
-      for (const e of incoming) {
-        byId.set(e.id, e)
-      }
-      return [...byId.values()].sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      )
-    })
-  }, [])
+  const mergeEntries = useCallback(
+    (incoming: Entry[]) => {
+      if (incoming.length === 0) return
+      setEntries((prev) => {
+        const next = mergeEntryLists(prev, incoming)
+        if (userId) {
+          entriesCache.set(cacheKey, { data: next, ts: Date.now() })
+        }
+        return next
+      })
+    },
+    [cacheKey, userId]
+  )
 
   return { entries, loading, error, refetch, refetchForDay, mergeEntries }
 }
