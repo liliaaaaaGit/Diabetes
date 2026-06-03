@@ -163,9 +163,43 @@ export function ManualEntryModal({
     onClose()
   }
 
-  const detailedContent = (
+  const modeTabs = onQuickSave ? (
+    <div className="mb-4 grid shrink-0 grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+      <button
+        type="button"
+        onClick={() => setMode("quick")}
+        className={`min-h-[40px] rounded-md text-sm font-medium ${
+          mode === "quick" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
+        }`}
+      >
+        {t("logbook.quickTab")}
+      </button>
+      <button
+        type="button"
+        onClick={() => setMode("detailed")}
+        className={`min-h-[40px] rounded-md text-sm font-medium ${
+          mode === "detailed" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
+        }`}
+      >
+        {t("logbook.detailedTab")}
+      </button>
+    </div>
+  ) : null
+
+  const detailedFooter = (
+    <div className="flex gap-3">
+      <Button variant="outline" onClick={onClose} className="min-h-[44px] flex-1">
+        {t("common.cancel")}
+      </Button>
+      <Button onClick={handleSave} className="min-h-[44px] flex-1">
+        {t("common.save")}
+      </Button>
+    </div>
+  )
+
+  const detailedBody = (
     <>
-      <div className="mb-4 -mx-1 overflow-x-auto px-1 pb-1">
+      <div className="-mx-1 shrink-0 overflow-x-auto px-1 pb-1">
         <Tabs
           value={entryType}
           onValueChange={(v) => {
@@ -203,58 +237,31 @@ export function ManualEntryModal({
         </Tabs>
       </div>
 
-      <div className="max-h-[min(60vh,28rem)] overflow-y-auto overscroll-contain scroll-pb-24 [-webkit-overflow-scrolling:touch]">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 [-webkit-overflow-scrolling:touch]">
         {renderForm()}
-      </div>
-
-      <div className="mt-4 flex gap-3 border-t pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <Button variant="outline" onClick={onClose} className="min-h-[44px] flex-1">
-          {t("common.cancel")}
-        </Button>
-        <Button onClick={handleSave} className="min-h-[44px] flex-1">
-          {t("common.save")}
-        </Button>
       </div>
     </>
   )
 
   const content = (
-    <>
-      {onQuickSave && (
-        <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
-          <button
-            type="button"
-            onClick={() => setMode("quick")}
-            className={`min-h-[40px] rounded-md text-sm font-medium ${
-              mode === "quick" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
-            }`}
-          >
-            {t("logbook.quickTab")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("detailed")}
-            className={`min-h-[40px] rounded-md text-sm font-medium ${
-              mode === "detailed" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
-            }`}
-          >
-            {t("logbook.detailedTab")}
-          </button>
-        </div>
-      )}
+    <div className="flex min-h-0 flex-1 flex-col">
+      {modeTabs}
 
       {mode === "quick" && onQuickSave ? (
-        <div className="max-h-[min(70vh,32rem)] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
-          <QuickEntryForm
-            defaultBolusName={defaultBolusName}
-            onSubmit={handleQuickSave}
-            onCancel={onClose}
-          />
-        </div>
+        <QuickEntryForm
+          defaultBolusName={defaultBolusName}
+          onSubmit={handleQuickSave}
+          onCancel={onClose}
+        />
       ) : (
-        detailedContent
+        <>
+          <div className="flex min-h-0 flex-1 flex-col">{detailedBody}</div>
+          <div className="mt-4 shrink-0 border-t border-slate-200 bg-background pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            {detailedFooter}
+          </div>
+        </>
       )}
-    </>
+    </div>
   )
 
   if (!open || !mounted) return null
@@ -291,9 +298,7 @@ export function ManualEntryModal({
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
-            {content}
-          </div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{content}</div>
         </div>
       </div>,
       document.body
@@ -309,13 +314,13 @@ export function ManualEntryModal({
       modal
     >
       <DialogContent
-        className="manual-entry-modal-root max-h-[90vh] max-w-2xl overflow-y-auto"
+        className="manual-entry-modal-root flex max-h-[min(90dvh,900px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
         {...desktopOverlayGuardProps}
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-4">
           <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
-        {content}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-4">{content}</div>
       </DialogContent>
     </Dialog>
   )

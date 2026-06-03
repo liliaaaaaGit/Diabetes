@@ -144,7 +144,8 @@ export function QuickEntryForm({ defaultBolusName, onSubmit, onCancel }: QuickEn
   ]
 
   return (
-    <div className="space-y-5">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pb-2 [-webkit-overflow-scrolling:touch]">
       <p className="text-xs text-slate-500">{t("logbook.quickHint")}</p>
 
       {/* Blood glucose */}
@@ -183,14 +184,16 @@ export function QuickEntryForm({ defaultBolusName, onSubmit, onCancel }: QuickEn
         </div>
       </div>
 
-      {/* Bolus insulin */}
+      {/* Meal bolus — insulin brand varies; we only reuse the name from the user's last entry. */}
       <div>
         <Label className="text-sm text-slate-600 mb-1.5 block">
-          {t("logbook.bolusLabel")}
-          {defaultBolusName ? (
-            <span className="ml-1 font-normal text-slate-400">({defaultBolusName})</span>
-          ) : null}
+          {t("logbook.insulinEntryMealBolus")}
         </Label>
+        {defaultBolusName ? (
+          <p className="mb-1.5 text-xs text-slate-500">
+            {t("logbook.quickBolusSavedAs", { name: defaultBolusName })}
+          </p>
+        ) : null}
         <div className="relative">
           <Input
             type="number"
@@ -247,8 +250,9 @@ export function QuickEntryForm({ defaultBolusName, onSubmit, onCancel }: QuickEn
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+      </div>
 
-      <div className="flex gap-3 border-t pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="mt-4 flex shrink-0 gap-3 border-t border-slate-200 bg-background pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {onCancel && (
           <Button variant="outline" onClick={onCancel} className="min-h-[48px] flex-1" disabled={saving}>
             {t("common.cancel")}

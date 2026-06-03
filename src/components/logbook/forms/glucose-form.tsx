@@ -83,7 +83,7 @@ export function GlucoseForm({ value, onChange }: GlucoseFormProps) {
       : `Wert muss zwischen ${GLUCOSE_RANGE_MMOL.min} und ${GLUCOSE_RANGE_MMOL.max} ${t("units.mmoll")} liegen`
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="text-center">
         <Label className="text-sm text-slate-600 mb-2 block">{t("logbook.value")}</Label>
         <div className="relative">

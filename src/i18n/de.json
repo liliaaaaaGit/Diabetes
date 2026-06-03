@@ -258,6 +258,7 @@
     "quickCarbsLabel": "Kohlenhydrate",
     "carbsLabel": "Kohlenhydrate",
     "bolusLabel": "Bolus",
+    "quickBolusSavedAs": "Wird als {{name}} gespeichert (wie beim letzten Mahlzeitenbolus)",
     "quickTimeNow": "Jetzt",
     "quickTime15": "Vor 15 min",
     "quickTime30": "Vor 30 min",

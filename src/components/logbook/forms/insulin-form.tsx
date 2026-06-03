@@ -40,7 +40,7 @@ export function InsulinForm({ value, onChange }: InsulinFormProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Dose */}
       <div>
         <Label className="text-sm text-slate-600 mb-2 block">

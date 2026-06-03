@@ -19,7 +19,7 @@ export function MealForm({ value, onChange }: MealFormProps) {
   const [logInsulin, setLogInsulin] = useState(false)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Description */}
       <div>
         <Label className="text-sm text-slate-600 mb-2 block">
