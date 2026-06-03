@@ -89,6 +89,8 @@ export type SectionG = {
   g1: string | null
   g2: string | null
   g3: string | null
+  /** Optional free-text field at the end of the questionnaire. */
+  g4: string | null
 }
 
 export interface QuestionnaireResponse {

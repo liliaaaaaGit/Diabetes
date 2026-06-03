@@ -76,6 +76,7 @@ const emptySectionG: SectionG = {
   g1: null,
   g2: null,
   g3: null,
+  g4: null,
 }
 
 function asObject<T extends object>(value: unknown, fallback: T): T {

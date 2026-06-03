@@ -51,7 +51,7 @@ function emptyResponse(): QuestionnaireResponse {
     sectionD: { d1: null, d2: null, d3: null, mc_role: null, mc_transparency: null },
     sectionE: { e1: null, e2: null, e3: null, e4: null, e5: null, e6: null },
     sectionF: { f1: null, f2: null, f3: null },
-    sectionG: { g1: null, g2: null, g3: null },
+    sectionG: { g1: null, g2: null, g3: null, g4: null },
   }
 }
 
@@ -76,9 +76,8 @@ function LikertBlock(props: {
   onChange: (v: number) => void
   minLabel: string
   maxLabel: string
-  legend: string
 }) {
-  const { label, value, onChange, minLabel, maxLabel, legend } = props
+  const { label, value, onChange, minLabel, maxLabel } = props
   return (
     <div className="space-y-2">
       <p className="text-sm text-slate-800">{label}</p>
@@ -89,7 +88,15 @@ function LikertBlock(props: {
         value={value}
         onChange={onChange}
       />
-      <p className="text-xs text-slate-500">{legend}</p>
+    </div>
+  )
+}
+
+function LikertSectionHeader({ intro, legend }: { intro: string; legend: string }) {
+  return (
+    <div className="space-y-2">
+      {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
+      <p className="text-xs text-slate-500 leading-relaxed">{legend}</p>
     </div>
   )
 }
@@ -120,7 +127,8 @@ function sectionComplete(section: QuestionnaireSectionId, data: QuestionnaireRes
   if (section === "D") return Object.values(data.sectionD).every((v) => isFilledLikert(v))
   if (section === "E") return Object.values(data.sectionE).every((v) => isFilledLikert(v))
   if (section === "F") return Object.values(data.sectionF).every((v) => isFilledLikert(v))
-  return Object.values(data.sectionG).every((v) => isFilledText(v))
+  const g = data.sectionG
+  return isFilledText(g.g1) && isFilledText(g.g2) && isFilledText(g.g3)
 }
 
 function sectionPatch(section: QuestionnaireSectionId, data: QuestionnaireResponse): QuestionnairePatch {
@@ -273,7 +281,7 @@ export function QuestionnaireWizard() {
   }
 
   const renderSection = useMemo(() => {
-    const likert = { minLabel: likertMin, maxLabel: likertMax, legend: likertLegend }
+    const likert = { minLabel: likertMin, maxLabel: likertMax }
 
     if (section === "A") {
       return (
@@ -377,7 +385,7 @@ export function QuestionnaireWizard() {
       const intro = t(`questionnaire.sections.B.intro`)
       return (
         <div className="space-y-6">
-          {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
+          <LikertSectionHeader intro={intro} legend={likertLegend} />
           {(
             [
               ["s1", "sus1"],
@@ -409,10 +417,7 @@ export function QuestionnaireWizard() {
       const intro = t(`questionnaire.sections.C.intro`)
       return (
         <div className="space-y-6">
-          <p className="rounded-lg border border-teal-200 bg-teal-50/70 px-3 py-2 text-sm text-slate-700">
-            {t("questionnaire.demoBanner")}
-          </p>
-          {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
+          <LikertSectionHeader intro={intro} legend={likertLegend} />
           {(
             [
               ["pu1", "pu1"],
@@ -441,7 +446,7 @@ export function QuestionnaireWizard() {
       const intro = t(`questionnaire.sections.D.intro`)
       return (
         <div className="space-y-6">
-          {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
+          <LikertSectionHeader intro={intro} legend={likertLegend} />
           {(
             [
               ["d1", "d1"],
@@ -468,10 +473,7 @@ export function QuestionnaireWizard() {
       const intro = t(`questionnaire.sections.E.intro`)
       return (
         <div className="space-y-6">
-          <p className="rounded-lg border border-teal-200 bg-teal-50/70 px-3 py-2 text-sm text-slate-700">
-            {t("questionnaire.demoBanner")}
-          </p>
-          {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
+          <LikertSectionHeader intro={intro} legend={likertLegend} />
           {(["e1", "e2", "e3", "e4", "e5", "e6"] as const).map((key) => (
             <LikertBlock
               key={key}
@@ -490,7 +492,7 @@ export function QuestionnaireWizard() {
       const intro = t(`questionnaire.sections.F.intro`)
       return (
         <div className="space-y-6">
-          {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
+          <LikertSectionHeader intro={intro} legend={likertLegend} />
           {(["f1", "f2", "f3"] as const).map((key) => (
             <LikertBlock
               key={key}
@@ -511,13 +513,19 @@ export function QuestionnaireWizard() {
         {intro ? <p className="text-sm text-slate-600 leading-relaxed">{intro}</p> : null}
         {(
           [
-            ["g1", "h27"],
-            ["g2", "h28"],
-            ["g3", "h29"],
+            ["g1", "g1", false],
+            ["g2", "g2", false],
+            ["g3", "g3", false],
+            ["g4", "g4", true],
           ] as const
-        ).map(([field, itemKey]) => (
+        ).map(([field, itemKey, optional]) => (
           <div key={field}>
-            <Label>{t(`questionnaire.items.${itemKey}`)}</Label>
+            <Label>
+              {t(`questionnaire.items.${itemKey}`)}
+              {optional ? (
+                <span className="ml-1 font-normal text-slate-500">{t("questionnaire.optional")}</span>
+              ) : null}
+            </Label>
             <Textarea
               className="mt-2 min-h-[100px]"
               maxLength={MAX_TEXT}
