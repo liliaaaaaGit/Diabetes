@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast"
 import { MessageCircle, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { getConversation, searchConversations, updateConversationSummary } from "@/lib/db-client"
+import { localizeConversationWithMessages } from "@/lib/mock-conversation-locale"
 import { HistoryStats } from "./history-stats"
 import { HistoryConversationCard, HistoryListHeader } from "./history-conversation-card"
 
@@ -30,7 +31,7 @@ export function ConversationList({
   statsRefreshKey = 0,
   onConversationUpdated,
 }: ConversationListProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { toast } = useToast()
   const [query, setQuery] = useState("")
   const [filtered, setFiltered] = useState<Conversation[]>(conversations)
@@ -104,7 +105,7 @@ export function ConversationList({
       for (const id of missing) {
         try {
           if (!userId) continue
-          const full = await getConversation(id, userId)
+          const full = localizeConversationWithMessages(await getConversation(id, userId), locale)
           const firstUser = full.messages.find((m) => m.role === "user")?.content?.trim()
           if (!firstUser) continue
           setFallbackTitles((prev) => ({ ...prev, [id]: `${firstUser.slice(0, 40)}...` }))
@@ -119,12 +120,12 @@ export function ConversationList({
     if (!userId) return
     setRefreshingSummaryId(conversationId)
     try {
-      const full = await getConversation(conversationId, userId)
+      const full = localizeConversationWithMessages(await getConversation(conversationId, userId), locale)
       const res = await fetch("/api/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ messages: full.messages }),
+        body: JSON.stringify({ messages: full.messages, locale }),
       })
       if (!res.ok) throw new Error("summarize_failed")
       const data = (await res.json()) as {

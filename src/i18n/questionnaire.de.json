@@ -25,6 +25,12 @@
   "reopen": "Antworten erneut öffnen",
   "likertMin": "trifft gar nicht zu",
   "likertMax": "trifft voll zu",
+  "likertLegend": "1 = stimme gar nicht zu · 2 = stimme eher nicht zu · 3 = teils/teils · 4 = stimme eher zu · 5 = stimme voll zu",
+  "incompleteSection": "Bitte fülle alle Felder dieses Abschnitts aus.",
+  "sectionAIntro": "Vielen Dank, dass du dir Zeit für diesen Fragebogen nimmst. Er dauert etwa 12 Minuten. Es gibt keine richtigen oder falschen Antworten — uns interessiert dein persönlicher Eindruck. Die in der App angezeigten Werte sind Beispiel-/Demodaten und stammen nicht von dir.",
+  "demoBanner": "Die in der App angezeigten Werte sind Beispiel-/Demodaten und stammen nicht von dir.",
+  "close": "Schließen",
+  "reopenWizard": "Fragebogen erneut öffnen",
   "ueqHint": "Klicke das Feld an, das am ehesten deinem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen.",
   "charCount": "{{count}} / {{max}} Zeichen",
   "sections": {
@@ -33,8 +39,8 @@
       "intro": ""
     },
     "B": {
-      "title": "Allgemeine Bedienbarkeit",
-      "intro": "Bitte beurteile GlucoCompanion auf den folgenden Skalen. Klicke das Feld an, das am ehesten deinem Eindruck entspricht. Es gibt jeweils 7 Abstufungen zwischen den beiden Begriffen."
+      "title": "System Usability Scale (SUS)",
+      "intro": "Bitte beurteile, wie es dir bei der Nutzung von GlucoCompanion ergangen ist."
     },
     "C": {
       "title": "App-Konsolidierung",
@@ -53,8 +59,8 @@
       "intro": "Zum Abschluss noch ein paar Fragen zu Vertrauen und Datenschutz."
     },
     "G": {
-      "title": "Nutzungsabsicht",
-      "intro": ""
+      "title": "Offene Fragen",
+      "intro": "Zum Schluss würden wir gern deine eigenen Worte hören."
     },
     "H": {
       "title": "Offene Fragen",
@@ -69,6 +75,39 @@
     "a3unit": "Jahre",
     "a4": "Welche Therapieform nutzt du hauptsächlich?",
     "a5": "Wie viele digitale Diabetes-Tools (Apps, Sensor-Apps, Tagebücher) nutzt du aktuell regelmäßig?",
+    "a6": "Wie häufig nutzt du KI-Chatbots (z. B. ChatGPT) allgemein?",
+    "a7": "Hast du KI schon einmal im Zusammenhang mit deinem Diabetes genutzt?",
+    "sus1": "1. Ich denke, dass ich GlucoCompanion gerne regelmäßig nutzen würde.",
+    "sus2": "2. Ich finde GlucoCompanion unnötig komplex.",
+    "sus3": "3. Ich finde GlucoCompanion einfach zu nutzen.",
+    "sus4": "4. Ich glaube, ich würde die Unterstützung einer fachkundigen Person benötigen, um GlucoCompanion nutzen zu können.",
+    "sus5": "5. Ich finde, dass die verschiedenen Funktionen in GlucoCompanion gut integriert sind.",
+    "sus6": "6. Ich finde, dass es in GlucoCompanion zu viele Inkonsistenzen gibt.",
+    "sus7": "7. Ich glaube, dass die meisten Menschen sehr schnell lernen würden, mit GlucoCompanion umzugehen.",
+    "sus8": "8. Ich finde GlucoCompanion sehr umständlich zu nutzen.",
+    "sus9": "9. Ich habe mich bei der Nutzung von GlucoCompanion sehr sicher gefühlt.",
+    "sus10": "10. Ich musste viele Dinge lernen, bevor ich mit GlucoCompanion zurechtkam.",
+    "pu1": "C1. GlucoCompanion wirkt auf mich wie eine sinnvolle Unterstützung für den Diabetes-Alltag.",
+    "pu2": "C2. Eine App wie GlucoCompanion könnte mir helfen, meinen Diabetes-Alltag einfacher zu bewältigen.",
+    "pu3": "C3. Mit GlucoCompanion könnte ich Aufgaben rund um meinen Diabetes effizienter erledigen.",
+    "pu4": "C4. Insgesamt halte ich GlucoCompanion für nützlich.",
+    "bi1": "C5. Wenn GlucoCompanion verfügbar wäre, könnte ich mir vorstellen, sie zu nutzen.",
+    "bi2": "C6. Ich würde GlucoCompanion in meinem Diabetes-Alltag eine Chance geben.",
+    "bi3": "C7. Ich würde GlucoCompanion anderen Menschen mit Diabetes weiterempfehlen.",
+    "d1": "D1. Gluco hat im Test einfühlsam auf Anliegen reagiert.",
+    "d2": "D2. Ich könnte mir vorstellen, mit Gluco auch über Frustrationen oder Sorgen rund um meinen Diabetes zu sprechen.",
+    "d3": "D3. Ein KI-Begleiter wie Gluco wäre für mich eine sinnvolle Ergänzung zu bestehenden Diabetes-Apps.",
+    "d4": "D4. Für mich war erkennbar, dass Gluco keine medizinischen Dosierungs-Empfehlungen gibt.",
+    "d5": "D5. Für mich war erkennbar, dass Glucos Antworten von einer KI stammen und nicht fehlerfrei sind.",
+    "e1": "E1. Die KI-gestützte Freitext-Eingabe (z. B. „Mittag: Pasta, 60 g KH“) erleichtert die Dokumentation spürbar.",
+    "e2": "E2. Eine automatische Eintrags- und Kohlenhydrat-Erkennung wie hier würde mir im Alltag Zeit sparen.",
+    "e3": "E3. Die Darstellung von Zusammenhängen zwischen Stimmung und Blutzucker ist verständlich und nachvollziehbar.",
+    "e4": "E4. Ich kann mir vorstellen, dass mir eine solche Ansicht mit meinen eigenen Daten neue Zusammenhänge zeigen würde.",
+    "e5": "E5. Eine App, die mehrere Diabetes-Funktionen bündelt, würde meinen Alltag spürbar vereinfachen.",
+    "e6": "E6. GlucoCompanion könnte mehrere der Tools ersetzen oder ergänzen, die ich aktuell nutze.",
+    "f1": "F1. Ich vertraue dem Umgang mit meinen Daten in dieser App.",
+    "f2": "F2. Mir ist klar, welche meiner Daten in der App gespeichert werden und welche nicht.",
+    "f3": "F3. Die Hinweise zu Datenschutz und KI sind verständlich formuliert.",
     "b1_left": "behindernd",
     "b1_right": "unterstützend",
     "b2_left": "kompliziert",
@@ -122,6 +161,14 @@
     "tools_1": "1",
     "tools_2": "2",
     "tools_3": "3",
-    "tools_4_plus": "4 oder mehr"
+    "tools_4_plus": "4 oder mehr",
+    "ai_nie": "nie",
+    "ai_selten": "selten",
+    "ai_monatlich": "monatlich",
+    "ai_woechentlich": "wöchentlich",
+    "ai_taeglich": "täglich",
+    "ai_ja_regelmaessig": "ja, regelmäßig",
+    "ai_ja_ausprobiert": "ja, ausprobiert",
+    "ai_nein": "nein"
   }
 }

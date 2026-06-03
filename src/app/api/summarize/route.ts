@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 import { openai } from "@/lib/openai-server"
 import type { ConversationEmotions, ConversationTag, Message } from "@/lib/types"
 import { getSessionUserId } from "@/lib/auth-session"
+import { resolveAppLocale, summarizeLanguageDirective } from "@/lib/app-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -129,8 +130,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = (await req.json()) as { messages: Message[] }
+    const body = (await req.json()) as { messages: Message[]; locale?: string }
     const messages = body?.messages ?? []
+    const appLocale = resolveAppLocale(body.locale)
 
     const conversationText = messages
       .filter((m) => m.role === "user" || m.role === "assistant")
@@ -142,7 +144,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 550,
       temperature: 0.5,
       messages: [
-        { role: "system", content: SUMMARY_PROMPT },
+        { role: "system", content: `${SUMMARY_PROMPT}\n\n${summarizeLanguageDirective(appLocale)}` },
         { role: "user", content: conversationText || "(empty)" },
       ],
       response_format: { type: "json_object" },

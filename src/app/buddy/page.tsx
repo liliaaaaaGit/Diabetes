@@ -32,16 +32,18 @@ import { formatLocalDateTimeLabel, formatLocalYmd } from "@/lib/entry-timestamp"
 import { cn } from "@/lib/utils"
 import { scoreMoodTextClient } from "@/lib/mood-client"
 import { getMoodLabel } from "@/lib/mood"
+import type { Locale } from "@/i18n/config"
+import { localizeConversationWithMessages } from "@/lib/mock-conversation-locale"
 
 const FALLBACK_PERSONAL_QUOTE_DE =
   "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt."
 
-async function summarizeConversation(messages: Message[]) {
+async function summarizeConversation(messages: Message[], locale: Locale) {
   const res = await fetch("/api/summarize", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, locale }),
   })
 
   if (!res.ok) {
@@ -70,7 +72,7 @@ type SummaryPortalState =
   | { kind: "history"; conversation: Conversation }
 
 export default function BuddyPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { toast } = useToast()
   const { userId } = useUser()
 
@@ -209,7 +211,7 @@ export default function BuddyPage() {
       let messagesSnapshot: Message[] = []
 
       try {
-        const full = await getConversation(endingId, uid)
+        const full = localizeConversationWithMessages(await getConversation(endingId, uid), locale)
         messagesSnapshot = full.messages
         dateIso = full.endedAt || full.startedAt || dateIso
         title = (full.title || "").trim()
@@ -235,7 +237,7 @@ export default function BuddyPage() {
 
         if (full.messages.length > 0) {
           try {
-            const r = await summarizeConversation(full.messages)
+            const r = await summarizeConversation(full.messages, locale)
             title = (r.title || "").trim() || title
             summary = r.summary
             tags = r.tags
@@ -447,7 +449,10 @@ export default function BuddyPage() {
           if (!userId) break
           const full = await getConversation(conv.id, userId)
           if (!full.messages || full.messages.length === 0) continue
-          const { title, summary, tags, moodEmoji, emotions } = await summarizeConversation(full.messages)
+          const { title, summary, tags, moodEmoji, emotions } = await summarizeConversation(
+            full.messages,
+            locale
+          )
           await updateConversationSummary(conv.id, userId, summary, tags, moodEmoji, title, emotions)
         } catch {
           // silent backfill
@@ -462,7 +467,7 @@ export default function BuddyPage() {
       await refetchConversations()
       setHistoryRefreshKey((v) => v + 1)
     })()
-  }, [activeTab, conversations, refetchConversations, userId])
+  }, [activeTab, conversations, refetchConversations, userId, locale])
 
   return (
     <AppShell
@@ -587,7 +592,10 @@ export default function BuddyPage() {
               conversations={conversations}
               onSelect={async (conversation) => {
                 if (!userId) return
-                const full = await getConversation(conversation.id, userId)
+                const full = localizeConversationWithMessages(
+                  await getConversation(conversation.id, userId),
+                  locale
+                )
                 setSummaryPortal({ kind: "history", conversation: full })
               }}
               onStartFirstConversation={() => {

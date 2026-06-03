@@ -6,6 +6,7 @@ import { getConversation, addMessage, updateConversationTitle } from "@/lib/db-c
 import { BUDDY_OPENING_USER_MESSAGE } from "@/lib/buddy-chat-constants"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/hooks/useTranslation"
+import { localizeConversationWithMessages } from "@/lib/mock-conversation-locale"
 import { isPsychologicalCrisis } from "@/lib/crisis-classification"
 
 type ChatError =
@@ -83,7 +84,7 @@ export function useChat(
   userId: string | null,
   options?: UseChatOptions
 ) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { toast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
@@ -137,6 +138,7 @@ export function useChat(
           body: JSON.stringify({
             messages: requestMessages,
             conversationId: cid,
+            locale,
           }),
           signal: controller.signal,
         })
@@ -230,7 +232,7 @@ export function useChat(
         setIsStreaming(false)
       }
     },
-    [userId, t, toast]
+    [userId, t, toast, locale]
   )
 
   const sendOpeningMessage = useCallback(
@@ -258,7 +260,10 @@ export function useChat(
     let cancelled = false
     ;(async () => {
       try {
-        const conv = await getConversation(conversationId, userId)
+        const conv = localizeConversationWithMessages(
+          await getConversation(conversationId, userId),
+          locale
+        )
         if (cancelled) return
         const list = conv.messages || []
         setMessages(list)
@@ -288,7 +293,7 @@ export function useChat(
     return () => {
       cancelled = true
     }
-  }, [conversationId, userId])
+  }, [conversationId, userId, locale])
 
   const resetRateWindowIfNeeded = () => {
     const now = Date.now()

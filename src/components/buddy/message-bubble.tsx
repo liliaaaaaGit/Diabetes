@@ -3,6 +3,7 @@
 import { Message } from "@/lib/types"
 import { format, parseISO } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { enUS } from "date-fns/locale/en-US"
 import { Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { splitBuddySafetyContent, stripChipMarkers } from "@/lib/buddy-message-display"
@@ -14,9 +15,11 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, showAssistantAvatar = true }: MessageBubbleProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const isUser = message.role === "user"
-  const time = format(parseISO(message.timestamp), "HH:mm", { locale: de })
+  const time = format(parseISO(message.timestamp), "HH:mm", {
+    locale: locale === "en" ? enUS : de,
+  })
   const { safety, rest } = isUser ? { safety: null as string | null, rest: message.content } : splitBuddySafetyContent(message.content)
   const displayBody = isUser ? message.content : stripChipMarkers(rest)
 

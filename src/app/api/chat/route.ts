@@ -5,6 +5,9 @@ import { BUDDY_OPENING_USER_MESSAGE } from "@/lib/buddy-chat-constants"
 import type { Message } from "@/lib/types"
 import { getSessionUserId } from "@/lib/auth-session"
 import { classifyCrisisText } from "@/lib/crisis-classification"
+import { buddyLanguageDirective, resolveAppLocale } from "@/lib/app-locale"
+import { localizeSummaryForLocale } from "@/lib/mock-conversation-locale"
+import type { Locale } from "@/i18n/config"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -116,19 +119,38 @@ function threadAlreadyHasAssistantReply(messages: Message[]): boolean {
 }
 
 function buildFirstTurnContextSuffix(
-  summaries: Array<{ title: string; summary: string; dateLabel: string }>
+  summaries: Array<{ title: string; summary: string; dateLabel: string }>,
+  appLocale: Locale
 ): string {
-  const languageNote = `SPRACHE (nur für diese erste Antwort in diesem neuen Gespräch): Wenn die einzige Nutzer-Nachricht das interne Öffnungssignal ist, standardmäßig Deutsch — es sei denn, die früheren Zusammenfassungen sind eindeutig überwiegend auf Englisch. Sonst: Sprache der letzten Nutzer-Nachricht.`
+  const defaultLang =
+    appLocale === "en"
+      ? "Reply in English for this opening message (the user set the app to English)."
+      : "Antworte auf Deutsch für diese erste Nachricht (die App ist auf Deutsch gestellt)."
+
+  const languageNote =
+    appLocale === "en"
+      ? `LANGUAGE (first reply in this new thread only): ${defaultLang} If past summaries are clearly mostly German, you may still greet in English but may briefly acknowledge continuity in the user's prior language.`
+      : `SPRACHE (nur erste Antwort in diesem neuen Gespräch): ${defaultLang} Wenn frühere Zusammenfassungen eindeutig überwiegend Englisch sind, darfst du trotzdem auf Deutsch öffnen und Kontinuität kurz andeuten.`
 
   if (summaries.length === 0) {
+    if (appLocale === "en") {
+      return `
+--- CONTEXT FOR NEW CONVERSATION (Gluco's first reply) ---
+${languageNote}
+
+No prior ended conversations with summaries (or the user is new).
+- Open warm and inviting. Do not invent past topics.
+- Default greeting (English): "Hey, I'm Gluco, your diabetes buddy. Here you can tell me how you're doing – I listen, ask questions, and help you better understand your diabetes experiences."
+- Follow your style and rules above (no chip markers).
+---`
+    }
     return `
 --- KONTEXT FÜR NEUES GESPRÄCH (erste Gluco-Antwort) ---
 ${languageNote}
 
 Es liegen keine früheren beendeten Gespräche mit Zusammenfassung vor (oder der Nutzer ist neu).
 - Öffne warm und einladend. Erfinde keine früheren Themen.
-- Standard-Begrüßung (Deutsch, wenn keine früheren Zusammenfassungen): "Hey, ich bin Gluco, dein Diabetes Buddy. Hier kannst du mir erzählen, wie es dir geht – ich höre zu, frage nach und helfe dir, deine Diabetes-Erfahrungen besser zu verstehen."
-- Englische Entsprechung: "Hey, I'm Gluco, your diabetes buddy. Here you can tell me how you're doing – I listen, ask questions, and help you better understand your diabetes experiences."
+- Standard-Begrüßung (Deutsch): "Hey, ich bin Gluco, dein Diabetes Buddy. Hier kannst du mir erzählen, wie es dir geht – ich höre zu, frage nach und helfe dir, deine Diabetes-Erfahrungen besser zu verstehen."
 - Halte dich sonst an deinen bestehenden Stil und alle Regeln oben (ohne Chip-Marker).
 ---`
   }
@@ -136,20 +158,33 @@ Es liegen keine früheren beendeten Gespräche mit Zusammenfassung vor (oder der
   const block = summaries
     .map(
       (s, i) =>
-        `${i + 1}. Datum: ${s.dateLabel} | Titel: ${s.title} | Zusammenfassung: ${s.summary}`
+        `${i + 1}. Date: ${s.dateLabel} | Title: ${s.title} | Summary: ${s.summary}`
     )
     .join("\n")
+
+  if (appLocale === "en") {
+    return `
+--- CONTEXT FOR NEW CONVERSATION (Gluco's first reply) ---
+${languageNote}
+
+PREVIOUS CONVERSATIONS (continuity only; this thread is new):
+${block}
+
+- In your first reply, naturally reference at least one concrete theme from the summaries (no invented details).
+- Introduce yourself briefly as Gluco when helpful; example tone: "Hey, good to see you again … Last time we talked about [concrete theme from summaries] — how is that sitting with you today?"
+- Follow your style and rules above (no chip markers).
+---`
+  }
 
   return `
 --- KONTEXT FÜR NEUES GESPRÄCH (erste Gluco-Antwort) ---
 ${languageNote}
 
-PREVIOUS CONVERSATIONS (nur Kontinuität; das aktuelle Gespräch ist neu):
+FRÜHERE GESPRÄCHE (nur Kontinuität; dieses Gespräch ist neu):
 ${block}
 
 - Beziehe dich in der ersten Antwort natürlich auf mindestens ein konkretes Thema aus den Zusammenfassungen (keine erfundenen Details).
-- Stelle dich kurz als Gluco vor, wenn sinnvoll; Beispielton (Deutsch): "Hey, schön, dass du wieder da bist … Letztes Mal ging's um [konkretes Thema aus den Zusammenfassungen] — wie sitzt das bei dir heute?"
-- Wenn der Nutzer auf Englisch schreibt, antworte auf Englisch im gleichen Sinn.
+- Stelle dich kurz als Gluco vor, wenn sinnvoll; Beispielton: "Hey, schön, dass du wieder da bist … Letztes Mal ging's um [konkretes Thema aus den Zusammenfassungen] — wie sitzt das bei dir heute?"
 - Halte dich sonst an deinen bestehenden Stil und alle Regeln oben (ohne Chip-Marker).
 ---`
 }
@@ -199,18 +234,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = (await req.json()) as { messages: Message[]; conversationId?: string }
+    const body = (await req.json()) as {
+      messages: Message[]
+      conversationId?: string
+      locale?: string
+    }
     const messages = body?.messages ?? []
     const conversationId = typeof body.conversationId === "string" ? body.conversationId.trim() : ""
+    const appLocale = resolveAppLocale(body.locale)
 
-    let systemContent = SYSTEM_PROMPT
+    let systemContent = `${SYSTEM_PROMPT}\n\n${buddyLanguageDirective(appLocale)}`
     if (!threadAlreadyHasAssistantReply(messages)) {
       try {
-        const summaries = await getRecentEndedConversationSummaries(userId, {
-          excludeConversationId: conversationId || undefined,
-          limit: 5,
-        })
-        systemContent = `${SYSTEM_PROMPT}\n\n${buildFirstTurnContextSuffix(summaries)}`
+        const summaries = (
+          await getRecentEndedConversationSummaries(userId, {
+            excludeConversationId: conversationId || undefined,
+            limit: 5,
+          })
+        ).map((s) => localizeSummaryForLocale(s, appLocale))
+        systemContent = `${systemContent}\n\n${buildFirstTurnContextSuffix(summaries, appLocale)}`
       } catch (e) {
         console.error("[/api/chat] Failed to load conversation summaries for context:", e)
         // Continue with base prompt only
