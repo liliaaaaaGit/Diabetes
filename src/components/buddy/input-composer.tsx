@@ -56,7 +56,7 @@ export function InputComposer({
         "shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-sm",
         "px-3 pt-2 sm:px-4 sm:py-3",
         fixedToViewport
-          ? "fixed inset-x-0 bottom-0 z-40 md:static md:z-auto"
+          ? "fixed inset-x-0 bottom-0 z-40 md:left-[280px] md:right-0"
           : "sticky bottom-0 z-20"
       )}
       style={{
