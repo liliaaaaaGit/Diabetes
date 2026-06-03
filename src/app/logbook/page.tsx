@@ -231,7 +231,7 @@ export default function LogbookPage() {
   return (
     <AppShell
       title={t("pages.logbook")}
-      mainClassName="max-w-none w-full px-4 md:px-6 pt-4 md:pt-6 pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-14"
+      mainClassName="max-w-none w-full scroll-smooth px-4 md:px-6 pt-4 md:pt-6 pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-14"
       actions={
         <>
           <Button
@@ -274,8 +274,8 @@ export default function LogbookPage() {
           onEntrySaved={handleEntrySaved}
         />
 
-        {/* 3. Filter tabs (sticky) sit directly above the entry list. */}
-        <div className="sticky top-16 z-20 -mx-4 px-4 md:-mx-6 md:px-6 pt-2 pb-4 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/90">
+        {/* 3. Filter tabs — scroll with content on mobile; sticky on desktop only. */}
+        <div className="-mx-4 border-b border-slate-200/90 px-4 pb-3 pt-1 md:-mx-6 md:sticky md:top-16 md:z-10 md:bg-slate-50/95 md:px-6 md:pb-4 md:pt-2 md:backdrop-blur-sm">
           <FilterTabs
             activeFilter={activeFilter}
             counts={counts}
@@ -288,6 +288,7 @@ export default function LogbookPage() {
         {listLoading && listEntries.length === 0 ? (
           <p className="text-sm text-slate-500 py-4">{t("common.loading")}</p>
         ) : (
+          <div className="relative z-0 pt-1">
           <LogbookDayView
             selectedDate={selectedDate}
             filter={activeFilter}
@@ -298,6 +299,7 @@ export default function LogbookPage() {
               void refetchWeek()
             }}
           />
+          </div>
         )}
       </div>
 

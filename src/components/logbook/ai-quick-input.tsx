@@ -119,7 +119,7 @@ export function AiQuickInput({
 
   return (
     <PhotoMealProvider onEntrySaved={onEntrySaved}>
-    <div className="sticky top-16 z-20 bg-slate-50/90 backdrop-blur pt-3 pb-2 px-0">
+    <div className="shrink-0 pb-2 px-0">
       <div className="mx-auto max-w-3xl md:max-w-7xl px-0">
         <div
           className={cn(

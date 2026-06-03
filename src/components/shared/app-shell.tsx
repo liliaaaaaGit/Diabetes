@@ -67,7 +67,7 @@ export function AppShell({
         <main
           className={cn(
             "mx-auto flex w-full min-w-0 max-w-7xl min-h-0 flex-1 flex-col px-4 py-4",
-            "max-md:overflow-y-auto max-md:overscroll-y-contain",
+            "max-md:overflow-y-auto max-md:overscroll-y-contain max-md:scroll-smooth",
             "pb-[calc(5.25rem+env(safe-area-inset-bottom))]",
             lockDesktopViewport
               ? "max-md:overflow-hidden md:flex-1 md:min-h-0 md:overflow-hidden md:px-6 md:py-0 md:pb-0"
