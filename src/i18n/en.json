@@ -578,6 +578,8 @@
     "registrationFailed": "Registration failed",
     "loginTitle": "Login",
     "loginSubtitle": "Sign in with your pseudonym and PIN",
+    "loginPseudonymLabel": "Pseudonym",
+    "loginPinLabel": "PIN",
     "loginButton": "Sign In",
     "loginFailed": "Login failed",
     "noAccountYet": "No account yet? Register now",

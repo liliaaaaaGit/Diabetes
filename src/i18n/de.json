@@ -578,6 +578,8 @@
     "registrationFailed": "Registrierung fehlgeschlagen",
     "loginTitle": "Anmelden",
     "loginSubtitle": "Melde dich mit deinem Pseudonym und PIN an",
+    "loginPseudonymLabel": "Pseudonym",
+    "loginPinLabel": "PIN",
     "loginButton": "Anmelden",
     "loginFailed": "Anmeldung fehlgeschlagen",
     "noAccountYet": "Noch kein Konto? Jetzt registrieren",

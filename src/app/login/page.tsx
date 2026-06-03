@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useTranslation } from "@/hooks/useTranslation"
+import { LanguageSwitcher } from "@/components/shared/language-switcher"
 import { Eye, EyeOff, Droplet } from "lucide-react"
 
 export default function LoginPage() {
@@ -48,14 +49,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <div className="relative flex min-h-screen min-h-[100dvh] items-center justify-center bg-slate-50 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className="absolute right-4 top-4 w-[5.5rem] sm:right-6 sm:top-6">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-500 text-white mb-4">
+        <div className="mb-6 text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-500 text-white">
             <Droplet className="h-8 w-8" />
           </div>
-          <h1 className="text-xl font-bold leading-relaxed text-slate-900 mb-2 sm:text-2xl">{t("auth.loginTitle")}</h1>
-          <p className="text-sm text-slate-600">{t("auth.loginSubtitle")}</p>
+          <h1 className="mb-2 text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">{t("auth.loginTitle")}</h1>
         </div>
 
         <Card className="rounded-xl border-slate-200 shadow-sm">
@@ -65,7 +69,7 @@ export default function LoginPage() {
 
               <div>
                 <Label htmlFor="pseudonym" className="mb-2">
-                  {t("auth.pseudonymLabel")}
+                  {t("auth.loginPseudonymLabel")}
                 </Label>
                 <Input
                   id="pseudonym"
@@ -84,7 +88,7 @@ export default function LoginPage() {
 
               <div>
                 <Label htmlFor="pin" className="mb-2">
-                  {t("auth.pinLabel")}
+                  {t("auth.loginPinLabel")}
                 </Label>
                 <div className="relative">
                   <Input
