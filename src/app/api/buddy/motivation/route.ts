@@ -2,21 +2,25 @@ import { subDays } from "date-fns"
 import { openai } from "@/lib/openai-server"
 import { getConversations, getEntries } from "@/lib/db"
 import { getSessionUserId } from "@/lib/auth-session"
+import { AI_FALLBACKS, aiOutputLanguageDirective, parseLocaleFromRequest } from "@/lib/app-locale"
+import { localizeConversationMeta } from "@/lib/mock-conversation-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const FALLBACK_QUOTE =
-  "Ein einzelner hoher oder niedriger Wert sagt nichts über dich als Person aus – er ist ein Signal, das du für deinen nächsten kleinen Schritt nutzen kannst."
-
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const userId = await getSessionUserId()
     if (!userId) {
       return Response.json({ code: "unauthorized" }, { status: 401 })
     }
 
-    const conversations = await getConversations(userId)
+    const locale = parseLocaleFromRequest(req)
+    const fallback = AI_FALLBACKS.buddyMotivation[locale]
+
+    const conversations = (await getConversations(userId)).map((c) =>
+      localizeConversationMeta(c, locale)
+    )
     const entries = await getEntries(userId, { limit: 200 })
     const from = subDays(new Date(), 14)
     const tags = conversations
@@ -31,7 +35,7 @@ export async function GET() {
     const moods = entries.filter((e) => e.type === "mood").length
 
     if (!openai || tags.length === 0) {
-      return Response.json({ quote: FALLBACK_QUOTE })
+      return Response.json({ quote: fallback })
     }
 
     const completion = await openai.chat.completions.create({
@@ -43,27 +47,30 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Generiere einen kurzen, ermutigenden Gedanken des Tages fuer eine Person mit Diabetes. " +
-            "REGELN: " +
-            "1. Der Gedanke MUSS einen klaren Bezug zum Diabetes-Alltag, zu Diabetes-Emotionen oder zu den Themen der letzten Gespraeche haben. " +
-            "2. Gute Beispiele: 'Ein hoher Wert nach dem Essen ist kein Versagen – es ist ein Datenpunkt, aus dem du lernen kannst.' / 'Manchmal hilft ein Spaziergang nach dem Essen nicht nur dem Zucker, sondern auch dem Kopf.' " +
-            "3. Schlechte Beispiele (zu generisch, KEIN Diabetes-Bezug, vermeide sie): 'Fuehre eine Dankbarkeitspraxis ein.' / 'Nimm dir 5 Minuten fuer eine Atemuebung.' / 'Du bist gut genug, so wie du bist.' " +
-            "4. Anti-Perfektionismus, aber immer rund um Diabetes gerahmt, nicht ums Leben allgemein. " +
-            "Kein Kitsch, kein medizinischer Rat, keine Insulin- oder Dosierungsempfehlung. Authentisch und warm. 1-2 Saetze. Auf Deutsch. Sprich die Person IMMER mit Du an, niemals mit Sie (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Antworte als JSON: { quote: string }",
+            "Generate a short encouraging thought of the day for a person with diabetes. " +
+            "RULES: " +
+            "1. The thought MUST clearly relate to everyday diabetes life, diabetes emotions, or themes from recent conversations. " +
+            "2. Good examples: 'A high reading after a meal isn't failure — it's a data point you can learn from.' " +
+            "3. Bad examples (too generic, NO diabetes link — avoid): 'Start a gratitude practice.' / 'Take 5 minutes to breathe.' " +
+            "4. Anti-perfectionism, but always framed around diabetes, not life in general. " +
+            "No kitsch, no medical advice, no insulin or dosing recommendations. Authentic and warm. 1–2 sentences. " +
+            aiOutputLanguageDirective(locale) +
+            ' Reply as JSON: { "quote": string }',
         },
         {
           role: "user",
           content:
-            `Themen der letzten Gespraeche: ${tags.join(", ")}\n` +
-            `Kontext aus den letzten Eintraegen: hohe Werte=${highs}, niedrige Werte=${lows}, Mahlzeiten=${meals}, Stimmungseintraege=${moods}`,
+            `Themes from recent conversations: ${tags.join(", ")}\n` +
+            `Context from recent entries: high readings=${highs}, low readings=${lows}, meals=${meals}, mood entries=${moods}`,
         },
       ],
     })
 
     const parsed = JSON.parse(completion.choices?.[0]?.message?.content || "{}") as { quote?: string }
-    return Response.json({ quote: (parsed.quote || "").trim() || FALLBACK_QUOTE })
+    return Response.json({ quote: (parsed.quote || "").trim() || fallback })
   } catch (error) {
     console.error("[api/buddy/motivation] Error:", error)
-    return Response.json({ quote: FALLBACK_QUOTE })
+    const locale = parseLocaleFromRequest(req)
+    return Response.json({ quote: AI_FALLBACKS.buddyMotivation[locale] })
   }
 }

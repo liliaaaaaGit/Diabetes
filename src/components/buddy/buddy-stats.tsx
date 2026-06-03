@@ -36,7 +36,7 @@ export function BuddyStats({
   /** Bumps when Buddy overview daily cache (motivation/goals) should reload. */
   dailyRefreshNonce?: number
 }) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [moodLoading, setMoodLoading] = useState(true)
   const [averages, setAverages] = useState<ConversationEmotions | null>(null)
 
@@ -58,8 +58,8 @@ export function BuddyStats({
 
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const cacheKey = useCallback(
-    (name: string) => `buddy_${userId ?? "none"}_${name}_${todayKey}`,
-    [userId, todayKey]
+    (name: string) => `buddy_${userId ?? "none"}_${locale}_${name}_${todayKey}`,
+    [userId, todayKey, locale]
   )
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export function BuddyStats({
         const loadMotivation = async () => {
           const cached = localStorage.getItem(cacheKey("motivation"))
           if (cached) return cached
-          const res = await fetch("/api/buddy/motivation", { credentials: "include" })
+          const res = await fetch(`/api/buddy/motivation?locale=${locale}`, { credentials: "include" })
           if (!res.ok) return fallbackMotivation
           const json = (await res.json()) as { quote?: string }
           const value = json.quote || fallbackMotivation
@@ -90,7 +90,7 @@ export function BuddyStats({
               // ignore
             }
           }
-          const res = await fetch("/api/buddy/goals", { credentials: "include" })
+          const res = await fetch(`/api/buddy/goals?locale=${locale}`, { credentials: "include" })
           if (!res.ok) {
             return fallbackGoals
           }
@@ -109,7 +109,7 @@ export function BuddyStats({
     }
 
     void loadDaily()
-  }, [cacheKey, todayKey, userId, refreshKey, dailyRefreshNonce, fallbackMotivation, fallbackGoals])
+  }, [cacheKey, todayKey, userId, locale, refreshKey, dailyRefreshNonce, fallbackMotivation, fallbackGoals])
 
   const handleToggleGoal = async (goal: BuddyDailyGoal) => {
     const updated = dailyGoals.map((g) => (g.id === goal.id ? { ...g, completed: !g.completed } : g))
@@ -132,7 +132,7 @@ export function BuddyStats({
     setRefreshingQuote(true)
     try {
       localStorage.removeItem(cacheKey("motivation"))
-      const res = await fetch("/api/buddy/motivation", { credentials: "include" })
+      const res = await fetch(`/api/buddy/motivation?locale=${locale}`, { credentials: "include" })
       if (!res.ok) return
       const json = (await res.json()) as { quote?: string }
       const quote = json.quote || fallbackMotivation

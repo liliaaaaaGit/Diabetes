@@ -5,6 +5,7 @@ import { Send, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { useVisualViewportInset } from "@/hooks/use-visual-viewport-inset"
 import { cn } from "@/lib/utils"
 
@@ -29,7 +30,9 @@ export function InputComposer({
   fixedToViewport = false,
 }: InputComposerProps) {
   const { t } = useTranslation()
+  const isMobile = useMediaQuery("(max-width: 767px)")
   const keyboardInset = useVisualViewportInset()
+  const placeholder = isMobile ? t("buddy.placeholderMobile") : t("buddy.placeholder")
   const [text, setText] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -100,7 +103,7 @@ export function InputComposer({
             onTypingChange?.(next.trim().length > 0)
           }}
           onKeyDown={handleKeyDown}
-          placeholder={t("buddy.placeholder")}
+          placeholder={placeholder}
           disabled={isDisabled}
           rows={1}
           className={cn(

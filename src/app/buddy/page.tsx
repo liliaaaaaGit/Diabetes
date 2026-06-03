@@ -35,9 +35,6 @@ import { getMoodLabel } from "@/lib/mood"
 import type { Locale } from "@/i18n/config"
 import { localizeConversationWithMessages } from "@/lib/mock-conversation-locale"
 
-const FALLBACK_PERSONAL_QUOTE_DE =
-  "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt."
-
 async function summarizeConversation(messages: Message[], locale: Locale) {
   const res = await fetch("/api/summarize", {
     method: "POST",
@@ -73,6 +70,7 @@ type SummaryPortalState =
 
 export default function BuddyPage() {
   const { t, locale } = useTranslation()
+  const fallbackPersonalQuote = t("buddy.fallbackPersonalQuote")
   const { toast } = useToast()
   const { userId } = useUser()
 
@@ -82,7 +80,7 @@ export default function BuddyPage() {
   const [viewConversationId, setViewConversationId] = useState<string | undefined>(undefined)
   const [buddyExtraction, setBuddyExtraction] = useState<ExtractedEntry[] | null>(null)
   const [buddyAiMessage, setBuddyAiMessage] = useState<string>("")
-  const [buddyPersonalQuote, setBuddyPersonalQuote] = useState(FALLBACK_PERSONAL_QUOTE_DE)
+  const [buddyPersonalQuote, setBuddyPersonalQuote] = useState("")
   const [quoteLoading, setQuoteLoading] = useState(true)
   const [statsDailyNonce, setStatsDailyNonce] = useState(0)
   const [openingAfterCreateId, setOpeningAfterCreateId] = useState<string | null>(null)
@@ -170,15 +168,15 @@ export default function BuddyPage() {
     setQuoteLoading(true)
     void (async () => {
       try {
-        const res = await fetch("/api/buddy/quote", { credentials: "include" })
+        const res = await fetch(`/api/buddy/quote?locale=${locale}`, { credentials: "include" })
         if (!res.ok) {
-          if (!cancelled) setBuddyPersonalQuote(FALLBACK_PERSONAL_QUOTE_DE)
+          if (!cancelled) setBuddyPersonalQuote(fallbackPersonalQuote)
           return
         }
         const json = (await res.json()) as { quote?: string }
-        if (!cancelled) setBuddyPersonalQuote((json.quote || "").trim() || FALLBACK_PERSONAL_QUOTE_DE)
+        if (!cancelled) setBuddyPersonalQuote((json.quote || "").trim() || fallbackPersonalQuote)
       } catch {
-        if (!cancelled) setBuddyPersonalQuote(FALLBACK_PERSONAL_QUOTE_DE)
+        if (!cancelled) setBuddyPersonalQuote(fallbackPersonalQuote)
       } finally {
         if (!cancelled) setQuoteLoading(false)
       }
@@ -187,7 +185,7 @@ export default function BuddyPage() {
     return () => {
       cancelled = true
     }
-  }, [userId])
+  }, [userId, locale, fallbackPersonalQuote])
 
   const endAndCreateNewActive = async () => {
     const endingId = activeConversationIdRef.current
@@ -474,8 +472,7 @@ export default function BuddyPage() {
       title={t("buddy.title")}
       mainClassName={cn(
         "flex min-h-0 flex-col pb-0 md:pb-0",
-        isFullChatView &&
-          "overflow-hidden py-0 md:py-0 h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)]"
+        isFullChatView && "max-md:overflow-hidden py-0 md:py-0"
       )}
       hideFooter
     >

@@ -1,31 +1,32 @@
 import { openai } from "@/lib/openai-server"
 import { getRecentEndedConversationSummaries } from "@/lib/db"
 import { getSessionUserId } from "@/lib/auth-session"
+import { AI_FALLBACKS, aiOutputLanguageDirective, parseLocaleFromRequest } from "@/lib/app-locale"
+import { localizeSummaryForLocale } from "@/lib/mock-conversation-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const FALLBACK_QUOTE =
-  "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt — genau so, wie du heute unterwegs bist."
-
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const userId = await getSessionUserId()
     if (!userId) {
       return Response.json({ code: "unauthorized" }, { status: 401 })
     }
 
-    const summaries = await getRecentEndedConversationSummaries(userId, { limit: 3 })
+    const locale = parseLocaleFromRequest(req)
+    const fallback = AI_FALLBACKS.buddyQuote[locale]
+
+    const summaries = (
+      await getRecentEndedConversationSummaries(userId, { limit: 3 })
+    ).map((s) => localizeSummaryForLocale(s, locale))
 
     if (summaries.length === 0 || !openai) {
-      return Response.json({ quote: FALLBACK_QUOTE })
+      return Response.json({ quote: fallback })
     }
 
     const block = summaries
-      .map(
-        (s, i) =>
-          `${i + 1}. ${s.dateLabel} — ${s.title}: ${s.summary}`
-      )
+      .map((s, i) => `${i + 1}. ${s.dateLabel} — ${s.title}: ${s.summary}`)
       .join("\n\n")
 
     const completion = await openai.chat.completions.create({
@@ -37,20 +38,23 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Du schreibst fuer eine Diabetes-Begleit-App. Erzeuge EIN kurzes, personalisiertes Zitat oder einen Impuls in genau 2 bis 3 Saetzen, das sich auf die Themen und Gefuehle aus den letzten Gespraechs-Zusammenfassungen bezieht. Warm, ermutigend, empathisch — kein medizinischer Rat, kein Kitsch, keine Floskeln wie 'du schaffst das'. Grammatikalisch korrektes Deutsch mit korrekter Gross- und Kleinschreibung. Sprich die Person IMMER mit Du an, niemals mit Sie (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Antworte nur als JSON: { \"quote\": string }",
+            "You write for a diabetes companion app. Generate ONE short personalized quote or impulse in exactly 2–3 sentences based on themes and feelings from recent conversation summaries. Warm, encouraging, empathetic — no medical advice, no kitsch, no clichés like 'you've got this'. " +
+            aiOutputLanguageDirective(locale) +
+            ' Reply only as JSON: { "quote": string }',
         },
         {
           role: "user",
-          content: `Zusammenfassungen frueherer Gespraeche:\n\n${block}`,
+          content: `Recent conversation summaries:\n\n${block}`,
         },
       ],
     })
 
     const parsed = JSON.parse(completion.choices?.[0]?.message?.content || "{}") as { quote?: string }
     const quote = (parsed.quote || "").trim()
-    return Response.json({ quote: quote || FALLBACK_QUOTE })
+    return Response.json({ quote: quote || fallback })
   } catch (error) {
     console.error("[api/buddy/quote] Error:", error)
-    return Response.json({ quote: FALLBACK_QUOTE })
+    const locale = parseLocaleFromRequest(req)
+    return Response.json({ quote: AI_FALLBACKS.buddyQuote[locale] })
   }
 }

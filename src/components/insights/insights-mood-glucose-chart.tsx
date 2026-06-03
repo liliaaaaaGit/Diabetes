@@ -25,7 +25,7 @@ interface InsightsMoodGlucoseChartProps {
 }
 
 export function InsightsMoodGlucoseChart({ data, timeRange }: InsightsMoodGlucoseChartProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { displayUnit, unitSuffix, targetMinMgDl, targetMaxMgDl } = useUserPreferences()
   const chartScale = glucoseChartScale(displayUnit, targetMinMgDl, targetMaxMgDl)
   const [summary, setSummary] = useState<string | null>(null)
@@ -55,7 +55,7 @@ export function InsightsMoodGlucoseChart({ data, timeRange }: InsightsMoodGlucos
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ timeRange }),
+          body: JSON.stringify({ timeRange, locale }),
         })
         const json = (await res.json()) as { summary?: string }
         if (!cancelled && typeof json.summary === "string") {
@@ -70,7 +70,7 @@ export function InsightsMoodGlucoseChart({ data, timeRange }: InsightsMoodGlucos
     return () => {
       cancelled = true
     }
-  }, [timeRange, targetMinMgDl, targetMaxMgDl])
+  }, [timeRange, targetMinMgDl, targetMaxMgDl, locale])
 
   return (
     <InsightsChartFrame

@@ -1,6 +1,9 @@
 import { openai } from "@/lib/openai-server"
 import { createGoal, getConversations, getGoals, updateGoalProgress } from "@/lib/db"
 import { getSessionUserId } from "@/lib/auth-session"
+import type { Locale } from "@/i18n/config"
+import { AI_FALLBACKS, aiOutputLanguageDirective, parseLocaleFromRequest } from "@/lib/app-locale"
+import { localizeConversationMeta } from "@/lib/mock-conversation-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -9,32 +12,44 @@ const PREFIX = "BUDDY_DAILY::"
 
 const todayKey = () => new Date().toISOString().slice(0, 10)
 
-const fallbackGoals = [
-  "Nenne heute einen kleinen Erfolg.",
-  "Atme 3 Mal bewusst tief ein.",
-  "Schreib auf, was dir gut tat.",
-]
+function isTodaysBuddyGoal(description: string, day: string, locale: Locale): boolean {
+  const withLocale = `${PREFIX}${day}::${locale}::`
+  if (description.startsWith(withLocale)) return true
+  if (locale === "de") {
+    const legacy = `${PREFIX}${day}::`
+    return description.startsWith(legacy) && !description.startsWith(`${PREFIX}${day}::en::`)
+  }
+  return false
+}
+
+function goalDescription(day: string, locale: Locale, text: string): string {
+  return `${PREFIX}${day}::${locale}::${text}`
+}
 
 function toResponseGoals(goals: Array<{ id: string; title: string; completedDays: number }>) {
   return goals.map((g) => ({ id: g.id, text: g.title, completed: g.completedDays > 0 }))
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const userId = await getSessionUserId()
     if (!userId) {
       return Response.json({ code: "unauthorized" }, { status: 401 })
     }
 
+    const locale = parseLocaleFromRequest(req)
+    const fallbackGoals = AI_FALLBACKS.buddyGoals[locale]
     const day = todayKey()
     const allGoals = await getGoals(userId)
-    const todays = allGoals.filter((g) => g.description.startsWith(`${PREFIX}${day}::`)).slice(0, 3)
+    const todays = allGoals.filter((g) => isTodaysBuddyGoal(g.description, day, locale)).slice(0, 3)
 
     if (todays.length > 0) {
       return Response.json({ goals: toResponseGoals(todays) })
     }
 
-    const conversations = await getConversations(userId)
+    const conversations = (await getConversations(userId)).map((c) =>
+      localizeConversationMeta(c, locale)
+    )
     const context = conversations
       .filter((c) => !c.isActive && c.summary)
       .slice(0, 5)
@@ -45,7 +60,7 @@ export async function GET() {
       .join("\n")
 
     const generatedTexts = async () => {
-      if (!openai) return fallbackGoals
+      if (!openai) return [...fallbackGoals]
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         temperature: 0.7,
@@ -55,9 +70,14 @@ export async function GET() {
           {
             role: "system",
             content:
-              "Du generierst 3 kleine, machbare Tagesaufgaben fuer emotionales Selbstmanagement bei Diabetes. Die Aufgaben sollen auf den letzten Gespraechen basieren. Die Aufgaben sollen KEINE medizinischen Aufgaben sein (keine Dosierung, keine Messung). Stattdessen: Reflexion, Achtsamkeit, soziale Verbindung, Selbstfuersorge. Kurz und knapp (max 8 Woerter pro Aufgabe). Sprich die Person, wenn ueberhaupt, mit Du an, niemals mit Sie. Antworte als JSON: { goals: [{ text: string }] }. Auf Deutsch.",
+              "Generate 3 small, doable daily tasks for emotional self-management with diabetes. Tasks should build on recent conversations. NO medical tasks (no dosing, no measuring). Instead: reflection, mindfulness, social connection, self-care. Short (max 8 words per task). " +
+              aiOutputLanguageDirective(locale) +
+              ' Reply as JSON: { "goals": [{ "text": string }] }',
           },
-          { role: "user", content: `Letzte Gespraeche: ${context || "Keine Daten vorhanden."}` },
+          {
+            role: "user",
+            content: `Recent conversations: ${context || "No data available."}`,
+          },
         ],
       })
       const parsed = JSON.parse(completion.choices?.[0]?.message?.content || "{}") as {
@@ -67,7 +87,7 @@ export async function GET() {
         .map((g) => (g.text || "").trim())
         .filter(Boolean)
         .slice(0, 3)
-      return cleaned.length === 3 ? cleaned : fallbackGoals
+      return cleaned.length === 3 ? cleaned : [...fallbackGoals]
     }
 
     const texts = await generatedTexts()
@@ -76,7 +96,7 @@ export async function GET() {
         createGoal({
           userId,
           title: text,
-          description: `${PREFIX}${day}::${text}`,
+          description: goalDescription(day, locale, text),
           targetDays: 1,
           active: true,
         })
@@ -86,6 +106,8 @@ export async function GET() {
     return Response.json({ goals: toResponseGoals(created) })
   } catch (error) {
     console.error("[api/buddy/goals] Error:", error)
+    const locale = parseLocaleFromRequest(req)
+    const fallbackGoals = AI_FALLBACKS.buddyGoals[locale]
     return Response.json({
       goals: fallbackGoals.map((text, index) => ({ id: `fallback-${index}`, text, completed: false })),
     })

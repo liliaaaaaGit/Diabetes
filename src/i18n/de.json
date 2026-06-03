@@ -316,6 +316,7 @@
       "signInHint": "Melde dich an, um deine Gluco-Statistik zu sehen."
     },
     "personalQuote": "Für dich heute",
+    "fallbackPersonalQuote": "Du bist nicht allein mit dem, was Diabetes emotional mit sich bringt. Ein kleiner, ehrlicher Schritt zählt.",
     "lastChats": "Letzte Gespräche",
     "viewAllChats": "Alle Gespräche",
     "endChatButton": "Gespräch beenden",
@@ -348,6 +349,7 @@
     "suggestion3": "Über Essensängste sprechen",
     "suggestion4": "Burnout-Gefühle besprechen",
     "placeholder": "Teile deine Gedanken und Gefühle...",
+    "placeholderMobile": "Teile deine Gedanken",
     "typing": "Gluco tippt...",
     "defaultResponse": "Das ist eine interessante Frage. Als Forschungsprototyp kann ich noch keine echten AI-Antworten generieren, aber in der fertigen Version würde ich dir hier eine hilfreiche Antwort geben. Möchtest du noch etwas anderes besprechen?",
     "emotionalResponse": "Ich höre, dass dich das belastet. Es ist völlig verständlich, sich manchmal überwältigt zu fühlen. Möchtest du darüber sprechen, was dir in solchen Momenten hilft?",

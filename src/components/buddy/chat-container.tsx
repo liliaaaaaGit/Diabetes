@@ -28,8 +28,11 @@ export function ChatContainer({
   }, [messages, showTyping])
 
   return (
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4">
-      <div className="space-y-4">
+    <div
+      ref={scrollRef}
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-3 py-4 sm:px-4"
+    >
+      <div className="mt-auto min-h-0 space-y-4">
         {showCrisisBanner && <CrisisBanner />}
 
         {messages.map((message, index) => {

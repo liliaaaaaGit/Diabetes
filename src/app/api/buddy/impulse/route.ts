@@ -1,21 +1,25 @@
 import { openai } from "@/lib/openai-server"
 import { getConversations, getEntries } from "@/lib/db"
 import { getSessionUserId } from "@/lib/auth-session"
+import { AI_FALLBACKS, aiOutputLanguageDirective, parseLocaleFromRequest } from "@/lib/app-locale"
+import { localizeConversationMeta } from "@/lib/mock-conversation-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const FALLBACK_IMPULSE =
-  "Gab es heute einen Moment, in dem dein Diabetes-Alltag anstrengend war? Wenn du magst, sortieren wir gemeinsam, was dir in solchen Situationen hilft."
-
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const userId = await getSessionUserId()
     if (!userId) {
       return Response.json({ code: "unauthorized" }, { status: 401 })
     }
 
-    const conversations = await getConversations(userId)
+    const locale = parseLocaleFromRequest(req)
+    const fallback = AI_FALLBACKS.buddyImpulse[locale]
+
+    const conversations = (await getConversations(userId)).map((c) =>
+      localizeConversationMeta(c, locale)
+    )
     const entries = await getEntries(userId, { limit: 150 })
     const summaries = conversations
       .filter((c) => !c.isActive && c.summary)
@@ -33,7 +37,7 @@ export async function GET() {
       .filter(Boolean)
 
     if (!openai || summaries.length === 0) {
-      return Response.json({ impulse: FALLBACK_IMPULSE })
+      return Response.json({ impulse: fallback })
     }
 
     const completion = await openai.chat.completions.create({
@@ -44,21 +48,23 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Du generierst einen kurzen, einfuehlsamen Tagesimpuls fuer eine Person mit Diabetes. Basierend auf den letzten Gespraechen, formuliere eine einladende Frage oder Reflexion in 1-2 Saetzen. Der Impuls MUSS einen klaren Bezug zum Diabetes-Alltag, zu Diabetes-Emotionen oder zu den letzten Gespraechen haben – vermeide generische Wellness-Floskeln ohne Diabetes-Bezug (keine 'Dankbarkeitspraxis', keine 'Atemuebung'). Sprich die Person IMMER mit 'du' an, niemals mit 'Sie' (verwende du, dein, dir – nie Sie, Ihre, Ihnen). Kein medizinischer Rat, keine Dosierungsempfehlung. Auf Deutsch.",
+            "You generate a short, empathetic daily impulse for a person with diabetes. Based on recent conversations, write an inviting question or reflection in 1–2 sentences. The impulse MUST clearly relate to everyday diabetes, diabetes emotions, or recent chat themes — avoid generic wellness without a diabetes link. No medical advice, no dosing recommendations. " +
+            aiOutputLanguageDirective(locale),
         },
         {
           role: "user",
           content:
-            `Letzte Gespraeche: ${summaries.join(" | ")}\n` +
-            `Kontext aus Daten: hohe Werte (${highCount}), niedrige Werte (${lowCount}), letzte Stimmungsnotizen: ${moodNotes.join(" | ") || "keine"}`,
+            `Recent conversations: ${summaries.join(" | ")}\n` +
+            `Data context: high readings (${highCount}), low readings (${lowCount}), recent mood notes: ${moodNotes.join(" | ") || "none"}`,
         },
       ],
     })
 
-    const impulse = completion.choices?.[0]?.message?.content?.trim() || FALLBACK_IMPULSE
+    const impulse = completion.choices?.[0]?.message?.content?.trim() || fallback
     return Response.json({ impulse })
   } catch (error) {
     console.error("[api/buddy/impulse] Error:", error)
-    return Response.json({ impulse: FALLBACK_IMPULSE })
+    const locale = parseLocaleFromRequest(req)
+    return Response.json({ impulse: AI_FALLBACKS.buddyImpulse[locale] })
   }
 }

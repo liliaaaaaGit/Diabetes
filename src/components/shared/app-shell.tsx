@@ -19,7 +19,10 @@ interface AppShellProps {
 export function AppShell({ children, title, actions, mainClassName, hideFooter = false }: AppShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50">
+    <div
+      data-app-shell
+      className="overflow-x-hidden bg-slate-50 max-md:flex max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:flex-col max-md:overflow-hidden md:min-h-screen"
+    >
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar />
@@ -36,8 +39,9 @@ export function AppShell({ children, title, actions, mainClassName, hideFooter =
       {/* Main Content Area */}
       <div
         className={cn(
-          "flex min-h-screen min-h-[100dvh] flex-col transition-all duration-200",
-          "md:ml-[280px]" // Desktop: offset by sidebar width
+          "flex min-h-0 flex-1 flex-col transition-all duration-200",
+          "max-md:h-full max-md:overflow-hidden",
+          "md:ml-[280px] md:min-h-screen md:h-auto md:overflow-visible" // Desktop: offset by sidebar width
         )}
       >
         {/* Header */}
@@ -50,8 +54,9 @@ export function AppShell({ children, title, actions, mainClassName, hideFooter =
         {/* Content */}
         <main
           className={cn(
-            "mx-auto flex w-full min-w-0 max-w-7xl flex-1 flex-col px-4 py-4",
-            "pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:px-6 md:py-6 md:pb-14",
+            "mx-auto flex w-full min-w-0 max-w-7xl min-h-0 flex-1 flex-col px-4 py-4",
+            "max-md:overflow-y-auto max-md:overscroll-y-contain",
+            "pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:overflow-visible md:px-6 md:py-6 md:pb-14",
             mainClassName
           )}
         >

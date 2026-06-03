@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export function Header({ title, actions, onMenuClick }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white border-b border-slate-200">
+    <header className="sticky top-0 z-30 h-16 shrink-0 bg-white border-b border-slate-200">
       <div className="h-full flex items-center justify-between px-4 md:px-6">
         {/* Mobile: Hamburger + Title, Desktop: Title only */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
