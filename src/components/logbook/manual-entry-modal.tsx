@@ -45,7 +45,7 @@ interface ManualEntryModalProps {
 type EntryMode = "quick" | "detailed"
 
 const typeTabClass =
-  "flex min-h-[44px] min-w-[4.25rem] shrink-0 flex-col gap-1 py-2 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+  "flex min-h-[52px] w-full flex-col items-center justify-center gap-1.5 rounded-lg px-1 py-2.5 text-center text-slate-600 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
 
 const desktopOverlayGuardProps = {
   onPointerDownOutside: (e: Event) => {
@@ -55,6 +55,9 @@ const desktopOverlayGuardProps = {
     if (shouldPreventRadixOverlayDismiss(e)) e.preventDefault()
   },
 }
+
+const sheetHeightClass = "h-[min(92dvh,100dvh)] max-h-[min(92dvh,100dvh)]"
+const dialogHeightClass = "h-[min(90dvh,900px)] max-h-[min(90dvh,900px)]"
 
 /**
  * Manual logbook entry (quick + detailed).
@@ -186,8 +189,47 @@ export function ManualEntryModal({
     </div>
   ) : null
 
+  const entryTypeTabs = (
+    <Tabs
+      value={entryType}
+      onValueChange={(v) => {
+        setEntryType(v as EntryType)
+        setEntryData({
+          type: v as EntryType,
+          timestamp: new Date().toISOString(),
+          source: "manual",
+          userId: "user-001",
+        })
+      }}
+      className="shrink-0"
+    >
+      <TabsList className="grid h-auto w-full grid-cols-5 gap-2 rounded-xl bg-slate-100 p-2">
+        <TabsTrigger value="glucose" className={typeTabClass}>
+          <Droplet className="h-4 w-4 shrink-0" />
+          <span className="text-[11px] leading-tight">{t("common.glucose")}</span>
+        </TabsTrigger>
+        <TabsTrigger value="insulin" className={typeTabClass}>
+          <Syringe className="h-4 w-4 shrink-0" />
+          <span className="text-[11px] leading-tight">{t("common.insulin")}</span>
+        </TabsTrigger>
+        <TabsTrigger value="meal" className={typeTabClass}>
+          <UtensilsCrossed className="h-4 w-4 shrink-0" />
+          <span className="text-[11px] leading-tight">{t("common.meal")}</span>
+        </TabsTrigger>
+        <TabsTrigger value="activity" className={typeTabClass}>
+          <Activity className="h-4 w-4 shrink-0" />
+          <span className="text-[11px] leading-tight">{t("common.activity")}</span>
+        </TabsTrigger>
+        <TabsTrigger value="mood" className={typeTabClass}>
+          <Heart className="h-4 w-4 shrink-0" />
+          <span className="text-[11px] leading-tight">{t("common.mood")}</span>
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
+  )
+
   const detailedFooter = (
-    <div className="flex gap-3">
+    <div className="flex shrink-0 gap-3 border-t border-slate-200 bg-background pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <Button variant="outline" onClick={onClose} className="min-h-[44px] flex-1">
         {t("common.cancel")}
       </Button>
@@ -197,72 +239,31 @@ export function ManualEntryModal({
     </div>
   )
 
-  const detailedBody = (
-    <>
-      <div className="-mx-1 shrink-0 overflow-x-auto px-1 pb-1">
-        <Tabs
-          value={entryType}
-          onValueChange={(v) => {
-            setEntryType(v as EntryType)
-            setEntryData({
-              type: v as EntryType,
-              timestamp: new Date().toISOString(),
-              source: "manual",
-              userId: "user-001",
-            })
-          }}
-        >
-          <TabsList className="inline-flex h-auto w-max min-w-full gap-1 bg-slate-100 p-1">
-            <TabsTrigger value="glucose" className={typeTabClass}>
-              <Droplet className="h-4 w-4" />
-              <span className="text-xs">{t("common.glucose")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="insulin" className={typeTabClass}>
-              <Syringe className="h-4 w-4" />
-              <span className="text-xs">{t("common.insulin")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="meal" className={typeTabClass}>
-              <UtensilsCrossed className="h-4 w-4" />
-              <span className="text-xs">{t("common.meal")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="activity" className={typeTabClass}>
-              <Activity className="h-4 w-4" />
-              <span className="text-xs">{t("common.activity")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="mood" className={typeTabClass}>
-              <Heart className="h-4 w-4" />
-              <span className="text-xs">{t("common.mood")}</span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+  const renderBody = () => {
+    if (mode === "quick" && onQuickSave) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {modeTabs}
+          <QuickEntryForm
+            defaultBolusName={defaultBolusName}
+            onSubmit={handleQuickSave}
+            onCancel={onClose}
+          />
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {modeTabs}
+        <div className="mb-4 shrink-0">{entryTypeTabs}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
+          {renderForm()}
+        </div>
+        {detailedFooter}
       </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 [-webkit-overflow-scrolling:touch]">
-        {renderForm()}
-      </div>
-    </>
-  )
-
-  const content = (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {modeTabs}
-
-      {mode === "quick" && onQuickSave ? (
-        <QuickEntryForm
-          defaultBolusName={defaultBolusName}
-          onSubmit={handleQuickSave}
-          onCancel={onClose}
-        />
-      ) : (
-        <>
-          <div className="flex min-h-0 flex-1 flex-col">{detailedBody}</div>
-          <div className="mt-4 shrink-0 border-t border-slate-200 bg-background pt-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-            {detailedFooter}
-          </div>
-        </>
-      )}
-    </div>
-  )
+    )
+  }
 
   if (!open || !mounted) return null
 
@@ -282,8 +283,10 @@ export function ManualEntryModal({
           aria-label={t("common.close")}
           onClick={onClose}
         />
-        <div className="relative flex max-h-[min(92dvh,100%)] w-full shrink-0 flex-col overflow-hidden rounded-t-2xl bg-background px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-6 shadow-xl touch-manipulation">
-          <div className="flex shrink-0 items-center justify-between pb-4">
+        <div
+          className={`relative flex w-full shrink-0 flex-col overflow-hidden rounded-t-2xl bg-background px-4 shadow-xl touch-manipulation ${sheetHeightClass}`}
+        >
+          <div className="flex shrink-0 items-center justify-between pb-3 pt-5">
             <h2 id="manual-entry-modal-title" className="text-lg font-semibold text-slate-900">
               {modalTitle}
             </h2>
@@ -298,7 +301,7 @@ export function ManualEntryModal({
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{content}</div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-2">{renderBody()}</div>
         </div>
       </div>,
       document.body
@@ -314,13 +317,13 @@ export function ManualEntryModal({
       modal
     >
       <DialogContent
-        className="manual-entry-modal-root flex max-h-[min(90dvh,900px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
+        className={`manual-entry-modal-root flex ${dialogHeightClass} max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl`}
         {...desktopOverlayGuardProps}
       >
         <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-4">
           <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-4">{content}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-4">{renderBody()}</div>
       </DialogContent>
     </Dialog>
   )
